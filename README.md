@@ -1,11 +1,17 @@
 
-  # Elegant Simple Portfolio
+# Portfolio Repository
 
-  This is a code bundle for Elegant Simple Portfolio. The original project is available at https://www.figma.com/design/m3JIC3y39ywA1sdaVdUUAv/Elegant-Simple-Portfolio.
+This repository contains my portfolio / CV website.
 
-  ## Running the code
+It reflects my professional profile, experience, skills, and personal projects in a clean, resume-style layout.
 
-  Run `npm i` to install the dependencies.
+## GitHub Pages deployment
 
-  Run `npm run dev` to start the development server.
+This repository is now configured to publish as the GitHub Pages root site for the user `hazem-alabiad`.
+
+The public URL is:
+
+`https://hazem-alabiad.github.io`
+
+Push your changes to the `main` branch and the existing GitHub Actions workflow will build and deploy the site automatically.
   
