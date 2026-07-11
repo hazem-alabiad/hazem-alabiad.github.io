@@ -40,13 +40,11 @@ jobs:
           mkdir -p docs
           cp -r dist/* docs/
 
-      - name: Configure GitHub Pages source
-        run: |
-          curl -L -X PUT \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            https://api.github.com/repos/$GITHUB_REPOSITORY/pages \
-            -d '{"source":{"branch":"main","path":"/docs"}}'
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v4
+        with:
+          source: main
+          path: /docs
 
       - name: Commit built site
         run: |
