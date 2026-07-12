@@ -411,11 +411,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const storageValue = window.localStorage.getItem("hazem-portfolio-edit");
     setCanEditContent(canShowEditContent({
       hostname: window.location.hostname,
       search: window.location.search,
-      storageValue,
+      storageValue: null,
     }));
   }, []);
 

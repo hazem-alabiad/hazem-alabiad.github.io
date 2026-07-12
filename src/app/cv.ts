@@ -18,10 +18,6 @@ export interface EditContentAccessContext {
   storageValue: string | null;
 }
 
-export function canShowEditContent({ hostname, search, storageValue }: EditContentAccessContext) {
-  const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1" || hostname.endsWith(".local");
-  const hasOwnerQuery = new URLSearchParams(search).get("owner") === "hazem";
-  const hasOverride = storageValue === "true";
-
-  return isLocalhost || hasOwnerQuery || hasOverride;
+export function canShowEditContent({ hostname }: EditContentAccessContext) {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname.endsWith(".local");
 }

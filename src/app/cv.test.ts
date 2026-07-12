@@ -14,10 +14,9 @@ describe("CV link helpers", () => {
     expect(resolveCvName(hero, "fallback.pdf")).toBe("resume.pdf");
   });
 
-  it("shows edit content only for the owner on local or explicit owner access", () => {
+  it("shows edit content only on local development hosts", () => {
     expect(canShowEditContent({ hostname: "localhost", search: "", storageValue: null })).toBe(true);
-    expect(canShowEditContent({ hostname: "example.com", search: "", storageValue: null })).toBe(false);
-    expect(canShowEditContent({ hostname: "example.com", search: "?owner=hazem", storageValue: null })).toBe(true);
-    expect(canShowEditContent({ hostname: "example.com", search: "", storageValue: "true" })).toBe(true);
+    expect(canShowEditContent({ hostname: "127.0.0.1", search: "", storageValue: null })).toBe(true);
+    expect(canShowEditContent({ hostname: "hazem-alabiad.github.io", search: "?owner=hazem", storageValue: "true" })).toBe(false);
   });
 });
