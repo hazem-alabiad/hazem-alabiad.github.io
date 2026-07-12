@@ -1,16 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ChangeEvent } from "react";
 import {
   Github, Linkedin, Mail, MapPin, Edit3, X, Plus, Trash2,
   ArrowUpRight, Download, RotateCcw,
 } from "lucide-react";
 import profilePhoto from "@/imports/IMG_0323.jpeg";
 import cvAsset from "@/imports/Hazem-Alabiad-CV.pdf?url";
+import { canShowEditContent, resolveCvHref, resolveCvName } from "./cv";
 
 /* ─── Types ─────────────────────────────────────────────── */
 interface HeroContent {
   name: string; tagline: string; location: string; bio: string;
   researchFocus: string; email: string; phone: string;
   github: string; linkedin: string; cvUrl: string;
+  cvFileData?: string; cvFileName?: string;
 }
 interface ExpItem {
   id: string; role: string; company: string; location: string;
@@ -168,6 +170,31 @@ function ContentManager({ content, onChange, onClose, onReset }: {
   const upHero = (k: keyof HeroContent, v: string) =>
     onChange({ ...content, hero: { ...content.hero, [k]: v } });
 
+  const handleCvUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      alert("Please choose a PDF file for your CV.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = typeof reader.result === "string" ? reader.result : "";
+      onChange({
+        ...content,
+        hero: {
+          ...content.hero,
+          cvFileData: dataUrl,
+          cvFileName: file.name,
+          cvUrl: "",
+        },
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
   const upExp = (id: string, k: keyof Omit<ExpItem, "id" | "bullets">, v: string) =>
     onChange({ ...content, experience: content.experience.map(e => e.id === id ? { ...e, [k]: v } : e) });
   const upExpBullets = (id: string, v: string) =>
@@ -251,6 +278,27 @@ function ContentManager({ content, onChange, onClose, onReset }: {
             <Field label="GitHub" value={content.hero.github} onChange={v => upHero("github", v)} />
             <Field label="LinkedIn" value={content.hero.linkedin} onChange={v => upHero("linkedin", v)} />
             <Field label="CV / Resume URL" value={content.hero.cvUrl} onChange={v => upHero("cvUrl", v)} />
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-[0.2em] text-[#6b6b82]" style={MONO}>CV / Resume File</label>
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={handleCvUpload}
+                className="w-full rounded border border-white/10 bg-white/5 px-3 py-2 text-sm text-[#d4d4e0] file:mr-3 file:rounded file:border-0 file:bg-[#5eead4] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[#09090f]"
+              />
+              {content.hero.cvFileName && (
+                <p className="text-xs text-[#6b6b82]">Uploaded: {content.hero.cvFileName}</p>
+              )}
+              {content.hero.cvFileData && (
+                <button
+                  type="button"
+                  onClick={() => onChange({ ...content, hero: { ...content.hero, cvFileData: "", cvFileName: "", cvUrl: "" } })}
+                  className="text-xs text-[#6b6b82] transition-colors hover:text-red-400"
+                >
+                  Clear uploaded CV
+                </button>
+              )}
+            </div>
           </>}
 
           {tab === "experience" && <div className="space-y-5">
@@ -349,6 +397,7 @@ export default function App() {
   });
   const [cmsOpen, setCmsOpen] = useState(false);
   const [visitCount, setVisitCount] = useState<number | null>(null);
+  const [canEditContent, setCanEditContent] = useState(false);
 
   useEffect(() => {
     try { localStorage.setItem("hazem-portfolio", JSON.stringify(content)); } catch {}
@@ -360,6 +409,38 @@ export default function App() {
       .then(d => setVisitCount(d.count))
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    const storageValue = window.localStorage.getItem("hazem-portfolio-edit");
+    setCanEditContent(canShowEditContent({
+      hostname: window.location.hostname,
+      search: window.location.search,
+      storageValue,
+    }));
+  }, []);
+
+  useEffect(() => {
+    const title = `${hero.name} • Hazem Alabiad Portfolio`;
+    document.title = title;
+
+    const description = `${hero.bio.replace(/\s+/g, " ").trim().slice(0, 155)}${hero.bio.length > 155 ? "…" : ""}`;
+    const descriptionMeta = document.querySelector('meta[name="description"]');
+    if (descriptionMeta) {
+      descriptionMeta.setAttribute("content", description);
+    }
+
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute("content", title);
+
+    const ogDescription = document.querySelector('meta[property="og:description"]');
+    if (ogDescription) ogDescription.setAttribute("content", description);
+
+    const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    if (twitterTitle) twitterTitle.setAttribute("content", title);
+
+    const twitterDescription = document.querySelector('meta[name="twitter:description"]');
+    if (twitterDescription) twitterDescription.setAttribute("content", description);
+  }, [hero.bio, hero.name]);
 
   const handleReset = () => {
     if (confirm("Reset all content to defaults?")) {
@@ -422,7 +503,7 @@ export default function App() {
                   style={{ background: "#5eead4", color: "#09090f", border: "none" }}>
                   <Mail size={14} /> Get in touch
                 </a>
-                <a href={cvAsset} download="Hazem-Alabiad-CV.pdf"
+                <a href={resolveCvHref(hero, cvAsset)} download={resolveCvName(hero, "Hazem-Alabiad-CV.pdf")}
                   className="flex items-center gap-2 px-4 py-2 rounded border text-sm transition-all hover:border-white/25 hover:text-[#d4d4e0]"
                   style={{ borderColor: "oklch(1 0 0 / 0.12)", color: "#9494a8" }}>
                   <Download size={14} /> Download CV
@@ -445,7 +526,7 @@ export default function App() {
                 style={{ boxShadow: "0 0 0 1.5px rgba(94,234,212,0.35), 0 0 32px rgba(94,234,212,0.08)" }}>
                 <img
                   src={profilePhoto}
-                  alt="Hazem Alabiad"
+                  alt={hero.name}
                   className="w-full h-full object-cover"
                   style={{ objectPosition: "center 4%", filter: "brightness(0.92) contrast(1.04) saturate(0.88)" }}
                 />
@@ -637,11 +718,13 @@ export default function App() {
       )}
 
       {/* Floating Edit Button */}
-      <button onClick={() => setCmsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-2.5 rounded-full text-[12px] font-medium transition-all hover:scale-105 active:scale-95"
-        style={{ ...MONO, background: "#5eead4", color: "#09090f", boxShadow: "0 0 24px rgba(94,234,212,0.2)" }}>
-        <Edit3 size={13} /> Edit Content
-      </button>
+      {canEditContent && (
+        <button onClick={() => setCmsOpen(true)}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-2.5 rounded-full text-[12px] font-medium transition-all hover:scale-105 active:scale-95"
+          style={{ ...MONO, background: "#5eead4", color: "#09090f", boxShadow: "0 0 24px rgba(94,234,212,0.2)" }}>
+          <Edit3 size={13} /> Edit Content
+        </button>
+      )}
     </div>
   );
 }
