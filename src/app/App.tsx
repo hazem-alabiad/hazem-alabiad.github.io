@@ -754,8 +754,8 @@ export default function App() {
         <ContentManager content={content} onChange={setContent} onClose={() => setCmsOpen(false)} onReset={handleReset} />
       )}
 
-      {/* Floating Edit Button */}
-      {canEditContent && (
+      {/* Floating Edit Button (owner-only) */}
+      {isOwnerSignedIn && (
         <button onClick={() => setCmsOpen(true)}
           className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-2.5 rounded-full text-[12px] font-medium transition-all hover:scale-105 active:scale-95"
           style={{ ...MONO, background: "#5eead4", color: "#09090f", boxShadow: "0 0 24px rgba(94,234,212,0.2)" }}>
