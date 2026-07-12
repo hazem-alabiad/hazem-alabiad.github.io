@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import profilePhoto from "@/imports/IMG_0323.jpeg";
 import cvAsset from "@/imports/Hazem-Alabiad-CV.pdf?url";
-import { canShowEditContent, resolveCvHref, resolveCvName } from "./cv";
+import { canShowEditContent, OWNER_GITHUB_USERNAME, resolveCvHref, resolveCvName, verifyOwnerGitHubToken } from "./cv";
 
 /* ─── Types ─────────────────────────────────────────────── */
 interface HeroContent {
@@ -277,9 +277,9 @@ function ContentManager({ content, onChange, onClose, onReset }: {
             <Field label="Phone" value={content.hero.phone} onChange={v => upHero("phone", v)} />
             <Field label="GitHub" value={content.hero.github} onChange={v => upHero("github", v)} />
             <Field label="LinkedIn" value={content.hero.linkedin} onChange={v => upHero("linkedin", v)} />
-            <Field label="CV / Resume URL" value={content.hero.cvUrl} onChange={v => upHero("cvUrl", v)} />
             <div className="space-y-2">
               <label className="text-[10px] uppercase tracking-[0.2em] text-[#6b6b82]" style={MONO}>CV / Resume File</label>
+              <p className="text-xs text-[#6b6b82]">Upload your CV as a PDF file. The site will store it and offer it as a download.</p>
               <input
                 type="file"
                 accept="application/pdf"
@@ -398,6 +398,9 @@ export default function App() {
   const [cmsOpen, setCmsOpen] = useState(false);
   const [visitCount, setVisitCount] = useState<number | null>(null);
   const [canEditContent, setCanEditContent] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [signInError, setSignInError] = useState<string | null>(null);
+  const [isOwnerSignedIn, setIsOwnerSignedIn] = useState(false);
 
   useEffect(() => {
     try { localStorage.setItem("hazem-portfolio", JSON.stringify(content)); } catch {}
@@ -411,11 +414,22 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    setCanEditContent(canShowEditContent({
-      hostname: window.location.hostname,
-      search: window.location.search,
-      storageValue: null,
-    }));
+    const token = window.localStorage.getItem("github-owner-token");
+    if (!token) {
+      setCanEditContent(canShowEditContent({ hostname: window.location.hostname, isSignedIn: false }));
+      return;
+    }
+
+    void (async () => {
+      const result = await verifyOwnerGitHubToken(token);
+      if (result.ok && result.login === OWNER_GITHUB_USERNAME) {
+        setIsOwnerSignedIn(true);
+        setCanEditContent(true);
+      } else {
+        window.localStorage.removeItem("github-owner-token");
+        setCanEditContent(canShowEditContent({ hostname: window.location.hostname, isSignedIn: false }));
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -446,6 +460,29 @@ export default function App() {
       setContent(seed);
       localStorage.removeItem("hazem-portfolio");
     }
+  };
+
+  const handleSignIn = async () => {
+    const token = window.prompt("Paste your GitHub personal access token");
+    if (!token) return;
+
+    setIsSigningIn(true);
+    setSignInError(null);
+    const result = await verifyOwnerGitHubToken(token);
+    if (result.ok && result.login === OWNER_GITHUB_USERNAME) {
+      window.localStorage.setItem("github-owner-token", token);
+      setIsOwnerSignedIn(true);
+      setCanEditContent(true);
+    } else {
+      setSignInError("Only the portfolio owner can edit this content.");
+    }
+    setIsSigningIn(false);
+  };
+
+  const handleSignOut = () => {
+    window.localStorage.removeItem("github-owner-token");
+    setIsOwnerSignedIn(false);
+    setCanEditContent(canShowEditContent({ hostname: window.location.hostname, isSignedIn: false }));
   };
 
   const { hero, experience, projects, skills, education, languages } = content;
@@ -723,6 +760,27 @@ export default function App() {
           style={{ ...MONO, background: "#5eead4", color: "#09090f", boxShadow: "0 0 24px rgba(94,234,212,0.2)" }}>
           <Edit3 size={13} /> Edit Content
         </button>
+      )}
+
+      {!isOwnerSignedIn && !canEditContent && (
+        <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full border px-4 py-2.5 text-[12px]" style={{ ...MONO, background: "#111119", borderColor: "oklch(1 0 0 / 0.12)", color: "#d4d4e0" }}>
+          <span>Owner access only</span>
+          <button onClick={handleSignIn} disabled={isSigningIn} className="rounded-full bg-[#5eead4] px-3 py-1 text-[11px] font-medium text-[#09090f] disabled:opacity-60">
+            {isSigningIn ? "Checking…" : "Sign in"}
+          </button>
+        </div>
+      )}
+
+      {isOwnerSignedIn && (
+        <button onClick={handleSignOut} className="fixed bottom-6 left-6 z-40 rounded-full border px-3 py-2 text-[11px]" style={{ ...MONO, background: "#111119", borderColor: "oklch(1 0 0 / 0.12)", color: "#d4d4e0" }}>
+          Sign out
+        </button>
+      )}
+
+      {signInError && (
+        <div className="fixed bottom-20 right-6 z-40 max-w-xs rounded-lg border px-3 py-2 text-[11px]" style={{ ...MONO, background: "#111119", borderColor: "oklch(1 0 0 / 0.14)", color: "#fda4af" }}>
+          {signInError}
+        </div>
       )}
     </div>
   );
