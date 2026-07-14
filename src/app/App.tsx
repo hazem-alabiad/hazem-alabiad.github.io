@@ -1,11 +1,15 @@
-import { useState, useEffect, type ChangeEvent } from "react";
+import { useState, useEffect, useRef, type ChangeEvent } from "react";
 import {
   Github, Linkedin, Mail, MapPin,
-  ArrowUpRight, Download,
+  ArrowUpRight, Download, Settings,
 } from "lucide-react";
 import profilePhoto from "@/imports/IMG_0323.jpeg";
 import cvAsset from "@/imports/Hazem-Alabiad-CV.pdf?url";
 import { resolveCvHref, resolveCvName } from "./cv";
+import CmsPanel from "./components/CmsPanel";
+
+const OWNER = "hazem-alabiad";
+const TOKEN_KEY = "cms_gh_token";
 
 /* ─── Types ─────────────────────────────────────────────── */
 interface HeroContent {
@@ -129,31 +133,42 @@ function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode
 /* ─── Main App ───────────────────────────────────────────── */
 export default function App() {
   const [visitCount, setVisitCount] = useState<number | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
+  const [cmsOpen, setCmsOpen] = useState(false);
 
+  // Check if the stored token belongs to the owner (no page reload needed)
   useEffect(() => {
+    const stored = localStorage.getItem(TOKEN_KEY);
+    if (!stored) return;
+    fetch("https://api.github.com/user", {
+      headers: { Authorization: `Bearer ${stored}`, Accept: "application/vnd.github+json" },
+    })
+      .then(r => r.json())
+      .then(u => { if (u.login === OWNER) setIsOwner(true); })
+      .catch(() => {});
+  }, []);
+
+  // Only count visits from non-owners
+  useEffect(() => {
+    if (isOwner) return;
     fetch("https://api.counterapi.dev/v1/hazem-alabiad/portfolio/up")
       .then(r => r.json())
       .then(d => setVisitCount(d.count))
       .catch(() => {});
-  }, []);
+  }, [isOwner]);
 
   useEffect(() => {
     const title = `${seed.hero.name} • Hazem Alabiad Portfolio`;
     document.title = title;
-
     const description = `${seed.hero.bio.replace(/\s+/g, " ").trim().slice(0, 155)}${seed.hero.bio.length > 155 ? "…" : ""}`;
     const descriptionMeta = document.querySelector('meta[name="description"]');
     if (descriptionMeta) descriptionMeta.setAttribute("content", description);
-
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) ogTitle.setAttribute("content", title);
-
     const ogDescription = document.querySelector('meta[property="og:description"]');
     if (ogDescription) ogDescription.setAttribute("content", description);
-
     const twitterTitle = document.querySelector('meta[name="twitter:title"]');
     if (twitterTitle) twitterTitle.setAttribute("content", title);
-
     const twitterDescription = document.querySelector('meta[name="twitter:description"]');
     if (twitterDescription) twitterDescription.setAttribute("content", description);
   }, []);
@@ -402,7 +417,7 @@ export default function App() {
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <p className="text-xs" style={{ ...MONO, color: "#6b6b82" }}>© 2026 {hero.name}</p>
-            {visitCount !== null && (
+            {!isOwner && visitCount !== null && (
               <span className="flex items-center gap-1.5 text-xs" style={{ ...MONO, color: "#4a4a60" }}>
                 <span className="w-1 h-1 rounded-full inline-block" style={{ background: "#5eead4", opacity: 0.5 }} />
                 {visitCount.toLocaleString()} visits
@@ -416,6 +431,27 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* ── CMS Floating Button (owner only) ─────────────── */}
+      <button
+        onClick={() => setCmsOpen(o => !o)}
+        title="CMS Panel"
+        style={{
+          position: "fixed", bottom: 24, right: 24, zIndex: 9998,
+          width: 44, height: 44, borderRadius: "50%",
+          background: cmsOpen ? "#5eead4" : "#111119",
+          border: "1px solid rgba(94,234,212,0.35)",
+          color: cmsOpen ? "#09090f" : "#5eead4",
+          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+          transition: "all 0.2s ease",
+        }}
+      >
+        <Settings size={18} />
+      </button>
+
+      {/* ── CMS Panel ────────────────────────────────────── */}
+      {cmsOpen && <CmsPanel onClose={() => setCmsOpen(false)} />}
 
     </div>
   );
