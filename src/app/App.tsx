@@ -763,26 +763,21 @@ export default function App() {
         </button>
       )}
 
-      {showOwnerControls && !isOwnerSignedIn && !canEditContent && (
-        <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full border px-4 py-2.5 text-[12px]" style={{ ...MONO, background: "#111119", borderColor: "oklch(1 0 0 / 0.12)", color: "#d4d4e0" }}>
-          <span>Owner access only</span>
-          <button onClick={handleSignIn} disabled={isSigningIn} className="rounded-full bg-[#5eead4] px-3 py-1 text-[11px] font-medium text-[#09090f] disabled:opacity-60">
-            {isSigningIn ? "Checking…" : "Sign in"}
+      {/* Sign-in prompt — shown whenever the owner is not yet authenticated */}
+      {!isOwnerSignedIn && (
+        <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full border px-4 py-2.5 text-[12px]"
+          style={{ ...MONO, background: "#0c0c13", borderColor: "oklch(1 0 0 / 0.12)", color: "#6b6b82" }}>
+          {signInError && <span className="text-red-400 text-[11px]">{signInError}</span>}
+          <button
+            onClick={handleSignIn}
+            disabled={isSigningIn}
+            className="transition-colors hover:text-[#5eead4] disabled:opacity-50"
+          >
+            {isSigningIn ? "Verifying…" : "Owner sign-in"}
           </button>
         </div>
       )}
 
-      {isOwnerSignedIn && (
-        <button onClick={handleSignOut} className="fixed bottom-6 left-6 z-40 rounded-full border px-3 py-2 text-[11px]" style={{ ...MONO, background: "#111119", borderColor: "oklch(1 0 0 / 0.12)", color: "#d4d4e0" }}>
-          Sign out
-        </button>
-      )}
-
-      {signInError && (
-        <div className="fixed bottom-20 right-6 z-40 max-w-xs rounded-lg border px-3 py-2 text-[11px]" style={{ ...MONO, background: "#111119", borderColor: "oklch(1 0 0 / 0.14)", color: "#fda4af" }}>
-          {signInError}
-        </div>
-      )}
     </div>
   );
 }
