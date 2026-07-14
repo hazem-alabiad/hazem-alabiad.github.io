@@ -156,15 +156,15 @@ export default function App() {
     const key = "hazem-alabiad.github.io/portfolio";
     if (isOwner) {
       // Owner: fetch current count without incrementing
-      fetch(`${base}/get/${key}`)
+      fetch(`${base}/api/v1/get/${key}`)
         .then(r => r.json())
-        .then(d => { if (typeof d.value === "number") setVisitCount(d.value); })
+        .then(d => { if (typeof d.value !== "undefined") setVisitCount(Number(d.value)); })
         .catch(() => {});
     } else {
       // Visitor: increment and show updated count
-      fetch(`${base}/hit/${key}`)
+      fetch(`${base}/api/v1/hit/${key}`)
         .then(r => r.json())
-        .then(d => { if (typeof d.value === "number") setVisitCount(d.value); })
+        .then(d => { if (typeof d.value !== "undefined") setVisitCount(Number(d.value)); })
         .catch(() => {});
     }
   }, [ownerChecked, isOwner]);
