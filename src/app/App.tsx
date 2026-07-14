@@ -114,7 +114,6 @@ function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode
 
 /* ─── Main App ───────────────────────────────────────────── */
 export default function App() {
-  // ✅ ALL hooks declared at top level — no hooks after conditional returns
   const [hash, setHash] = useState(() => window.location.hash);
   const [visitCount, setVisitCount] = useState<number | null>(null);
   const [isOwner, setIsOwner] = useState(false);
@@ -127,7 +126,6 @@ export default function App() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  // Check owner — set ownerChecked=true once resolved either way
   useEffect(() => {
     const stored = localStorage.getItem(TOKEN_KEY);
     if (!stored) { setOwnerChecked(true); return; }
@@ -140,7 +138,6 @@ export default function App() {
       .finally(() => setOwnerChecked(true));
   }, []);
 
-  // Load content.json from GitHub (raw)
   useEffect(() => {
     fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/main/${CONTENT_PATH}`)
       .then(r => r.json())
@@ -148,25 +145,16 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  // ✅ Visitor counter — always fetch current count to display it.
-  // Only call /hit (increment) if NOT the owner. Owner sees count but doesn't increment it.
+  // Key must be a flat string — no slashes (slashes break the API router)
   useEffect(() => {
     if (!ownerChecked) return;
     const base = "https://countapi.mileshilliard.com";
-    const key = "hazem-alabiad.github.io/portfolio";
-    if (isOwner) {
-      // Owner: fetch current count without incrementing
-      fetch(`${base}/api/v1/get/${key}`)
-        .then(r => r.json())
-        .then(d => { if (typeof d.value !== "undefined") setVisitCount(Number(d.value)); })
-        .catch(() => {});
-    } else {
-      // Visitor: increment and show updated count
-      fetch(`${base}/api/v1/hit/${key}`)
-        .then(r => r.json())
-        .then(d => { if (typeof d.value !== "undefined") setVisitCount(Number(d.value)); })
-        .catch(() => {});
-    }
+    const key = "hazem-alabiad_portfolio";
+    const endpoint = isOwner ? `${base}/api/v1/get/${key}` : `${base}/api/v1/hit/${key}`;
+    fetch(endpoint)
+      .then(r => r.json())
+      .then(d => { if (d.value !== undefined) setVisitCount(Number(d.value)); })
+      .catch(() => {});
   }, [ownerChecked, isOwner]);
 
   useEffect(() => {
@@ -178,7 +166,6 @@ export default function App() {
     document.querySelector('meta[property="og:description"]')?.setAttribute("content", desc);
   }, [data.hero]);
 
-  // ✅ CMS switch AFTER all hooks
   if (hash === "#/cms") return <CmsPage onExit={() => { window.location.hash = ""; setHash(""); }} />;
 
   const { hero, experience, projects, skills, education, languages } = data;
