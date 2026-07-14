@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   Github, Linkedin, Mail, MapPin,
-  ArrowUpRight, Download, Settings,
+  ArrowUpRight, Download, Settings, Briefcase, GraduationCap, Code2, Globe,
 } from "lucide-react";
 import profilePhoto from "@/imports/IMG_0323.jpeg";
 import cvAsset from "@/imports/Hazem-Alabiad-CV.pdf?url";
@@ -13,7 +13,6 @@ const REPO = "hazem-alabiad.github.io";
 const CONTENT_PATH = "src/app/content.json";
 const TOKEN_KEY = "cms_gh_token";
 
-/* ─── Types ─────────────────────────────────────────────── */
 interface HeroContent {
   name: string; tagline: string; location: string; bio: string;
   researchFocus: string; email: string; phone: string;
@@ -34,13 +33,12 @@ interface SiteContent {
   languages: LangItem[];
 }
 
-/* ─── Seed (fallback) ────────────────────────────────────── */
 const seed: SiteContent = {
   hero: {
     name: "Hazem Alabiad",
     tagline: "Full-Stack Engineer · AI · NLP · LLM Research",
     location: "Tübingen, Germany",
-    bio: "Software Engineer with 6+ years of experience building production-ready, maintainable systems and pixel-perfect UIs using React, Next.js, TypeScript, and modern tooling. Experienced in leading cross-functional teams, improving developer experience, and delivering design-driven applications at scale. Currently pursuing an M.A. in Computational Linguistics at the University of Tübingen and working as a Student Assistant at IWM & the Autonomous Learning Lab (Uni Tübingen), focusing on AI, ML, LLMs, NLP, and Cognitive Science — bridging software engineering and intelligent systems. Open to Working Student & internship roles in NLP, AI/ML, and LLMs — Tübingen, Stuttgart, or remote.",
+    bio: "Software Engineer with 6+ years of experience building production-ready systems and pixel-perfect UIs. Currently pursuing an M.A. in Computational Linguistics at the University of Tübingen, focusing on AI, LLMs, NLP, and Cognitive Science.",
     researchFocus: "Corpus Linguistics · Large Language Models · Cognitive Science · NLP",
     email: "hazem.alabiad@icloud.com",
     phone: "+49 157 544 46942",
@@ -51,11 +49,11 @@ const seed: SiteContent = {
   experience: [
     { id: "e1", role: "Research Assistant", company: "University of Tübingen", location: "Tübingen, Germany", period: "Jul 2026 – Present", bullets: ["LLM-based AI tutor for university lectures"] },
     { id: "e2", role: "Research Assistant", company: "Leibniz-Institut für Wissensmedien (IWM)", location: "Tübingen, Germany", period: "Jul 2026 – Present", bullets: ["Social media (TikTok) impact research"] },
-    { id: "e3", role: "Software Engineer (Working Student)", company: "IBM", location: "Böblingen, Germany", period: "Jun 2024 – Apr 2026", bullets: ["Built production React UI for IBM's Data Quality platform serving 1M+ enterprise users using IBM Carbon and TypeScript", "Maintained 300+ regression and E2E tests with Puppeteer and Cypress", "Led accessibility improvements: ARIA, screen reader support, keyboard navigation"] },
-    { id: "e4", role: "Frontend Developer", company: "Getir", location: "Ankara, Turkey", period: "Dec 2022 – Mar 2024", bullets: ["Maintained GetirJobs (2.2M+ users); led two greenfield React/TypeScript projects from scratch", "Boosted dev server speed 3× via Vite migration", "Raised component test coverage to 70% with Playwright and Jest"] },
-    { id: "e5", role: "Engineering Lead", company: "Arianna Suisse Sa", location: "Remote · Switzerland", period: "Jun 2022 – Nov 2022", bullets: ["Led 4 engineers and 1 designer, delivering on time and within budget", "Architected scalable GraphQL API with Apollo Federation and MySQL", "Managed technical hiring for 50+ candidates; onboarded 4 team members"] },
+    { id: "e3", role: "Software Engineer (Working Student)", company: "IBM", location: "Böblingen, Germany", period: "Jun 2024 – Apr 2026", bullets: ["Built production React UI for IBM's Data Quality platform serving 1M+ enterprise users", "Maintained 300+ regression and E2E tests with Puppeteer and Cypress", "Led accessibility improvements: ARIA, screen reader support, keyboard navigation"] },
+    { id: "e4", role: "Frontend Developer", company: "Getir", location: "Ankara, Turkey", period: "Dec 2022 – Mar 2024", bullets: ["Maintained GetirJobs (2.2M+ users); led two greenfield React/TypeScript projects", "Boosted dev server speed 3× via Vite migration", "Raised component test coverage to 70% with Playwright and Jest"] },
+    { id: "e5", role: "Engineering Lead", company: "Arianna Suisse Sa", location: "Remote · Switzerland", period: "Jun 2022 – Nov 2022", bullets: ["Led 4 engineers and 1 designer, delivering on time and within budget", "Architected scalable GraphQL API with Apollo Federation and MySQL"] },
     { id: "e6", role: "Full-Stack Developer", company: "Arianna Suisse Sa", location: "Remote · Switzerland", period: "May 2021 – Jun 2022", bullets: ["Built reusable React components; managed GraphQL server with Apollo Federation", "Custom Elasticsearch search engine and real-time multi-user editing via WebSocket"] },
-    { id: "e7", role: "Freelance Software Developer", company: "Self-employed", location: "Remote · USA", period: "Feb 2020 – Feb 2021", bullets: ["Built pixel-perfect React UIs for 3 international clients", "Developed Python web crawlers publishing to RabbitMQ queues for backend AI pipelines"] },
+    { id: "e7", role: "Freelance Software Developer", company: "Self-employed", location: "Remote · USA", period: "Feb 2020 – Feb 2021", bullets: ["Built pixel-perfect React UIs for 3 international clients", "Python web crawlers publishing to RabbitMQ queues for backend AI pipelines"] },
     { id: "e8", role: "QA Automation Engineer", company: "Bayzat", location: "Remote · UAE", period: "Jan 2019 – Nov 2019", bullets: ["Built Cypress E2E suites from scratch, reducing manual testing overhead"] },
   ],
   projects: [
@@ -81,44 +79,78 @@ const seed: SiteContent = {
   ],
 };
 
-/* ─── Helpers ────────────────────────────────────────────── */
-function groupByCompany(items: ExpItem[]) {
-  const groups: { company: string; location: string; roles: ExpItem[] }[] = [];
-  for (const item of items) {
-    const last = groups[groups.length - 1];
-    if (last && last.company === item.company) { last.roles.push(item); }
-    else { groups.push({ company: item.company, location: item.location, roles: [item] }); }
-  }
-  return groups;
-}
 const MONO: React.CSSProperties = { fontFamily: "'JetBrains Mono', monospace" };
 const DISPLAY: React.CSSProperties = { fontFamily: "'DM Serif Display', serif" };
+const SANS: React.CSSProperties = { fontFamily: "'DM Sans', sans-serif" };
 
-function SectionHeader({ label, id }: { label: string; id: string }) {
+function BentoCard({
+  children, className = "", style = {}, glow = false,
+  onClick, href,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+  glow?: boolean;
+  onClick?: () => void;
+  href?: string;
+}) {
+  const base: React.CSSProperties = {
+    background: "#0f0f18",
+    border: "1px solid rgba(255,255,255,0.07)",
+    borderRadius: 20,
+    padding: 28,
+    position: "relative",
+    overflow: "hidden",
+    transition: "border-color 0.2s, transform 0.2s, box-shadow 0.2s",
+    ...style,
+  };
+  const glowStyle: React.CSSProperties = glow
+    ? { boxShadow: "0 0 40px rgba(94,234,212,0.08), inset 0 1px 0 rgba(94,234,212,0.06)" }
+    : {};
+
+  const handleEnter = (e: React.MouseEvent<HTMLElement>) => {
+    (e.currentTarget as HTMLElement).style.borderColor = "rgba(94,234,212,0.25)";
+    (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
+    (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 32px rgba(94,234,212,0.1)";
+  };
+  const handleLeave = (e: React.MouseEvent<HTMLElement>) => {
+    (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.07)";
+    (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+    (e.currentTarget as HTMLElement).style.boxShadow = glow ? "0 0 40px rgba(94,234,212,0.08)" : "none";
+  };
+
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer"
+        className={className} style={{ ...base, ...glowStyle, display: "block", textDecoration: "none" }}
+        onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+        {children}
+      </a>
+    );
+  }
   return (
-    <div id={id} className="flex items-center gap-5 mb-12 scroll-mt-24">
-      <span className="text-[11px] tracking-[0.25em] uppercase shrink-0" style={{ ...MONO, color: "#5eead4" }}>{label}</span>
-      <div className="flex-1 h-px" style={{ background: "oklch(1 0 0 / 0.07)" }} />
+    <div className={className} style={{ ...base, ...glowStyle, cursor: onClick ? "pointer" : "default" }}
+      onClick={onClick} onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+      {children}
     </div>
   );
 }
 
-function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
+function Tag({ label }: { label: string }) {
   return (
-    <a href={href} target={href.startsWith("mailto") ? undefined : "_blank"} rel="noopener noreferrer"
-      className="flex items-center gap-1.5 text-sm transition-colors hover:text-[#5eead4]" style={{ color: "#6b6b82" }}>
-      {icon} {label}
-    </a>
+    <span style={{ ...MONO, fontSize: 11, padding: "3px 10px", borderRadius: 6, background: "rgba(94,234,212,0.07)", border: "1px solid rgba(94,234,212,0.18)", color: "#5eead4", whiteSpace: "nowrap" }}>
+      {label}
+    </span>
   );
 }
 
-/* ─── Main App ───────────────────────────────────────────── */
 export default function App() {
   const [hash, setHash] = useState(() => window.location.hash);
   const [visitCount, setVisitCount] = useState<number | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [ownerChecked, setOwnerChecked] = useState(false);
   const [data, setData] = useState<SiteContent>(seed);
+  const [activeTab, setActiveTab] = useState<"experience" | "education">("experience");
 
   useEffect(() => {
     const onHashChange = () => setHash(window.location.hash);
@@ -145,7 +177,6 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  // Key must be a flat string — no slashes (slashes break the API router)
   useEffect(() => {
     if (!ownerChecked) return;
     const base = "https://countapi.mileshilliard.com";
@@ -160,224 +191,275 @@ export default function App() {
   useEffect(() => {
     const title = `${data.hero.name} • Portfolio`;
     document.title = title;
-    const desc = data.hero.bio.slice(0, 155) + (data.hero.bio.length > 155 ? "…" : "");
+    const desc = data.hero.bio.slice(0, 155);
     document.querySelector('meta[name="description"]')?.setAttribute("content", desc);
-    document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
-    document.querySelector('meta[property="og:description"]')?.setAttribute("content", desc);
   }, [data.hero]);
 
   if (hash === "#/cms") return <CmsPage onExit={() => { window.location.hash = ""; setHash(""); }} />;
 
   const { hero, experience, projects, skills, education, languages } = data;
-
+  const allSkills = skills.flatMap(sg => sg.skills.split(",").map(s => s.trim()).filter(Boolean));
   const currentYear = new Date().getFullYear();
 
   return (
-    <div className="min-h-screen antialiased" style={{ background: "#09090f", color: "#d4d4e0" }}>
+    <div style={{ minHeight: "100vh", background: "#08080f", color: "#d4d4e0", ...SANS }}>
 
-      {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-8 py-4 border-b"
-        style={{ background: "rgba(9,9,15,0.88)", backdropFilter: "blur(16px)", borderColor: "oklch(1 0 0 / 0.06)" }}>
-        <span className="text-sm" style={{ ...DISPLAY, color: "#5eead4" }}>{hero.name}</span>
-        <div className="hidden md:flex items-center gap-8">
-          {([["Education", "education"], ["Experience", "experience"], ["Research", "projects"], ["Skills", "skills"]] as [string, string][]).map(([label, id]) => (
-            <a key={id} href={`#${id}`} className="text-[11px] uppercase tracking-[0.2em] transition-colors hover:text-[#5eead4]"
-              style={{ ...MONO, color: "#6b6b82" }}>{label}</a>
-          ))}
+      <nav style={{
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 40,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "0 32px", height: 60,
+        background: "rgba(8,8,15,0.85)", backdropFilter: "blur(20px)",
+        borderBottom: "1px solid rgba(255,255,255,0.05)",
+      }}>
+        <span style={{ ...DISPLAY, color: "#5eead4", fontSize: 18 }}>{hero.name}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <a href={`https://${hero.github}`} target="_blank" rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#9494a8", transition: "all 0.2s" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5eead4"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(94,234,212,0.35)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#9494a8"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)"; }}>
+            <Github size={16} />
+          </a>
+          <a href={`https://${hero.linkedin}`} target="_blank" rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#9494a8", transition: "all 0.2s" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5eead4"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(94,234,212,0.35)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#9494a8"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)"; }}>
+            <Linkedin size={16} />
+          </a>
+          <a href={`mailto:${hero.email}`}
+            style={{ ...MONO, fontSize: 12, padding: "6px 16px", borderRadius: 10, background: "rgba(94,234,212,0.1)", border: "1px solid rgba(94,234,212,0.25)", color: "#5eead4", textDecoration: "none", transition: "all 0.2s" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(94,234,212,0.18)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(94,234,212,0.1)"; }}>
+            Hire me
+          </a>
         </div>
-        <a href={`mailto:${hero.email}`} className="hidden md:block text-xs transition-colors hover:text-[#d4d4e0]"
-          style={{ ...MONO, color: "#5eead4" }}>{hero.email}</a>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-6 md:px-12 pt-36 pb-28">
+      <main style={{ maxWidth: 1080, margin: "0 auto", padding: "88px 24px 60px" }}>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(12, 1fr)",
+          gridAutoRows: "minmax(0, auto)",
+          gap: 16,
+        }}>
 
-        {/* Hero */}
-        <section className="mb-32">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10">
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.3em] mb-5" style={{ ...MONO, color: "#5eead4" }}>Available for opportunities</p>
-              <h1 className="leading-[0.92] tracking-tight mb-5" style={{ ...DISPLAY, color: "#eeeef5", fontSize: "clamp(2.8rem,7vw,5rem)" }}>{hero.name}</h1>
-              <div className="flex flex-wrap gap-2 mb-6">
-                {["TypeScript", "React", "Node.js", "Python", "NLP", "LLMs"].map(skill => (
-                  <span key={skill} className="text-[12px] px-2.5 py-1 rounded-md border" style={{ ...MONO, background: "rgba(94,234,212,0.05)", borderColor: "rgba(94,234,212,0.18)", color: "#5eead4" }}>{skill}</span>
-                ))}
+          {/* CARD 1: Hero */}
+          <BentoCard glow style={{ gridColumn: "1 / 9", gridRow: "1" }}>
+            <div style={{ position: "absolute", top: -60, right: -60, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(94,234,212,0.07) 0%, transparent 70%)", pointerEvents: "none" }} />
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 24 }}>
+              <div style={{ position: "relative", flexShrink: 0 }}>
+                <img src={profilePhoto} alt={hero.name}
+                  style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", objectPosition: "center 4%", border: "2px solid rgba(94,234,212,0.3)" }} />
+                <span style={{ position: "absolute", bottom: 2, right: 2, width: 12, height: 12, borderRadius: "50%", background: "#22c55e", border: "2px solid #0f0f18" }} />
               </div>
-              <div className="mb-5 max-w-[52ch] space-y-3">
-                {hero.bio.split("\n\n").map((para, i) => (
-                  <p key={i} className="text-[17px] leading-[1.9] tracking-[0.015em]" style={{ color: "#d8d8ea", fontWeight: 400, fontFamily: "'DM Sans', sans-serif" }}>{para}</p>
-                ))}
-              </div>
-              <div className="flex flex-wrap items-center gap-3 mb-8">
-                <a href={`mailto:${hero.email}`} className="flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium transition-all hover:scale-[1.02]" style={{ background: "#5eead4", color: "#09090f", border: "none" }}>
-                  <Mail size={14} /> Get in touch
-                </a>
-                <a href={resolveCvHref(hero, cvAsset)} download={resolveCvName(hero, "Hazem-Alabiad-CV.pdf")} className="flex items-center gap-2 px-4 py-2 rounded border text-sm transition-all hover:border-white/25 hover:text-[#d4d4e0]" style={{ borderColor: "oklch(1 0 0 / 0.12)", color: "#9494a8" }}>
-                  <Download size={14} /> Download CV
-                </a>
-              </div>
-              <div className="flex flex-wrap items-center gap-6">
-                <SocialLink href={`https://${hero.github}`} icon={<Github size={14} />} label="GitHub" />
-                <SocialLink href={`https://${hero.linkedin}`} icon={<Linkedin size={14} />} label="LinkedIn" />
-                <span className="flex items-center gap-1.5 text-sm" style={{ color: "#6b6b82" }}><MapPin size={14} /> {hero.location}</span>
-              </div>
-            </div>
-            <div className="flex-shrink-0 self-start md:mt-8">
-              <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden" style={{ boxShadow: "0 0 0 1.5px rgba(94,234,212,0.35), 0 0 32px rgba(94,234,212,0.08)" }}>
-                <img src={profilePhoto} alt={hero.name} className="w-full h-full object-cover" style={{ objectPosition: "center 4%", filter: "brightness(0.92) contrast(1.04) saturate(0.88)" }} />
-                <div className="absolute inset-0 rounded-full" style={{ background: "radial-gradient(circle at center, transparent 55%, rgba(9,9,15,0.5) 100%)" }} />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Education */}
-        <section className="mb-28">
-          <SectionHeader label="Education" id="education" />
-          <div className="space-y-10">
-            {education.map(edu => (
-              <div key={edu.id} className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
-                <div>
-                  <h3 className="font-medium" style={{ color: "#eeeef5" }}>{edu.degree}</h3>
-                  <p className="text-sm mt-0.5"><span style={{ color: "#5eead4", opacity: 0.8 }}>{edu.school}</span><span style={{ color: "#6b6b82" }}> · {edu.location}</span></p>
-                  {edu.notes && <p className="text-[14px] mt-2 leading-relaxed" style={{ color: "#8f8fa8" }}>{edu.notes}</p>}
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+                  <h1 style={{ ...DISPLAY, fontSize: 28, color: "#eeeef5", margin: 0, lineHeight: 1.1 }}>{hero.name}</h1>
+                  <span style={{ ...MONO, fontSize: 10, padding: "2px 8px", borderRadius: 20, background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.25)", color: "#22c55e" }}>Open to work</span>
                 </div>
-                <span className="text-[11px] whitespace-nowrap shrink-0 mt-1" style={{ ...MONO, color: "#6b6b82" }}>{edu.period}</span>
+                <p style={{ ...MONO, fontSize: 12, color: "#5eead4", margin: "0 0 12px", opacity: 0.8 }}>{hero.tagline}</p>
+                <p style={{ fontSize: 14, lineHeight: 1.7, color: "#a0a0b8", margin: "0 0 16px", maxWidth: "52ch" }}>{hero.bio}</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {["TypeScript", "React", "Node.js", "Python", "NLP", "LLMs"].map(s => <Tag key={s} label={s} />)}
+                </div>
               </div>
-            ))}
-          </div>
-        </section>
+            </div>
+          </BentoCard>
 
-        {/* Experience */}
-        <section className="mb-28">
-          <SectionHeader label="Experience" id="experience" />
-          <div>
-            {groupByCompany(experience).map((group, gi, arr) => (
-              <div key={group.company + gi} className="relative pl-7 pb-12 last:pb-0">
-                <div className="absolute left-0 top-[8px] w-2 h-2 rounded-full" style={{ background: "#5eead4", opacity: 0.35 }} />
-                {gi < arr.length - 1 && <div className="absolute left-[3px] top-5 bottom-0 w-px" style={{ background: "oklch(1 0 0 / 0.07)" }} />}
-                {group.roles.length === 1 ? (
-                  <>
-                    <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-1 mb-3">
-                      <div>
-                        <h3 className="font-medium text-[15px]" style={{ color: "#eeeef5" }}>{group.roles[0].role}</h3>
-                        <p className="text-[13.5px] mt-0.5"><span style={{ color: "#5eead4", opacity: 0.9 }}>{group.company}</span><span style={{ color: "#707088" }}> · {group.location}</span></p>
+          {/* CARD 2: Contact */}
+          <BentoCard style={{ gridColumn: "9 / 13", gridRow: "1", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 16 }}>
+            <div>
+              <p style={{ ...MONO, fontSize: 10, color: "#5eead4", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 16 }}>Contact</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <a href={`mailto:${hero.email}`} style={{ display: "flex", alignItems: "center", gap: 8, color: "#a0a0b8", textDecoration: "none", fontSize: 13, transition: "color 0.2s" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#5eead4"}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#a0a0b8"}>
+                  <Mail size={13} style={{ flexShrink: 0, color: "#5eead4" }} />
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{hero.email}</span>
+                </a>
+                <a href={`https://${hero.github}`} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 8, color: "#a0a0b8", textDecoration: "none", fontSize: 13, transition: "color 0.2s" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#5eead4"}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#a0a0b8"}>
+                  <Github size={13} style={{ flexShrink: 0, color: "#5eead4" }} />
+                  <span>{hero.github}</span>
+                </a>
+                <a href={`https://${hero.linkedin}`} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 8, color: "#a0a0b8", textDecoration: "none", fontSize: 13, transition: "color 0.2s" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#5eead4"}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#a0a0b8"}>
+                  <Linkedin size={13} style={{ flexShrink: 0, color: "#5eead4" }} />
+                  <span>{hero.linkedin}</span>
+                </a>
+                <span style={{ display: "flex", alignItems: "center", gap: 8, color: "#6b6b82", fontSize: 13 }}>
+                  <MapPin size={13} style={{ flexShrink: 0 }} />
+                  <span>{hero.location}</span>
+                </span>
+              </div>
+            </div>
+            <a href={resolveCvHref(hero, cvAsset)} download={resolveCvName(hero, "Hazem-Alabiad-CV.pdf")}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 0", borderRadius: 12, background: "rgba(94,234,212,0.08)", border: "1px solid rgba(94,234,212,0.2)", color: "#5eead4", textDecoration: "none", fontSize: 13, ...MONO, transition: "background 0.2s" }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(94,234,212,0.15)"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "rgba(94,234,212,0.08)"}>
+              <Download size={13} /> Download CV
+            </a>
+          </BentoCard>
+
+          {/* Stats row */}
+          {[
+            { label: "Years Exp.", value: "6+", sub: "production systems" },
+            { label: "Companies", value: "6", sub: "across 4 countries" },
+            { label: "Users Reached", value: "3M+", sub: "via shipped products" },
+            { label: "Research", value: "M.A.", sub: "Comp. Linguistics" },
+          ].map((stat, i) => (
+            <BentoCard key={i} style={{ gridColumn: `${1 + i * 3} / ${4 + i * 3}`, gridRow: "2", padding: "20px 22px" }}>
+              <p style={{ ...MONO, fontSize: 11, color: "#5b5b74", textTransform: "uppercase", letterSpacing: "0.15em", margin: "0 0 6px" }}>{stat.label}</p>
+              <p style={{ ...DISPLAY, fontSize: 30, color: "#eeeef5", margin: "0 0 2px", lineHeight: 1 }}>{stat.value}</p>
+              <p style={{ fontSize: 12, color: "#6b6b82", margin: 0 }}>{stat.sub}</p>
+            </BentoCard>
+          ))}
+
+          {/* CARD 4: Experience / Education tabbed */}
+          <BentoCard style={{ gridColumn: "1 / 9", gridRow: "3" }}>
+            <div style={{ display: "flex", gap: 4, marginBottom: 24, background: "rgba(255,255,255,0.04)", padding: 4, borderRadius: 12, width: "fit-content" }}>
+              {(["experience", "education"] as const).map(tab => (
+                <button key={tab} onClick={() => setActiveTab(tab)}
+                  style={{
+                    ...MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em",
+                    padding: "6px 16px", borderRadius: 8, border: "none", cursor: "pointer",
+                    transition: "all 0.2s",
+                    background: activeTab === tab ? "rgba(94,234,212,0.12)" : "transparent",
+                    color: activeTab === tab ? "#5eead4" : "#6b6b82",
+                  }}>
+                  {tab === "experience" ? <><Briefcase size={10} style={{ display: "inline", marginRight: 5 }} />Experience</> : <><GraduationCap size={10} style={{ display: "inline", marginRight: 5 }} />Education</>}
+                </button>
+              ))}
+            </div>
+            {activeTab === "experience" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                {experience.slice(0, 4).map(exp => (
+                  <div key={exp.id} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(94,234,212,0.06)", border: "1px solid rgba(94,234,212,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Briefcase size={15} style={{ color: "#5eead4", opacity: 0.7 }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                        <span style={{ fontSize: 14, fontWeight: 500, color: "#eeeef5" }}>{exp.role}</span>
+                        <span style={{ ...MONO, fontSize: 10, color: "#5b5b74", whiteSpace: "nowrap" }}>{exp.period}</span>
                       </div>
-                      <span className="text-[11px] whitespace-nowrap shrink-0" style={{ ...MONO, color: "#6b6b82" }}>{group.roles[0].period}</span>
+                      <span style={{ fontSize: 12, color: "#5eead4", opacity: 0.75 }}>{exp.company}</span>
+                      {exp.bullets[0] && <p style={{ fontSize: 13, color: "#7a7a90", margin: "4px 0 0", lineHeight: 1.6 }}>{exp.bullets[0]}</p>}
                     </div>
-                    {group.roles[0].bullets.filter(Boolean).length > 0 && (
-                      <ul className="space-y-1.5">
-                        {group.roles[0].bullets.filter(Boolean).map((b, bi) => (
-                          <li key={bi} className="text-[14px] leading-relaxed flex gap-2.5" style={{ color: "#ababc0" }}>
-                            <span className="mt-[3px] shrink-0" style={{ color: "#5eead4", opacity: 0.3 }}>—</span><span>{b}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className="mb-4">
-                      <h3 className="font-medium text-[15px]" style={{ color: "#5eead4" }}>{group.company}</h3>
-                      <p className="text-[13px] mt-0.5" style={{ color: "#707088" }}>{group.location}</p>
-                    </div>
-                    <div className="space-y-6 border-l pl-5" style={{ borderColor: "oklch(1 0 0 / 0.07)" }}>
-                      {group.roles.map(role => (
-                        <div key={role.id}>
-                          <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-1 mb-2">
-                            <span className="font-medium text-[14px]" style={{ color: "#d8d8ec" }}>{role.role}</span>
-                            <span className="text-[11px] whitespace-nowrap shrink-0" style={{ ...MONO, color: "#6b6b82" }}>{role.period}</span>
-                          </div>
-                          {role.bullets.filter(Boolean).length > 0 && (
-                            <ul className="space-y-1.5">
-                              {role.bullets.filter(Boolean).map((b, bi) => (
-                                <li key={bi} className="text-[14px] leading-relaxed flex gap-2.5" style={{ color: "#ababc0" }}>
-                                  <span className="mt-[3px] shrink-0" style={{ color: "#5eead4", opacity: 0.3 }}>—</span><span>{b}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Projects */}
-        <section className="mb-28">
-          <SectionHeader label="Research &amp; Projects" id="projects" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {projects.map(proj => (
-              <a key={proj.id} href={proj.link.startsWith("http") ? proj.link : `https://${proj.link}`}
-                target="_blank" rel="noopener noreferrer"
-                className="group block rounded-xl p-5 border transition-all"
-                style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.08)" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(94,234,212,0.22)"; (e.currentTarget as HTMLElement).style.background = "#12121f"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(1 0 0 / 0.08)"; (e.currentTarget as HTMLElement).style.background = "#111119"; }}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <span className="text-[11px]" style={{ ...MONO, color: "#5eead4", opacity: 0.6 }}>{proj.year}</span>
-                  <ArrowUpRight size={14} style={{ color: "#6b6b82" }} />
-                </div>
-                <h3 className="font-medium mb-2 leading-snug" style={{ color: "#eeeef5" }}>{proj.title}</h3>
-                <p className="text-[14px] leading-relaxed" style={{ color: "#8f8fa8" }}>{proj.description}</p>
-              </a>
-            ))}
-          </div>
-        </section>
-
-        {/* Skills */}
-        <section className="mb-28">
-          <SectionHeader label="Skills" id="skills" />
-          <div className="space-y-7">
-            {skills.map(sg => (
-              <div key={sg.id} className="flex flex-col md:flex-row gap-3 md:gap-6">
-                <span className="text-[11px] uppercase tracking-[0.2em] shrink-0 pt-1 w-28" style={{ ...MONO, color: "#5eead4", opacity: 0.65 }}>{sg.label}</span>
-                <div className="flex flex-wrap gap-2">
-                  {sg.skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
-                    <span key={skill} className="text-[13px] px-3 py-1.5 rounded border cursor-default"
-                      style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.09)", color: "#a0a0b8" }}>{skill}</span>
-                  ))}
-                </div>
+            )}
+            {activeTab === "education" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                {education.map(edu => (
+                  <div key={edu.id} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(94,234,212,0.06)", border: "1px solid rgba(94,234,212,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <GraduationCap size={15} style={{ color: "#5eead4", opacity: 0.7 }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                        <span style={{ fontSize: 14, fontWeight: 500, color: "#eeeef5" }}>{edu.degree}</span>
+                        <span style={{ ...MONO, fontSize: 10, color: "#5b5b74", whiteSpace: "nowrap" }}>{edu.period}</span>
+                      </div>
+                      <span style={{ fontSize: 12, color: "#5eead4", opacity: 0.75 }}>{edu.school} · {edu.location}</span>
+                      {edu.notes && <p style={{ fontSize: 13, color: "#7a7a90", margin: "4px 0 0", lineHeight: 1.6 }}>{edu.notes}</p>}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
+            )}
+          </BentoCard>
 
-        {/* Languages */}
-        {languages.length > 0 && (
-          <section className="mb-28">
-            <SectionHeader label="Languages" id="languages" />
-            <div className="flex flex-wrap gap-4">
-              {languages.map(lang => (
-                <div key={lang.id} className="flex items-center gap-3 px-4 py-3 rounded-lg border"
-                  style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.08)" }}>
-                  <span className="font-medium text-sm" style={{ color: "#eeeef5" }}>{lang.name}</span>
-                  <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ ...MONO, background: "rgba(94,234,212,0.08)", color: "#5eead4" }}>{lang.level}</span>
+          {/* CARD 5: Research + Languages */}
+          <BentoCard style={{ gridColumn: "9 / 13", gridRow: "3", display: "flex", flexDirection: "column", gap: 16 }}>
+            <p style={{ ...MONO, fontSize: 10, color: "#5eead4", letterSpacing: "0.2em", textTransform: "uppercase", margin: 0 }}>Research Focus</p>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+              {["Corpus Linguistics", "Large Language Models", "Cognitive Science", "NLP", "ML / Deep Learning"].map(topic => (
+                <div key={topic} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 10, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#5eead4", opacity: 0.5, flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, color: "#a0a0b8" }}>{topic}</span>
                 </div>
               ))}
             </div>
-          </section>
-        )}
-      </main>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {languages.map(l => (
+                <span key={l.id} style={{ fontSize: 12, padding: "3px 10px", borderRadius: 20, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#7a7a90" }}>
+                  {l.name} <span style={{ color: "#5b5b74" }}>· {l.level}</span>
+                </span>
+              ))}
+            </div>
+          </BentoCard>
 
-      {/* Footer */}
-      <footer className="border-t px-6 md:px-12 py-8" style={{ borderColor: "oklch(1 0 0 / 0.06)" }}>
-        <div className="max-w-4xl mx-auto flex items-center justify-center gap-4">
-          <p className="text-xs" style={{ ...MONO, color: "#6b6b82" }}>© {currentYear} {hero.name}</p>
+          {/* CARD 6: Projects 50/50 */}
+          {projects.slice(0, 2).map((proj, i) => (
+            <BentoCard key={proj.id} href={proj.link} style={{ gridColumn: i === 0 ? "1 / 7" : "7 / 13", gridRow: "4" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                <span style={{ ...MONO, fontSize: 10, color: "#5eead4", opacity: 0.6 }}>{proj.year}</span>
+                <ArrowUpRight size={14} style={{ color: "#5b5b74" }} />
+              </div>
+              <h3 style={{ fontSize: 16, fontWeight: 600, color: "#eeeef5", margin: "0 0 8px", lineHeight: 1.3 }}>{proj.title}</h3>
+              <p style={{ fontSize: 13, color: "#7a7a90", margin: 0, lineHeight: 1.6 }}>{proj.description}</p>
+            </BentoCard>
+          ))}
+
+          {/* CARD 7: Skills */}
+          <BentoCard style={{ gridColumn: "1 / 9", gridRow: "5" }}>
+            <p style={{ ...MONO, fontSize: 10, color: "#5eead4", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 16 }}>Skills & Tools</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {allSkills.map(skill => (
+                <span key={skill} style={{ fontSize: 13, padding: "5px 12px", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#9494a8", transition: "all 0.2s", cursor: "default" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(94,234,212,0.07)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(94,234,212,0.2)"; (e.currentTarget as HTMLElement).style.color = "#5eead4"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.07)"; (e.currentTarget as HTMLElement).style.color = "#9494a8"; }}>
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </BentoCard>
+
+          {/* CARD 8: More projects */}
+          <BentoCard style={{ gridColumn: "9 / 13", gridRow: "5", display: "flex", flexDirection: "column", gap: 12 }}>
+            <p style={{ ...MONO, fontSize: 10, color: "#5eead4", letterSpacing: "0.2em", textTransform: "uppercase", margin: 0 }}>More Projects</p>
+            {projects.slice(2).map(proj => (
+              <a key={proj.id} href={proj.link} target="_blank" rel="noopener noreferrer"
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", textDecoration: "none", transition: "all 0.2s" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(94,234,212,0.2)"; (e.currentTarget as HTMLElement).style.background = "rgba(94,234,212,0.04)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)"; }}>
+                <div>
+                  <p style={{ fontSize: 13, color: "#d4d4e0", margin: "0 0 2px", fontWeight: 500 }}>{proj.title}</p>
+                  <p style={{ ...MONO, fontSize: 10, color: "#5b5b74", margin: 0 }}>{proj.year}</p>
+                </div>
+                <ArrowUpRight size={13} style={{ color: "#5b5b74", flexShrink: 0 }} />
+              </a>
+            ))}
+            <a href={`https://${hero.github}`} target="_blank" rel="noopener noreferrer"
+              style={{ display: "flex", alignItems: "center", gap: 6, color: "#5b5b74", textDecoration: "none", fontSize: 12, ...MONO, marginTop: "auto" }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#5eead4"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#5b5b74"}>
+              <Code2 size={12} /> View all on GitHub <ArrowUpRight size={11} />
+            </a>
+          </BentoCard>
+
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginTop: 48, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+          <p style={{ ...MONO, fontSize: 11, color: "#3a3a50", margin: 0 }}>© {currentYear} {hero.name}</p>
           {visitCount !== null && (
-            <span className="flex items-center gap-1.5 text-xs" style={{ ...MONO, color: "#4a4a60" }}>
-              <span className="w-1 h-1 rounded-full inline-block" style={{ background: "#5eead4", opacity: 0.5 }} />
+            <span style={{ display: "flex", alignItems: "center", gap: 6, ...MONO, fontSize: 11, color: "#3a3a50" }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#5eead4", opacity: 0.4, display: "inline-block" }} />
               {visitCount.toLocaleString()} visits
             </span>
           )}
+          <a href={`https://github.com/${OWNER}/${REPO}`} target="_blank" rel="noopener noreferrer"
+            style={{ display: "flex", alignItems: "center", gap: 4, ...MONO, fontSize: 11, color: "#3a3a50", textDecoration: "none", transition: "color 0.2s" }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#5eead4"}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#3a3a50"}>
+            <Globe size={11} /> Source
+          </a>
         </div>
-      </footer>
+      </main>
 
-      {/* CMS button */}
       <button
         onClick={() => { window.location.hash = "#/cms"; setHash("#/cms"); }}
         title="Open CMS"
