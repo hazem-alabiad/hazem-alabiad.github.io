@@ -114,8 +114,16 @@ function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode
 
 /* ─── Main App ───────────────────────────────────────────── */
 export default function App() {
-  const isCms = window.location.hash === "#/cms";
-  if (isCms) return <CmsPage />;
+  // ✅ FIX: reactive hash state — listens to hashchange so no refresh needed
+  const [hash, setHash] = useState(() => window.location.hash);
+
+  useEffect(() => {
+    const onHashChange = () => setHash(window.location.hash);
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
+  if (hash === "#/cms") return <CmsPage onExit={() => { window.location.hash = ""; setHash(""); }} />;
 
   const [visitCount, setVisitCount] = useState<number | null>(null);
   const [isOwner, setIsOwner] = useState(false);
@@ -135,7 +143,7 @@ export default function App() {
     fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/main/${CONTENT_PATH}`)
       .then(r => r.json())
       .then(d => setData(d))
-      .catch(() => {}); // fallback to seed
+      .catch(() => {});
   }, []);
 
   // Visitor counter (non-owners only)
@@ -370,10 +378,9 @@ export default function App() {
         </div>
       </footer>
 
-      {/* CMS button */}
-      <a
-        href="#/cms"
-        onClick={() => window.location.hash = "#/cms"}
+      {/* CMS button — now uses onClick to update hash state reactively */}
+      <button
+        onClick={() => { window.location.hash = "#/cms"; setHash("#/cms"); }}
         title="Open CMS"
         style={{
           position: "fixed", bottom: 24, right: 24, zIndex: 9998,
@@ -382,13 +389,12 @@ export default function App() {
           color: "#5eead4", cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
           boxShadow: "0 4px 20px rgba(0,0,0,0.5)", transition: "all 0.2s ease",
-          textDecoration: "none",
         }}
         onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#1a1a2e"}
         onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#111119"}
       >
         <Settings size={18} />
-      </a>
+      </button>
     </div>
   );
 }
