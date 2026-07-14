@@ -17,9 +17,10 @@ export interface EditContentAccessContext {
   isSignedIn: boolean;
 }
 
-export function canShowEditContent({ hostname, isSignedIn }: EditContentAccessContext) {
-  const isLocalHost = hostname === "localhost" || hostname === "127.0.0.1" || hostname.endsWith(".local");
-  return isSignedIn || isLocalHost;
+// Only the verified owner (GitHub-authenticated) may see edit controls.
+// The localhost bypass has been intentionally removed — sign-in is always required.
+export function canShowEditContent({ isSignedIn }: EditContentAccessContext) {
+  return isSignedIn;
 }
 
 export const OWNER_GITHUB_USERNAME = "hazem-alabiad";
