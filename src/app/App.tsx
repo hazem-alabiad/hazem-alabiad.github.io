@@ -114,23 +114,18 @@ function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode
 
 /* ─── Main App ───────────────────────────────────────────── */
 export default function App() {
-  // ✅ Reactive hash state — no page refresh needed
+  // ✅ ALL hooks declared at top level — no hooks after conditional returns
   const [hash, setHash] = useState(() => window.location.hash);
+  const [visitCount, setVisitCount] = useState<number | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
+  const [ownerChecked, setOwnerChecked] = useState(false);
+  const [data, setData] = useState<SiteContent>(seed);
 
   useEffect(() => {
     const onHashChange = () => setHash(window.location.hash);
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
-
-  if (hash === "#/cms") return <CmsPage onExit={() => { window.location.hash = ""; setHash(""); }} />;
-
-  const [visitCount, setVisitCount] = useState<number | null>(null);
-  const [isOwner, setIsOwner] = useState(false);
-  // ✅ ownerChecked: true once the GitHub /user call resolves (or no token stored)
-  // This prevents counting the owner as a visitor due to the async race condition.
-  const [ownerChecked, setOwnerChecked] = useState(false);
-  const [data, setData] = useState<SiteContent>(seed);
 
   // Check owner — set ownerChecked=true once resolved either way
   useEffect(() => {
@@ -171,6 +166,9 @@ export default function App() {
     document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
     document.querySelector('meta[property="og:description"]')?.setAttribute("content", desc);
   }, [data.hero]);
+
+  // ✅ CMS switch AFTER all hooks
+  if (hash === "#/cms") return <CmsPage onExit={() => { window.location.hash = ""; setHash(""); }} />;
 
   const { hero, experience, projects, skills, education, languages } = data;
 
