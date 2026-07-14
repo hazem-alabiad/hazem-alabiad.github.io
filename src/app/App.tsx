@@ -1,11 +1,11 @@
 import { useState, useEffect, type ChangeEvent } from "react";
 import {
-  Github, Linkedin, Mail, MapPin, Edit3, X, Plus, Trash2,
-  ArrowUpRight, Download, RotateCcw,
+  Github, Linkedin, Mail, MapPin,
+  ArrowUpRight, Download,
 } from "lucide-react";
 import profilePhoto from "@/imports/IMG_0323.jpeg";
 import cvAsset from "@/imports/Hazem-Alabiad-CV.pdf?url";
-import { canShowEditContent, OWNER_GITHUB_USERNAME, resolveCvHref, resolveCvName, verifyOwnerGitHubToken } from "./cv";
+import { resolveCvHref, resolveCvName } from "./cv";
 
 /* ─── Types ─────────────────────────────────────────────── */
 interface HeroContent {
@@ -84,8 +84,6 @@ const seed: SiteContent = {
 };
 
 /* ─── Helpers ────────────────────────────────────────────── */
-function uid() { return Math.random().toString(36).slice(2, 9); }
-
 function groupByCompany(items: ExpItem[]) {
   const groups: { company: string; location: string; roles: ExpItem[] }[] = [];
   for (const item of items) {
@@ -128,283 +126,9 @@ function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode
   );
 }
 
-/* ─── CMS Field ──────────────────────────────────────────── */
-function Field({ label, value, onChange, multiline = false }: {
-  label: string; value: string; onChange: (v: string) => void; multiline?: boolean;
-}) {
-  const cls = "w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-[#d4d4e0] focus:outline-none focus:border-[#5eead4]/50 transition-colors";
-  return (
-    <div className="space-y-1.5">
-      <label className="text-[10px] uppercase tracking-[0.2em] text-[#6b6b82]" style={MONO}>
-        {label}
-      </label>
-      {multiline
-        ? <textarea className={`${cls} resize-none min-h-[72px]`} value={value} onChange={e => onChange(e.target.value)} />
-        : <input className={cls} value={value} onChange={e => onChange(e.target.value)} />
-      }
-    </div>
-  );
-}
-
-function AddButton({ onClick, label }: { onClick: () => void; label: string }) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full py-2.5 rounded border border-dashed flex items-center justify-center gap-2 text-xs transition-colors hover:text-[#5eead4]"
-      style={{ ...MONO, borderColor: "oklch(1 0 0 / 0.15)", color: "#6b6b82" }}
-    >
-      <Plus size={13} /> {label}
-    </button>
-  );
-}
-
-/* ─── Content Manager ────────────────────────────────────── */
-type CmsTab = "hero" | "experience" | "projects" | "skills" | "education" | "languages";
-
-function ContentManager({ content, onChange, onClose, onReset }: {
-  content: SiteContent; onChange: (c: SiteContent) => void;
-  onClose: () => void; onReset: () => void;
-}) {
-  const [tab, setTab] = useState<CmsTab>("hero");
-
-  const upHero = (k: keyof HeroContent, v: string) =>
-    onChange({ ...content, hero: { ...content.hero, [k]: v } });
-
-  const handleCvUpload = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.type !== "application/pdf") {
-      alert("Please choose a PDF file for your CV.");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = typeof reader.result === "string" ? reader.result : "";
-      onChange({
-        ...content,
-        hero: {
-          ...content.hero,
-          cvFileData: dataUrl,
-          cvFileName: file.name,
-          cvUrl: "",
-        },
-      });
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const upExp = (id: string, k: keyof Omit<ExpItem, "id" | "bullets">, v: string) =>
-    onChange({ ...content, experience: content.experience.map(e => e.id === id ? { ...e, [k]: v } : e) });
-  const upExpBullets = (id: string, v: string) =>
-    onChange({ ...content, experience: content.experience.map(e => e.id === id ? { ...e, bullets: v.split("\n") } : e) });
-  const addExp = () => onChange({ ...content, experience: [...content.experience, { id: uid(), role: "New Role", company: "Company", location: "", period: "", bullets: [] }] });
-  const delExp = (id: string) => onChange({ ...content, experience: content.experience.filter(e => e.id !== id) });
-
-  const upProj = (id: string, k: keyof Omit<ProjItem, "id">, v: string) =>
-    onChange({ ...content, projects: content.projects.map(p => p.id === id ? { ...p, [k]: v } : p) });
-  const addProj = () => onChange({ ...content, projects: [...content.projects, { id: uid(), title: "New Project", year: new Date().getFullYear().toString(), description: "", link: "" }] });
-  const delProj = (id: string) => onChange({ ...content, projects: content.projects.filter(p => p.id !== id) });
-
-  const upSkill = (id: string, k: keyof Omit<SkillGroup, "id">, v: string) =>
-    onChange({ ...content, skills: content.skills.map(s => s.id === id ? { ...s, [k]: v } : s) });
-  const addSkill = () => onChange({ ...content, skills: [...content.skills, { id: uid(), label: "Category", skills: "" }] });
-  const delSkill = (id: string) => onChange({ ...content, skills: content.skills.filter(s => s.id !== id) });
-
-  const upEdu = (id: string, k: keyof Omit<EduItem, "id">, v: string) =>
-    onChange({ ...content, education: content.education.map(e => e.id === id ? { ...e, [k]: v } : e) });
-  const addEdu = () => onChange({ ...content, education: [...content.education, { id: uid(), degree: "Degree", school: "School", location: "", period: "", notes: "" }] });
-  const delEdu = (id: string) => onChange({ ...content, education: content.education.filter(e => e.id !== id) });
-
-  const upLang = (id: string, k: keyof Omit<LangItem, "id">, v: string) =>
-    onChange({ ...content, languages: content.languages.map(l => l.id === id ? { ...l, [k]: v } : l) });
-  const addLang = () => onChange({ ...content, languages: [...content.languages, { id: uid(), name: "Language", level: "Beginner" }] });
-  const delLang = (id: string) => onChange({ ...content, languages: content.languages.filter(l => l.id !== id) });
-
-  const tabs: Array<{ key: CmsTab; label: string }> = [
-    { key: "hero", label: "Profile" },
-    { key: "experience", label: "Work" },
-    { key: "projects", label: "Research" },
-    { key: "skills", label: "Skills" },
-    { key: "education", label: "Education" },
-    { key: "languages", label: "Languages" },
-  ];
-
-  const cardStyle: React.CSSProperties = { background: "#111119", borderColor: "oklch(1 0 0 / 0.08)" };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-stretch">
-      <div className="flex-1 cursor-pointer" style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }} onClick={onClose} />
-      <div className="w-[460px] flex flex-col border-l overflow-hidden" style={{ background: "#0c0c13", borderColor: "oklch(1 0 0 / 0.09)" }}>
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 shrink-0 border-b" style={{ borderColor: "oklch(1 0 0 / 0.07)" }}>
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.25em] mb-0.5" style={{ ...MONO, color: "#5eead4" }}>Content Manager</p>
-            <p className="text-[#d4d4e0] text-sm font-medium">Edit · saves automatically</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={onReset} title="Reset to defaults" className="w-8 h-8 flex items-center justify-center rounded transition-colors hover:bg-white/5 hover:text-red-400" style={{ color: "#6b6b82" }}>
-              <RotateCcw size={13} />
-            </button>
-            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded transition-colors hover:bg-white/5 hover:text-[#d4d4e0]" style={{ color: "#6b6b82" }}>
-              <X size={15} />
-            </button>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex shrink-0 border-b px-1 overflow-x-auto" style={{ borderColor: "oklch(1 0 0 / 0.07)" }}>
-          {tabs.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)} className="relative px-3 py-3 text-[11px] tracking-wide transition-colors whitespace-nowrap" style={{ ...MONO, color: tab === t.key ? "#5eead4" : "#6b6b82" }}>
-              {t.label}
-              {tab === t.key && <span className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "#5eead4" }} />}
-            </button>
-          ))}
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-
-          {tab === "hero" && <>
-            <Field label="Name" value={content.hero.name} onChange={v => upHero("name", v)} />
-            <Field label="Tagline" value={content.hero.tagline} onChange={v => upHero("tagline", v)} />
-            <Field label="Location" value={content.hero.location} onChange={v => upHero("location", v)} />
-            <Field label="Bio" value={content.hero.bio} onChange={v => upHero("bio", v)} multiline />
-            <Field label="Research Focus" value={content.hero.researchFocus} onChange={v => upHero("researchFocus", v)} />
-            <Field label="Email" value={content.hero.email} onChange={v => upHero("email", v)} />
-            <Field label="Phone" value={content.hero.phone} onChange={v => upHero("phone", v)} />
-            <Field label="GitHub" value={content.hero.github} onChange={v => upHero("github", v)} />
-            <Field label="LinkedIn" value={content.hero.linkedin} onChange={v => upHero("linkedin", v)} />
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-[0.2em] text-[#6b6b82]" style={MONO}>CV / Resume File</label>
-              <p className="text-xs text-[#6b6b82]">Upload your CV as a PDF file. The site will store it and offer it as a download.</p>
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={handleCvUpload}
-                className="w-full rounded border border-white/10 bg-white/5 px-3 py-2 text-sm text-[#d4d4e0] file:mr-3 file:rounded file:border-0 file:bg-[#5eead4] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[#09090f]"
-              />
-              {content.hero.cvFileName && (
-                <p className="text-xs text-[#6b6b82]">Uploaded: {content.hero.cvFileName}</p>
-              )}
-              {content.hero.cvFileData && (
-                <button
-                  type="button"
-                  onClick={() => onChange({ ...content, hero: { ...content.hero, cvFileData: "", cvFileName: "", cvUrl: "" } })}
-                  className="text-xs text-[#6b6b82] transition-colors hover:text-red-400"
-                >
-                  Clear uploaded CV
-                </button>
-              )}
-            </div>
-          </>}
-
-          {tab === "experience" && <div className="space-y-5">
-            {content.experience.map((e, i) => (
-              <div key={e.id} className="rounded-lg p-4 space-y-3 border" style={cardStyle}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-widest" style={{ ...MONO, color: "#5eead4" }}>#{i + 1}</span>
-                  <button onClick={() => delExp(e.id)} className="transition-colors hover:text-red-400" style={{ color: "#6b6b82" }}><Trash2 size={13} /></button>
-                </div>
-                <Field label="Role" value={e.role} onChange={v => upExp(e.id, "role", v)} />
-                <Field label="Company" value={e.company} onChange={v => upExp(e.id, "company", v)} />
-                <Field label="Location" value={e.location} onChange={v => upExp(e.id, "location", v)} />
-                <Field label="Period" value={e.period} onChange={v => upExp(e.id, "period", v)} />
-                <Field label="Bullets (one per line)" value={e.bullets.join("\n")} onChange={v => upExpBullets(e.id, v)} multiline />
-              </div>
-            ))}
-            <AddButton onClick={addExp} label="Add Experience" />
-          </div>}
-
-          {tab === "projects" && <div className="space-y-5">
-            {content.projects.map((p, i) => (
-              <div key={p.id} className="rounded-lg p-4 space-y-3 border" style={cardStyle}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-widest" style={{ ...MONO, color: "#5eead4" }}>#{i + 1}</span>
-                  <button onClick={() => delProj(p.id)} className="transition-colors hover:text-red-400" style={{ color: "#6b6b82" }}><Trash2 size={13} /></button>
-                </div>
-                <Field label="Title" value={p.title} onChange={v => upProj(p.id, "title", v)} />
-                <Field label="Year" value={p.year} onChange={v => upProj(p.id, "year", v)} />
-                <Field label="Description" value={p.description} onChange={v => upProj(p.id, "description", v)} multiline />
-                <Field label="GitHub / Link" value={p.link} onChange={v => upProj(p.id, "link", v)} />
-              </div>
-            ))}
-            <AddButton onClick={addProj} label="Add Project" />
-          </div>}
-
-          {tab === "skills" && <div className="space-y-5">
-            {content.skills.map((s, i) => (
-              <div key={s.id} className="rounded-lg p-4 space-y-3 border" style={cardStyle}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-widest" style={{ ...MONO, color: "#5eead4" }}>#{i + 1}</span>
-                  <button onClick={() => delSkill(s.id)} className="transition-colors hover:text-red-400" style={{ color: "#6b6b82" }}><Trash2 size={13} /></button>
-                </div>
-                <Field label="Category Name" value={s.label} onChange={v => upSkill(s.id, "label", v)} />
-                <Field label="Skills (comma-separated)" value={s.skills} onChange={v => upSkill(s.id, "skills", v)} multiline />
-              </div>
-            ))}
-            <AddButton onClick={addSkill} label="Add Category" />
-          </div>}
-
-          {tab === "education" && <div className="space-y-5">
-            {content.education.map((e, i) => (
-              <div key={e.id} className="rounded-lg p-4 space-y-3 border" style={cardStyle}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-widest" style={{ ...MONO, color: "#5eead4" }}>#{i + 1}</span>
-                  <button onClick={() => delEdu(e.id)} className="transition-colors hover:text-red-400" style={{ color: "#6b6b82" }}><Trash2 size={13} /></button>
-                </div>
-                <Field label="Degree" value={e.degree} onChange={v => upEdu(e.id, "degree", v)} />
-                <Field label="School" value={e.school} onChange={v => upEdu(e.id, "school", v)} />
-                <Field label="Location" value={e.location} onChange={v => upEdu(e.id, "location", v)} />
-                <Field label="Period" value={e.period} onChange={v => upEdu(e.id, "period", v)} />
-                <Field label="Notes" value={e.notes} onChange={v => upEdu(e.id, "notes", v)} multiline />
-              </div>
-            ))}
-            <AddButton onClick={addEdu} label="Add Education" />
-          </div>}
-
-          {tab === "languages" && <div className="space-y-5">
-            {content.languages.map((l, i) => (
-              <div key={l.id} className="rounded-lg p-4 space-y-3 border" style={cardStyle}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-widest" style={{ ...MONO, color: "#5eead4" }}>#{i + 1}</span>
-                  <button onClick={() => delLang(l.id)} className="transition-colors hover:text-red-400" style={{ color: "#6b6b82" }}><Trash2 size={13} /></button>
-                </div>
-                <Field label="Language" value={l.name} onChange={v => upLang(l.id, "name", v)} />
-                <Field label="Level" value={l.level} onChange={v => upLang(l.id, "level", v)} />
-              </div>
-            ))}
-            <AddButton onClick={addLang} label="Add Language" />
-          </div>}
-
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ─── Main App ───────────────────────────────────────────── */
 export default function App() {
-  const [content, setContent] = useState<SiteContent>(() => {
-    try {
-      const saved = localStorage.getItem("hazem-portfolio");
-      return saved ? JSON.parse(saved) : seed;
-    } catch {
-      return seed;
-    }
-  });
-  const [cmsOpen, setCmsOpen] = useState(false);
   const [visitCount, setVisitCount] = useState<number | null>(null);
-  const [canEditContent, setCanEditContent] = useState(false);
-  const [isSigningIn, setIsSigningIn] = useState(false);
-  const [signInError, setSignInError] = useState<string | null>(null);
-  const [isOwnerSignedIn, setIsOwnerSignedIn] = useState(false);
-
-  useEffect(() => {
-    try { localStorage.setItem("hazem-portfolio", JSON.stringify(content)); } catch {}
-  }, [content]);
 
   useEffect(() => {
     fetch("https://api.counterapi.dev/v1/hazem-alabiad/portfolio/up")
@@ -414,33 +138,12 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const token = window.localStorage.getItem("github-owner-token");
-    if (!token) {
-      setCanEditContent(canShowEditContent({ hostname: window.location.hostname, isSignedIn: false }));
-      return;
-    }
-
-    void (async () => {
-      const result = await verifyOwnerGitHubToken(token);
-      if (result.ok && result.login === OWNER_GITHUB_USERNAME) {
-        setIsOwnerSignedIn(true);
-        setCanEditContent(true);
-      } else {
-        window.localStorage.removeItem("github-owner-token");
-        setCanEditContent(canShowEditContent({ hostname: window.location.hostname, isSignedIn: false }));
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
-    const title = `${hero.name} • Hazem Alabiad Portfolio`;
+    const title = `${seed.hero.name} • Hazem Alabiad Portfolio`;
     document.title = title;
 
-    const description = `${hero.bio.replace(/\s+/g, " ").trim().slice(0, 155)}${hero.bio.length > 155 ? "…" : ""}`;
+    const description = `${seed.hero.bio.replace(/\s+/g, " ").trim().slice(0, 155)}${seed.hero.bio.length > 155 ? "…" : ""}`;
     const descriptionMeta = document.querySelector('meta[name="description"]');
-    if (descriptionMeta) {
-      descriptionMeta.setAttribute("content", description);
-    }
+    if (descriptionMeta) descriptionMeta.setAttribute("content", description);
 
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) ogTitle.setAttribute("content", title);
@@ -453,40 +156,9 @@ export default function App() {
 
     const twitterDescription = document.querySelector('meta[name="twitter:description"]');
     if (twitterDescription) twitterDescription.setAttribute("content", description);
-  }, [hero.bio, hero.name]);
+  }, []);
 
-  const handleReset = () => {
-    if (confirm("Reset all content to defaults?")) {
-      setContent(seed);
-      localStorage.removeItem("hazem-portfolio");
-    }
-  };
-
-  const handleSignIn = async () => {
-    const token = window.prompt("Paste your GitHub personal access token");
-    if (!token) return;
-
-    setIsSigningIn(true);
-    setSignInError(null);
-    const result = await verifyOwnerGitHubToken(token);
-    if (result.ok && result.login === OWNER_GITHUB_USERNAME) {
-      window.localStorage.setItem("github-owner-token", token);
-      setIsOwnerSignedIn(true);
-      setCanEditContent(true);
-    } else {
-      setSignInError("Only the portfolio owner can edit this content.");
-    }
-    setIsSigningIn(false);
-  };
-
-  const handleSignOut = () => {
-    window.localStorage.removeItem("github-owner-token");
-    setIsOwnerSignedIn(false);
-    setCanEditContent(canShowEditContent({ hostname: window.location.hostname, isSignedIn: false }));
-  };
-
-  const { hero, experience, projects, skills, education, languages } = content;
-  const showOwnerControls = canEditContent;
+  const { hero, experience, projects, skills, education, languages } = seed;
 
   return (
     <div className="min-h-screen antialiased" style={{ background: "#09090f", color: "#d4d4e0" }}>
@@ -496,7 +168,7 @@ export default function App() {
         style={{ background: "rgba(9,9,15,0.88)", backdropFilter: "blur(16px)", borderColor: "oklch(1 0 0 / 0.06)" }}>
         <span className="text-sm" style={{ ...DISPLAY, color: "#5eead4" }}>{hero.name}</span>
         <div className="hidden md:flex items-center gap-8">
-          {[["Education", "education"], ["Experience", "experience"], ["Research", "projects"], ["Skills", "skills"]].map(([label, id]) => (
+          {([["Education", "education"], ["Experience", "experience"], ["Research", "projects"], ["Skills", "skills"]] as [string, string][]).map(([label, id]) => (
             <a key={id} href={`#${id}`} className="text-[11px] uppercase tracking-[0.2em] transition-colors hover:text-[#5eead4]"
               style={{ ...MONO, color: "#6b6b82" }}>{label}</a>
           ))}
@@ -531,7 +203,6 @@ export default function App() {
                   <p key={i} className="text-[17px] leading-[1.9] tracking-[0.015em]" style={{ color: "#d8d8ea", fontWeight: 400, fontFamily: "'DM Sans', sans-serif" }}>{para}</p>
                 ))}
               </div>
-
 
               {/* CTAs */}
               <div className="flex flex-wrap items-center gap-3 mb-8">
@@ -599,14 +270,12 @@ export default function App() {
           <div>
             {groupByCompany(experience).map((group, gi, arr) => (
               <div key={group.company + gi} className="relative pl-7 pb-12 last:pb-0">
-                {/* Timeline dot */}
                 <div className="absolute left-0 top-[8px] w-2 h-2 rounded-full" style={{ background: "#5eead4", opacity: 0.35 }} />
                 {gi < arr.length - 1 && (
                   <div className="absolute left-[3px] top-5 bottom-0 w-px" style={{ background: "oklch(1 0 0 / 0.07)" }} />
                 )}
 
                 {group.roles.length === 1 ? (
-                  /* ── Single role: existing flat layout ── */
                   <>
                     <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-1 mb-3">
                       <div>
@@ -630,7 +299,6 @@ export default function App() {
                     )}
                   </>
                 ) : (
-                  /* ── Multiple roles: company header + nested roles ── */
                   <>
                     <div className="mb-4">
                       <h3 className="font-medium text-[15px]" style={{ color: "#5eead4" }}>{group.company}</h3>
@@ -748,35 +416,6 @@ export default function App() {
           </div>
         </div>
       </footer>
-
-      {/* CMS */}
-      {cmsOpen && (
-        <ContentManager content={content} onChange={setContent} onClose={() => setCmsOpen(false)} onReset={handleReset} />
-      )}
-
-      {/* Floating Edit Button (owner-only) */}
-      {isOwnerSignedIn && (
-        <button onClick={() => setCmsOpen(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-2.5 rounded-full text-[12px] font-medium transition-all hover:scale-105 active:scale-95"
-          style={{ ...MONO, background: "#5eead4", color: "#09090f", boxShadow: "0 0 24px rgba(94,234,212,0.2)" }}>
-          <Edit3 size={13} /> Edit Content
-        </button>
-      )}
-
-      {/* Sign-in prompt — shown whenever the owner is not yet authenticated */}
-      {!isOwnerSignedIn && (
-        <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-full border px-4 py-2.5 text-[12px]"
-          style={{ ...MONO, background: "#0c0c13", borderColor: "oklch(1 0 0 / 0.12)", color: "#6b6b82" }}>
-          {signInError && <span className="text-red-400 text-[11px]">{signInError}</span>}
-          <button
-            onClick={handleSignIn}
-            disabled={isSigningIn}
-            className="transition-colors hover:text-[#5eead4] disabled:opacity-50"
-          >
-            {isSigningIn ? "Verifying…" : "Owner sign-in"}
-          </button>
-        </div>
-      )}
 
     </div>
   );
