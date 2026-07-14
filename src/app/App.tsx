@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type ChangeEvent } from "react";
+import { useState, useEffect } from "react";
 import {
   Github, Linkedin, Mail, MapPin,
   ArrowUpRight, Download, Settings,
@@ -6,9 +6,11 @@ import {
 import profilePhoto from "@/imports/IMG_0323.jpeg";
 import cvAsset from "@/imports/Hazem-Alabiad-CV.pdf?url";
 import { resolveCvHref, resolveCvName } from "./cv";
-import CmsPanel from "./components/CmsPanel";
+import CmsPage from "./components/CmsPage";
 
 const OWNER = "hazem-alabiad";
+const REPO = "hazem-alabiad.github.io";
+const CONTENT_PATH = "src/app/content.json";
 const TOKEN_KEY = "cms_gh_token";
 
 /* ─── Types ─────────────────────────────────────────────── */
@@ -18,18 +20,10 @@ interface HeroContent {
   github: string; linkedin: string; cvUrl: string;
   cvFileData?: string; cvFileName?: string;
 }
-interface ExpItem {
-  id: string; role: string; company: string; location: string;
-  period: string; bullets: string[];
-}
-interface ProjItem {
-  id: string; title: string; year: string; description: string; link: string;
-}
+interface ExpItem { id: string; role: string; company: string; location: string; period: string; bullets: string[]; }
+interface ProjItem { id: string; title: string; year: string; description: string; link: string; }
 interface SkillGroup { id: string; label: string; skills: string; }
-interface EduItem {
-  id: string; degree: string; school: string; location: string;
-  period: string; notes: string;
-}
+interface EduItem { id: string; degree: string; school: string; location: string; period: string; notes: string; }
 interface LangItem { id: string; name: string; level: string; }
 interface SiteContent {
   hero: HeroContent;
@@ -40,7 +34,7 @@ interface SiteContent {
   languages: LangItem[];
 }
 
-/* ─── Seed Data ──────────────────────────────────────────── */
+/* ─── Seed (fallback) ────────────────────────────────────── */
 const seed: SiteContent = {
   hero: {
     name: "Hazem Alabiad",
@@ -92,39 +86,27 @@ function groupByCompany(items: ExpItem[]) {
   const groups: { company: string; location: string; roles: ExpItem[] }[] = [];
   for (const item of items) {
     const last = groups[groups.length - 1];
-    if (last && last.company === item.company) {
-      last.roles.push(item);
-    } else {
-      groups.push({ company: item.company, location: item.location, roles: [item] });
-    }
+    if (last && last.company === item.company) { last.roles.push(item); }
+    else { groups.push({ company: item.company, location: item.location, roles: [item] }); }
   }
   return groups;
 }
 const MONO: React.CSSProperties = { fontFamily: "'JetBrains Mono', monospace" };
 const DISPLAY: React.CSSProperties = { fontFamily: "'DM Serif Display', serif" };
 
-/* ─── Section Header ─────────────────────────────────────── */
 function SectionHeader({ label, id }: { label: string; id: string }) {
   return (
     <div id={id} className="flex items-center gap-5 mb-12 scroll-mt-24">
-      <span className="text-[11px] tracking-[0.25em] uppercase shrink-0" style={{ ...MONO, color: "#5eead4" }}>
-        {label}
-      </span>
+      <span className="text-[11px] tracking-[0.25em] uppercase shrink-0" style={{ ...MONO, color: "#5eead4" }}>{label}</span>
       <div className="flex-1 h-px" style={{ background: "oklch(1 0 0 / 0.07)" }} />
     </div>
   );
 }
 
-/* ─── Social Link ────────────────────────────────────────── */
 function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
   return (
-    <a
-      href={href}
-      target={href.startsWith("mailto") ? undefined : "_blank"}
-      rel="noopener noreferrer"
-      className="flex items-center gap-1.5 text-sm transition-colors hover:text-[#5eead4]"
-      style={{ color: "#6b6b82" }}
-    >
+    <a href={href} target={href.startsWith("mailto") ? undefined : "_blank"} rel="noopener noreferrer"
+      className="flex items-center gap-1.5 text-sm transition-colors hover:text-[#5eead4]" style={{ color: "#6b6b82" }}>
       {icon} {label}
     </a>
   );
@@ -132,23 +114,31 @@ function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode
 
 /* ─── Main App ───────────────────────────────────────────── */
 export default function App() {
+  const isCms = window.location.hash === "#/cms";
+  if (isCms) return <CmsPage />;
+
   const [visitCount, setVisitCount] = useState<number | null>(null);
   const [isOwner, setIsOwner] = useState(false);
-  const [cmsOpen, setCmsOpen] = useState(false);
+  const [data, setData] = useState<SiteContent>(seed);
 
-  // Check if the stored token belongs to the owner (no page reload needed)
+  // Check owner
   useEffect(() => {
     const stored = localStorage.getItem(TOKEN_KEY);
     if (!stored) return;
     fetch("https://api.github.com/user", {
       headers: { Authorization: `Bearer ${stored}`, Accept: "application/vnd.github+json" },
-    })
-      .then(r => r.json())
-      .then(u => { if (u.login === OWNER) setIsOwner(true); })
-      .catch(() => {});
+    }).then(r => r.json()).then(u => { if (u.login === OWNER) setIsOwner(true); }).catch(() => {});
   }, []);
 
-  // Only count visits from non-owners
+  // Load content.json from GitHub (raw)
+  useEffect(() => {
+    fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/main/${CONTENT_PATH}`)
+      .then(r => r.json())
+      .then(d => setData(d))
+      .catch(() => {}); // fallback to seed
+  }, []);
+
+  // Visitor counter (non-owners only)
   useEffect(() => {
     if (isOwner) return;
     fetch("https://api.counterapi.dev/v1/hazem-alabiad/portfolio/up")
@@ -158,22 +148,15 @@ export default function App() {
   }, [isOwner]);
 
   useEffect(() => {
-    const title = `${seed.hero.name} • Hazem Alabiad Portfolio`;
+    const title = `${data.hero.name} • Portfolio`;
     document.title = title;
-    const description = `${seed.hero.bio.replace(/\s+/g, " ").trim().slice(0, 155)}${seed.hero.bio.length > 155 ? "…" : ""}`;
-    const descriptionMeta = document.querySelector('meta[name="description"]');
-    if (descriptionMeta) descriptionMeta.setAttribute("content", description);
-    const ogTitle = document.querySelector('meta[property="og:title"]');
-    if (ogTitle) ogTitle.setAttribute("content", title);
-    const ogDescription = document.querySelector('meta[property="og:description"]');
-    if (ogDescription) ogDescription.setAttribute("content", description);
-    const twitterTitle = document.querySelector('meta[name="twitter:title"]');
-    if (twitterTitle) twitterTitle.setAttribute("content", title);
-    const twitterDescription = document.querySelector('meta[name="twitter:description"]');
-    if (twitterDescription) twitterDescription.setAttribute("content", description);
-  }, []);
+    const desc = data.hero.bio.slice(0, 155) + (data.hero.bio.length > 155 ? "…" : "");
+    document.querySelector('meta[name="description"]')?.setAttribute("content", desc);
+    document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
+    document.querySelector('meta[property="og:description"]')?.setAttribute("content", desc);
+  }, [data.hero]);
 
-  const { hero, experience, projects, skills, education, languages } = seed;
+  const { hero, experience, projects, skills, education, languages } = data;
 
   return (
     <div className="min-h-screen antialiased" style={{ background: "#09090f", color: "#d4d4e0" }}>
@@ -194,23 +177,15 @@ export default function App() {
 
       <main className="max-w-4xl mx-auto px-6 md:px-12 pt-36 pb-28">
 
-        {/* ── Hero ─────────────────────────────────────────── */}
+        {/* Hero */}
         <section className="mb-32">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10">
-
-            {/* Text */}
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.3em] mb-5" style={{ ...MONO, color: "#5eead4" }}>
-                Available for opportunities
-              </p>
-              <h1 className="leading-[0.92] tracking-tight mb-5" style={{ ...DISPLAY, color: "#eeeef5", fontSize: "clamp(2.8rem,7vw,5rem)" }}>
-                {hero.name}
-              </h1>
+              <p className="text-[11px] uppercase tracking-[0.3em] mb-5" style={{ ...MONO, color: "#5eead4" }}>Available for opportunities</p>
+              <h1 className="leading-[0.92] tracking-tight mb-5" style={{ ...DISPLAY, color: "#eeeef5", fontSize: "clamp(2.8rem,7vw,5rem)" }}>{hero.name}</h1>
               <div className="flex flex-wrap gap-2 mb-6">
                 {["TypeScript", "React", "Node.js", "Python", "NLP", "LLMs"].map(skill => (
-                  <span key={skill} className="text-[12px] px-2.5 py-1 rounded-md border" style={{ ...MONO, background: "rgba(94,234,212,0.05)", borderColor: "rgba(94,234,212,0.18)", color: "#5eead4" }}>
-                    {skill}
-                  </span>
+                  <span key={skill} className="text-[12px] px-2.5 py-1 rounded-md border" style={{ ...MONO, background: "rgba(94,234,212,0.05)", borderColor: "rgba(94,234,212,0.18)", color: "#5eead4" }}>{skill}</span>
                 ))}
               </div>
               <div className="mb-5 max-w-[52ch] space-y-3">
@@ -218,48 +193,30 @@ export default function App() {
                   <p key={i} className="text-[17px] leading-[1.9] tracking-[0.015em]" style={{ color: "#d8d8ea", fontWeight: 400, fontFamily: "'DM Sans', sans-serif" }}>{para}</p>
                 ))}
               </div>
-
-              {/* CTAs */}
               <div className="flex flex-wrap items-center gap-3 mb-8">
-                <a href={`mailto:${hero.email}`}
-                  className="flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium transition-all hover:scale-[1.02]"
-                  style={{ background: "#5eead4", color: "#09090f", border: "none" }}>
+                <a href={`mailto:${hero.email}`} className="flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium transition-all hover:scale-[1.02]" style={{ background: "#5eead4", color: "#09090f", border: "none" }}>
                   <Mail size={14} /> Get in touch
                 </a>
-                <a href={resolveCvHref(hero, cvAsset)} download={resolveCvName(hero, "Hazem-Alabiad-CV.pdf")}
-                  className="flex items-center gap-2 px-4 py-2 rounded border text-sm transition-all hover:border-white/25 hover:text-[#d4d4e0]"
-                  style={{ borderColor: "oklch(1 0 0 / 0.12)", color: "#9494a8" }}>
+                <a href={resolveCvHref(hero, cvAsset)} download={resolveCvName(hero, "Hazem-Alabiad-CV.pdf")} className="flex items-center gap-2 px-4 py-2 rounded border text-sm transition-all hover:border-white/25 hover:text-[#d4d4e0]" style={{ borderColor: "oklch(1 0 0 / 0.12)", color: "#9494a8" }}>
                   <Download size={14} /> Download CV
                 </a>
               </div>
-
-              {/* Social links */}
               <div className="flex flex-wrap items-center gap-6">
                 <SocialLink href={`https://${hero.github}`} icon={<Github size={14} />} label="GitHub" />
                 <SocialLink href={`https://${hero.linkedin}`} icon={<Linkedin size={14} />} label="LinkedIn" />
-                <span className="flex items-center gap-1.5 text-sm" style={{ color: "#6b6b82" }}>
-                  <MapPin size={14} /> {hero.location}
-                </span>
+                <span className="flex items-center gap-1.5 text-sm" style={{ color: "#6b6b82" }}><MapPin size={14} /> {hero.location}</span>
               </div>
             </div>
-
-            {/* Photo */}
             <div className="flex-shrink-0 self-start md:mt-8">
-              <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden"
-                style={{ boxShadow: "0 0 0 1.5px rgba(94,234,212,0.35), 0 0 32px rgba(94,234,212,0.08)" }}>
-                <img
-                  src={profilePhoto}
-                  alt={hero.name}
-                  className="w-full h-full object-cover"
-                  style={{ objectPosition: "center 4%", filter: "brightness(0.92) contrast(1.04) saturate(0.88)" }}
-                />
+              <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden" style={{ boxShadow: "0 0 0 1.5px rgba(94,234,212,0.35), 0 0 32px rgba(94,234,212,0.08)" }}>
+                <img src={profilePhoto} alt={hero.name} className="w-full h-full object-cover" style={{ objectPosition: "center 4%", filter: "brightness(0.92) contrast(1.04) saturate(0.88)" }} />
                 <div className="absolute inset-0 rounded-full" style={{ background: "radial-gradient(circle at center, transparent 55%, rgba(9,9,15,0.5) 100%)" }} />
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── Education ────────────────────────────────────── */}
+        {/* Education */}
         <section className="mb-28">
           <SectionHeader label="Education" id="education" />
           <div className="space-y-10">
@@ -267,10 +224,7 @@ export default function App() {
               <div key={edu.id} className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
                 <div>
                   <h3 className="font-medium" style={{ color: "#eeeef5" }}>{edu.degree}</h3>
-                  <p className="text-sm mt-0.5">
-                    <span style={{ color: "#5eead4", opacity: 0.8 }}>{edu.school}</span>
-                    <span style={{ color: "#6b6b82" }}> · {edu.location}</span>
-                  </p>
+                  <p className="text-sm mt-0.5"><span style={{ color: "#5eead4", opacity: 0.8 }}>{edu.school}</span><span style={{ color: "#6b6b82" }}> · {edu.location}</span></p>
                   {edu.notes && <p className="text-[14px] mt-2 leading-relaxed" style={{ color: "#8f8fa8" }}>{edu.notes}</p>}
                 </div>
                 <span className="text-[11px] whitespace-nowrap shrink-0 mt-1" style={{ ...MONO, color: "#6b6b82" }}>{edu.period}</span>
@@ -279,26 +233,20 @@ export default function App() {
           </div>
         </section>
 
-        {/* ── Experience ───────────────────────────────────── */}
+        {/* Experience */}
         <section className="mb-28">
           <SectionHeader label="Experience" id="experience" />
           <div>
             {groupByCompany(experience).map((group, gi, arr) => (
               <div key={group.company + gi} className="relative pl-7 pb-12 last:pb-0">
                 <div className="absolute left-0 top-[8px] w-2 h-2 rounded-full" style={{ background: "#5eead4", opacity: 0.35 }} />
-                {gi < arr.length - 1 && (
-                  <div className="absolute left-[3px] top-5 bottom-0 w-px" style={{ background: "oklch(1 0 0 / 0.07)" }} />
-                )}
-
+                {gi < arr.length - 1 && <div className="absolute left-[3px] top-5 bottom-0 w-px" style={{ background: "oklch(1 0 0 / 0.07)" }} />}
                 {group.roles.length === 1 ? (
                   <>
                     <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-1 mb-3">
                       <div>
                         <h3 className="font-medium text-[15px]" style={{ color: "#eeeef5" }}>{group.roles[0].role}</h3>
-                        <p className="text-[13.5px] mt-0.5">
-                          <span style={{ color: "#5eead4", opacity: 0.9 }}>{group.company}</span>
-                          <span style={{ color: "#707088" }}> · {group.location}</span>
-                        </p>
+                        <p className="text-[13.5px] mt-0.5"><span style={{ color: "#5eead4", opacity: 0.9 }}>{group.company}</span><span style={{ color: "#707088" }}> · {group.location}</span></p>
                       </div>
                       <span className="text-[11px] whitespace-nowrap shrink-0" style={{ ...MONO, color: "#6b6b82" }}>{group.roles[0].period}</span>
                     </div>
@@ -306,8 +254,7 @@ export default function App() {
                       <ul className="space-y-1.5">
                         {group.roles[0].bullets.filter(Boolean).map((b, bi) => (
                           <li key={bi} className="text-[14px] leading-relaxed flex gap-2.5" style={{ color: "#ababc0" }}>
-                            <span className="mt-[3px] shrink-0" style={{ color: "#5eead4", opacity: 0.3 }}>—</span>
-                            <span>{b}</span>
+                            <span className="mt-[3px] shrink-0" style={{ color: "#5eead4", opacity: 0.3 }}>—</span><span>{b}</span>
                           </li>
                         ))}
                       </ul>
@@ -320,7 +267,7 @@ export default function App() {
                       <p className="text-[13px] mt-0.5" style={{ color: "#707088" }}>{group.location}</p>
                     </div>
                     <div className="space-y-6 border-l pl-5" style={{ borderColor: "oklch(1 0 0 / 0.07)" }}>
-                      {group.roles.map((role) => (
+                      {group.roles.map(role => (
                         <div key={role.id}>
                           <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-1 mb-2">
                             <span className="font-medium text-[14px]" style={{ color: "#d8d8ec" }}>{role.role}</span>
@@ -330,8 +277,7 @@ export default function App() {
                             <ul className="space-y-1.5">
                               {role.bullets.filter(Boolean).map((b, bi) => (
                                 <li key={bi} className="text-[14px] leading-relaxed flex gap-2.5" style={{ color: "#ababc0" }}>
-                                  <span className="mt-[3px] shrink-0" style={{ color: "#5eead4", opacity: 0.3 }}>—</span>
-                                  <span>{b}</span>
+                                  <span className="mt-[3px] shrink-0" style={{ color: "#5eead4", opacity: 0.3 }}>—</span><span>{b}</span>
                                 </li>
                               ))}
                             </ul>
@@ -346,13 +292,12 @@ export default function App() {
           </div>
         </section>
 
-        {/* ── Research & Projects ───────────────────────────── */}
+        {/* Projects */}
         <section className="mb-28">
           <SectionHeader label="Research &amp; Projects" id="projects" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {projects.map(proj => (
-              <a key={proj.id}
-                href={proj.link.startsWith("http") ? proj.link : `https://${proj.link}`}
+              <a key={proj.id} href={proj.link.startsWith("http") ? proj.link : `https://${proj.link}`}
                 target="_blank" rel="noopener noreferrer"
                 className="group block rounded-xl p-5 border transition-all"
                 style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.08)" }}
@@ -370,21 +315,17 @@ export default function App() {
           </div>
         </section>
 
-        {/* ── Skills ───────────────────────────────────────── */}
+        {/* Skills */}
         <section className="mb-28">
           <SectionHeader label="Skills" id="skills" />
           <div className="space-y-7">
             {skills.map(sg => (
               <div key={sg.id} className="flex flex-col md:flex-row gap-3 md:gap-6">
-                <span className="text-[11px] uppercase tracking-[0.2em] shrink-0 pt-1 w-28" style={{ ...MONO, color: "#5eead4", opacity: 0.65 }}>
-                  {sg.label}
-                </span>
+                <span className="text-[11px] uppercase tracking-[0.2em] shrink-0 pt-1 w-28" style={{ ...MONO, color: "#5eead4", opacity: 0.65 }}>{sg.label}</span>
                 <div className="flex flex-wrap gap-2">
                   {sg.skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
                     <span key={skill} className="text-[13px] px-3 py-1.5 rounded border cursor-default"
-                      style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.09)", color: "#a0a0b8" }}>
-                      {skill}
-                    </span>
+                      style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.09)", color: "#a0a0b8" }}>{skill}</span>
                   ))}
                 </div>
               </div>
@@ -392,7 +333,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* ── Languages ────────────────────────────────────── */}
+        {/* Languages */}
         {languages.length > 0 && (
           <section className="mb-28">
             <SectionHeader label="Languages" id="languages" />
@@ -401,15 +342,12 @@ export default function App() {
                 <div key={lang.id} className="flex items-center gap-3 px-4 py-3 rounded-lg border"
                   style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.08)" }}>
                   <span className="font-medium text-sm" style={{ color: "#eeeef5" }}>{lang.name}</span>
-                  <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ ...MONO, background: "rgba(94,234,212,0.08)", color: "#5eead4" }}>
-                    {lang.level}
-                  </span>
+                  <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ ...MONO, background: "rgba(94,234,212,0.08)", color: "#5eead4" }}>{lang.level}</span>
                 </div>
               ))}
             </div>
           </section>
         )}
-
       </main>
 
       {/* Footer */}
@@ -432,27 +370,25 @@ export default function App() {
         </div>
       </footer>
 
-      {/* ── CMS Floating Button (owner only) ─────────────── */}
-      <button
-        onClick={() => setCmsOpen(o => !o)}
-        title="CMS Panel"
+      {/* CMS button */}
+      <a
+        href="#/cms"
+        onClick={() => window.location.hash = "#/cms"}
+        title="Open CMS"
         style={{
           position: "fixed", bottom: 24, right: 24, zIndex: 9998,
           width: 44, height: 44, borderRadius: "50%",
-          background: cmsOpen ? "#5eead4" : "#111119",
-          border: "1px solid rgba(94,234,212,0.35)",
-          color: cmsOpen ? "#09090f" : "#5eead4",
-          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
-          transition: "all 0.2s ease",
+          background: "#111119", border: "1px solid rgba(94,234,212,0.35)",
+          color: "#5eead4", cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.5)", transition: "all 0.2s ease",
+          textDecoration: "none",
         }}
+        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#1a1a2e"}
+        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#111119"}
       >
         <Settings size={18} />
-      </button>
-
-      {/* ── CMS Panel ────────────────────────────────────── */}
-      {cmsOpen && <CmsPanel onClose={() => setCmsOpen(false)} />}
-
+      </a>
     </div>
   );
 }
