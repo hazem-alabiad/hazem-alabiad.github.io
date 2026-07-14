@@ -148,13 +148,13 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  // ✅ Visitor counter — only fires AFTER owner check is done AND user is not the owner
+  // ✅ Visitor counter using countapi.xyz — fires only after owner check, skips if owner
   useEffect(() => {
     if (!ownerChecked) return;
     if (isOwner) return;
-    fetch("https://api.counterapi.dev/v1/hazem-alabiad/portfolio/up")
+    fetch("https://api.countapi.xyz/hit/hazem-alabiad.github.io/portfolio")
       .then(r => r.json())
-      .then(d => setVisitCount(d.count))
+      .then(d => { if (typeof d.value === "number") setVisitCount(d.value); })
       .catch(() => {});
   }, [ownerChecked, isOwner]);
 
@@ -171,6 +171,8 @@ export default function App() {
   if (hash === "#/cms") return <CmsPage onExit={() => { window.location.hash = ""; setHash(""); }} />;
 
   const { hero, experience, projects, skills, education, languages } = data;
+
+  const currentYear = new Date().getFullYear();
 
   return (
     <div className="min-h-screen antialiased" style={{ background: "#09090f", color: "#d4d4e0" }}>
@@ -366,21 +368,14 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t px-6 md:px-12 py-8" style={{ borderColor: "oklch(1 0 0 / 0.06)" }}>
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <p className="text-xs" style={{ ...MONO, color: "#6b6b82" }}>© 2026 {hero.name}</p>
-            {!isOwner && visitCount !== null && (
-              <span className="flex items-center gap-1.5 text-xs" style={{ ...MONO, color: "#4a4a60" }}>
-                <span className="w-1 h-1 rounded-full inline-block" style={{ background: "#5eead4", opacity: 0.5 }} />
-                {visitCount.toLocaleString()} visits
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-6">
-            <SocialLink href={`https://${hero.github}`} icon={<Github size={13} />} label="GitHub" />
-            <SocialLink href={`https://${hero.linkedin}`} icon={<Linkedin size={13} />} label="LinkedIn" />
-            <SocialLink href={`mailto:${hero.email}`} icon={<Mail size={13} />} label="Email" />
-          </div>
+        <div className="max-w-4xl mx-auto flex items-center justify-center gap-4">
+          <p className="text-xs" style={{ ...MONO, color: "#6b6b82" }}>© {currentYear} {hero.name}</p>
+          {!isOwner && visitCount !== null && (
+            <span className="flex items-center gap-1.5 text-xs" style={{ ...MONO, color: "#4a4a60" }}>
+              <span className="w-1 h-1 rounded-full inline-block" style={{ background: "#5eead4", opacity: 0.5 }} />
+              {visitCount.toLocaleString()} visits
+            </span>
+          )}
         </div>
       </footer>
 
