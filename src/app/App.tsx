@@ -114,7 +114,7 @@ function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode
 
 /* ─── Main App ───────────────────────────────────────────── */
 export default function App() {
-  // ✅ FIX: reactive hash state — listens to hashchange so no refresh needed
+  // ✅ Reactive hash state — no page refresh needed
   const [hash, setHash] = useState(() => window.location.hash);
 
   useEffect(() => {
@@ -127,15 +127,22 @@ export default function App() {
 
   const [visitCount, setVisitCount] = useState<number | null>(null);
   const [isOwner, setIsOwner] = useState(false);
+  // ✅ ownerChecked: true once the GitHub /user call resolves (or no token stored)
+  // This prevents counting the owner as a visitor due to the async race condition.
+  const [ownerChecked, setOwnerChecked] = useState(false);
   const [data, setData] = useState<SiteContent>(seed);
 
-  // Check owner
+  // Check owner — set ownerChecked=true once resolved either way
   useEffect(() => {
     const stored = localStorage.getItem(TOKEN_KEY);
-    if (!stored) return;
+    if (!stored) { setOwnerChecked(true); return; }
     fetch("https://api.github.com/user", {
       headers: { Authorization: `Bearer ${stored}`, Accept: "application/vnd.github+json" },
-    }).then(r => r.json()).then(u => { if (u.login === OWNER) setIsOwner(true); }).catch(() => {});
+    })
+      .then(r => r.json())
+      .then(u => { if (u.login === OWNER) setIsOwner(true); })
+      .catch(() => {})
+      .finally(() => setOwnerChecked(true));
   }, []);
 
   // Load content.json from GitHub (raw)
@@ -146,14 +153,15 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  // Visitor counter (non-owners only)
+  // ✅ Visitor counter — only fires AFTER owner check is done AND user is not the owner
   useEffect(() => {
+    if (!ownerChecked) return;
     if (isOwner) return;
     fetch("https://api.counterapi.dev/v1/hazem-alabiad/portfolio/up")
       .then(r => r.json())
       .then(d => setVisitCount(d.count))
       .catch(() => {});
-  }, [isOwner]);
+  }, [ownerChecked, isOwner]);
 
   useEffect(() => {
     const title = `${data.hero.name} • Portfolio`;
@@ -378,7 +386,7 @@ export default function App() {
         </div>
       </footer>
 
-      {/* CMS button — now uses onClick to update hash state reactively */}
+      {/* CMS button */}
       <button
         onClick={() => { window.location.hash = "#/cms"; setHash("#/cms"); }}
         title="Open CMS"
