@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   Github, Linkedin, Mail, MapPin,
-  ArrowUpRight, Download, Settings, Briefcase, GraduationCap, Code2, Globe,
+  ArrowUpRight, Download, Settings,
 } from "lucide-react";
 import profilePhoto from "@/imports/IMG_0323.jpeg";
 import cvAsset from "@/imports/Hazem-Alabiad-CV.pdf?url";
@@ -13,6 +13,7 @@ const REPO = "hazem-alabiad.github.io";
 const CONTENT_PATH = "src/app/content.json";
 const TOKEN_KEY = "cms_gh_token";
 
+/* ─── Types ─────────────────────────────────────────────── */
 interface HeroContent {
   name: string; tagline: string; location: string; bio: string;
   researchFocus: string; email: string; phone: string;
@@ -33,12 +34,13 @@ interface SiteContent {
   languages: LangItem[];
 }
 
+/* ─── Seed (fallback) ────────────────────────────────────── */
 const seed: SiteContent = {
   hero: {
     name: "Hazem Alabiad",
     tagline: "Full-Stack Engineer · AI · NLP · LLM Research",
     location: "Tübingen, Germany",
-    bio: "Software Engineer with 6+ years of experience building production-ready systems and pixel-perfect UIs. Currently pursuing an M.A. in Computational Linguistics at the University of Tübingen, focusing on AI, LLMs, NLP, and Cognitive Science.",
+    bio: "Software Engineer with 6+ years of experience building production-ready, maintainable systems and pixel-perfect UIs using React, Next.js, TypeScript, and modern tooling. Experienced in leading cross-functional teams, improving developer experience, and delivering design-driven applications at scale. Currently pursuing an M.A. in Computational Linguistics at the University of Tübingen and working as a Student Assistant at IWM & the Autonomous Learning Lab (Uni Tübingen), focusing on AI, ML, LLMs, NLP, and Cognitive Science — bridging software engineering and intelligent systems. Open to Working Student & internship roles in NLP, AI/ML, and LLMs — Tübingen, Stuttgart, or remote.",
     researchFocus: "Corpus Linguistics · Large Language Models · Cognitive Science · NLP",
     email: "hazem.alabiad@icloud.com",
     phone: "+49 157 544 46942",
@@ -83,74 +85,12 @@ const MONO: React.CSSProperties = { fontFamily: "'JetBrains Mono', monospace" };
 const DISPLAY: React.CSSProperties = { fontFamily: "'DM Serif Display', serif" };
 const SANS: React.CSSProperties = { fontFamily: "'DM Sans', sans-serif" };
 
-function BentoCard({
-  children, className = "", style = {}, glow = false,
-  onClick, href,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-  glow?: boolean;
-  onClick?: () => void;
-  href?: string;
-}) {
-  const base: React.CSSProperties = {
-    background: "#0f0f18",
-    border: "1px solid rgba(255,255,255,0.07)",
-    borderRadius: 20,
-    padding: 28,
-    position: "relative",
-    overflow: "hidden",
-    transition: "border-color 0.2s, transform 0.2s, box-shadow 0.2s",
-    ...style,
-  };
-  const glowStyle: React.CSSProperties = glow
-    ? { boxShadow: "0 0 40px rgba(94,234,212,0.08), inset 0 1px 0 rgba(94,234,212,0.06)" }
-    : {};
-
-  const handleEnter = (e: React.MouseEvent<HTMLElement>) => {
-    (e.currentTarget as HTMLElement).style.borderColor = "rgba(94,234,212,0.25)";
-    (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
-    (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 32px rgba(94,234,212,0.1)";
-  };
-  const handleLeave = (e: React.MouseEvent<HTMLElement>) => {
-    (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.07)";
-    (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-    (e.currentTarget as HTMLElement).style.boxShadow = glow ? "0 0 40px rgba(94,234,212,0.08)" : "none";
-  };
-
-  if (href) {
-    return (
-      <a href={href} target="_blank" rel="noopener noreferrer"
-        className={className} style={{ ...base, ...glowStyle, display: "block", textDecoration: "none" }}
-        onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
-        {children}
-      </a>
-    );
-  }
-  return (
-    <div className={className} style={{ ...base, ...glowStyle, cursor: onClick ? "pointer" : "default" }}
-      onClick={onClick} onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
-      {children}
-    </div>
-  );
-}
-
-function Tag({ label }: { label: string }) {
-  return (
-    <span style={{ ...MONO, fontSize: 11, padding: "3px 10px", borderRadius: 6, background: "rgba(94,234,212,0.07)", border: "1px solid rgba(94,234,212,0.18)", color: "#5eead4", whiteSpace: "nowrap" }}>
-      {label}
-    </span>
-  );
-}
-
 export default function App() {
   const [hash, setHash] = useState(() => window.location.hash);
   const [visitCount, setVisitCount] = useState<number | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [ownerChecked, setOwnerChecked] = useState(false);
   const [data, setData] = useState<SiteContent>(seed);
-  const [activeTab, setActiveTab] = useState<"experience" | "education">("experience");
 
   useEffect(() => {
     const onHashChange = () => setHash(window.location.hash);
@@ -198,267 +138,135 @@ export default function App() {
   if (hash === "#/cms") return <CmsPage onExit={() => { window.location.hash = ""; setHash(""); }} />;
 
   const { hero, experience, projects, skills, education, languages } = data;
-  const allSkills = skills.flatMap(sg => sg.skills.split(",").map(s => s.trim()).filter(Boolean));
   const currentYear = new Date().getFullYear();
 
   return (
-    <div style={{ minHeight: "100vh", background: "#08080f", color: "#d4d4e0", ...SANS }}>
+    <div style={{ minHeight: "100vh", background: "#f8f8f2", color: "#1a1a2e", ...SANS }}>
+      <div style={{ maxWidth: 720, margin: "0 auto", padding: "48px 24px 80px" }}>
 
-      <nav style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 40,
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 32px", height: 60,
-        background: "rgba(8,8,15,0.85)", backdropFilter: "blur(20px)",
-        borderBottom: "1px solid rgba(255,255,255,0.05)",
-      }}>
-        <span style={{ ...DISPLAY, color: "#5eead4", fontSize: 18 }}>{hero.name}</span>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <a href={`https://${hero.github}`} target="_blank" rel="noopener noreferrer"
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#9494a8", transition: "all 0.2s" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5eead4"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(94,234,212,0.35)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#9494a8"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)"; }}>
-            <Github size={16} />
-          </a>
-          <a href={`https://${hero.linkedin}`} target="_blank" rel="noopener noreferrer"
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#9494a8", transition: "all 0.2s" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#5eead4"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(94,234,212,0.35)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#9494a8"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)"; }}>
-            <Linkedin size={16} />
-          </a>
-          <a href={`mailto:${hero.email}`}
-            style={{ ...MONO, fontSize: 12, padding: "6px 16px", borderRadius: 10, background: "rgba(94,234,212,0.1)", border: "1px solid rgba(94,234,212,0.25)", color: "#5eead4", textDecoration: "none", transition: "all 0.2s" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(94,234,212,0.18)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(94,234,212,0.1)"; }}>
-            Hire me
-          </a>
-        </div>
-      </nav>
-
-      <main style={{ maxWidth: 1080, margin: "0 auto", padding: "88px 24px 60px" }}>
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(12, 1fr)",
-          gridAutoRows: "minmax(0, auto)",
-          gap: 16,
-        }}>
-
-          {/* CARD 1: Hero */}
-          <BentoCard glow style={{ gridColumn: "1 / 9", gridRow: "1" }}>
-            <div style={{ position: "absolute", top: -60, right: -60, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(94,234,212,0.07) 0%, transparent 70%)", pointerEvents: "none" }} />
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 24 }}>
-              <div style={{ position: "relative", flexShrink: 0 }}>
-                <img src={profilePhoto} alt={hero.name}
-                  style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", objectPosition: "center 4%", border: "2px solid rgba(94,234,212,0.3)" }} />
-                <span style={{ position: "absolute", bottom: 2, right: 2, width: 12, height: 12, borderRadius: "50%", background: "#22c55e", border: "2px solid #0f0f18" }} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-                  <h1 style={{ ...DISPLAY, fontSize: 28, color: "#eeeef5", margin: 0, lineHeight: 1.1 }}>{hero.name}</h1>
-                  <span style={{ ...MONO, fontSize: 10, padding: "2px 8px", borderRadius: 20, background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.25)", color: "#22c55e" }}>Open to work</span>
-                </div>
-                <p style={{ ...MONO, fontSize: 12, color: "#5eead4", margin: "0 0 12px", opacity: 0.8 }}>{hero.tagline}</p>
-                <p style={{ fontSize: 14, lineHeight: 1.7, color: "#a0a0b8", margin: "0 0 16px", maxWidth: "52ch" }}>{hero.bio}</p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {["TypeScript", "React", "Node.js", "Python", "NLP", "LLMs"].map(s => <Tag key={s} label={s} />)}
-                </div>
-              </div>
-            </div>
-          </BentoCard>
-
-          {/* CARD 2: Contact */}
-          <BentoCard style={{ gridColumn: "9 / 13", gridRow: "1", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 16 }}>
+        {/* Header */}
+        <header style={{ marginBottom: 48 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 20, marginBottom: 20 }}>
+            <img
+              src={profilePhoto}
+              alt={hero.name}
+              style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", objectPosition: "center 4%", flexShrink: 0 }}
+            />
             <div>
-              <p style={{ ...MONO, fontSize: 10, color: "#5eead4", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 16 }}>Contact</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <a href={`mailto:${hero.email}`} style={{ display: "flex", alignItems: "center", gap: 8, color: "#a0a0b8", textDecoration: "none", fontSize: 13, transition: "color 0.2s" }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#5eead4"}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#a0a0b8"}>
-                  <Mail size={13} style={{ flexShrink: 0, color: "#5eead4" }} />
-                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{hero.email}</span>
-                </a>
-                <a href={`https://${hero.github}`} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 8, color: "#a0a0b8", textDecoration: "none", fontSize: 13, transition: "color 0.2s" }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#5eead4"}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#a0a0b8"}>
-                  <Github size={13} style={{ flexShrink: 0, color: "#5eead4" }} />
-                  <span>{hero.github}</span>
-                </a>
-                <a href={`https://${hero.linkedin}`} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 8, color: "#a0a0b8", textDecoration: "none", fontSize: 13, transition: "color 0.2s" }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#5eead4"}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#a0a0b8"}>
-                  <Linkedin size={13} style={{ flexShrink: 0, color: "#5eead4" }} />
-                  <span>{hero.linkedin}</span>
-                </a>
-                <span style={{ display: "flex", alignItems: "center", gap: 8, color: "#6b6b82", fontSize: 13 }}>
-                  <MapPin size={13} style={{ flexShrink: 0 }} />
-                  <span>{hero.location}</span>
-                </span>
+              <h1 style={{ ...DISPLAY, fontSize: 28, margin: "0 0 4px", color: "#0f0f1a" }}>{hero.name}</h1>
+              <p style={{ ...MONO, fontSize: 12, color: "#6b6b8a", margin: "0 0 8px" }}>{hero.tagline}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <MapPin size={13} style={{ color: "#9494aa" }} />
+                <span style={{ fontSize: 13, color: "#9494aa" }}>{hero.location}</span>
               </div>
             </div>
-            <a href={resolveCvHref(hero, cvAsset)} download={resolveCvName(hero, "Hazem-Alabiad-CV.pdf")}
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 0", borderRadius: 12, background: "rgba(94,234,212,0.08)", border: "1px solid rgba(94,234,212,0.2)", color: "#5eead4", textDecoration: "none", fontSize: 13, ...MONO, transition: "background 0.2s" }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(94,234,212,0.15)"}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "rgba(94,234,212,0.08)"}>
-              <Download size={13} /> Download CV
+          </div>
+          <p style={{ fontSize: 14, lineHeight: 1.8, color: "#4a4a5e", margin: "0 0 20px" }}>{hero.bio}</p>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <a href={`mailto:${hero.email}`} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#4a4a5e", textDecoration: "none" }}>
+              <Mail size={14} />{hero.email}
             </a>
-          </BentoCard>
+            <a href={`https://${hero.github}`} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#4a4a5e", textDecoration: "none" }}>
+              <Github size={14} />{hero.github}
+            </a>
+            <a href={`https://${hero.linkedin}`} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#4a4a5e", textDecoration: "none" }}>
+              <Linkedin size={14} />{hero.linkedin}
+            </a>
+            <a href={resolveCvHref(hero, cvAsset)} download={resolveCvName(hero, "Hazem-Alabiad-CV.pdf")} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#4a4a5e", textDecoration: "none" }}>
+              <Download size={14} />CV
+            </a>
+          </div>
+        </header>
 
-          {/* Stats row */}
-          {[
-            { label: "Years Exp.", value: "6+", sub: "production systems" },
-            { label: "Companies", value: "6", sub: "across 4 countries" },
-            { label: "Users Reached", value: "3M+", sub: "via shipped products" },
-            { label: "Research", value: "M.A.", sub: "Comp. Linguistics" },
-          ].map((stat, i) => (
-            <BentoCard key={i} style={{ gridColumn: `${1 + i * 3} / ${4 + i * 3}`, gridRow: "2", padding: "20px 22px" }}>
-              <p style={{ ...MONO, fontSize: 11, color: "#5b5b74", textTransform: "uppercase", letterSpacing: "0.15em", margin: "0 0 6px" }}>{stat.label}</p>
-              <p style={{ ...DISPLAY, fontSize: 30, color: "#eeeef5", margin: "0 0 2px", lineHeight: 1 }}>{stat.value}</p>
-              <p style={{ fontSize: 12, color: "#6b6b82", margin: 0 }}>{stat.sub}</p>
-            </BentoCard>
-          ))}
-
-          {/* CARD 4: Experience / Education tabbed */}
-          <BentoCard style={{ gridColumn: "1 / 9", gridRow: "3" }}>
-            <div style={{ display: "flex", gap: 4, marginBottom: 24, background: "rgba(255,255,255,0.04)", padding: 4, borderRadius: 12, width: "fit-content" }}>
-              {(["experience", "education"] as const).map(tab => (
-                <button key={tab} onClick={() => setActiveTab(tab)}
-                  style={{
-                    ...MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em",
-                    padding: "6px 16px", borderRadius: 8, border: "none", cursor: "pointer",
-                    transition: "all 0.2s",
-                    background: activeTab === tab ? "rgba(94,234,212,0.12)" : "transparent",
-                    color: activeTab === tab ? "#5eead4" : "#6b6b82",
-                  }}>
-                  {tab === "experience" ? <><Briefcase size={10} style={{ display: "inline", marginRight: 5 }} />Experience</> : <><GraduationCap size={10} style={{ display: "inline", marginRight: 5 }} />Education</>}
-                </button>
-              ))}
-            </div>
-            {activeTab === "experience" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                {experience.slice(0, 4).map(exp => (
-                  <div key={exp.id} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(94,234,212,0.06)", border: "1px solid rgba(94,234,212,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <Briefcase size={15} style={{ color: "#5eead4", opacity: 0.7 }} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-                        <span style={{ fontSize: 14, fontWeight: 500, color: "#eeeef5" }}>{exp.role}</span>
-                        <span style={{ ...MONO, fontSize: 10, color: "#5b5b74", whiteSpace: "nowrap" }}>{exp.period}</span>
-                      </div>
-                      <span style={{ fontSize: 12, color: "#5eead4", opacity: 0.75 }}>{exp.company}</span>
-                      {exp.bullets[0] && <p style={{ fontSize: 13, color: "#7a7a90", margin: "4px 0 0", lineHeight: 1.6 }}>{exp.bullets[0]}</p>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            {activeTab === "education" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                {education.map(edu => (
-                  <div key={edu.id} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(94,234,212,0.06)", border: "1px solid rgba(94,234,212,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <GraduationCap size={15} style={{ color: "#5eead4", opacity: 0.7 }} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-                        <span style={{ fontSize: 14, fontWeight: 500, color: "#eeeef5" }}>{edu.degree}</span>
-                        <span style={{ ...MONO, fontSize: 10, color: "#5b5b74", whiteSpace: "nowrap" }}>{edu.period}</span>
-                      </div>
-                      <span style={{ fontSize: 12, color: "#5eead4", opacity: 0.75 }}>{edu.school} · {edu.location}</span>
-                      {edu.notes && <p style={{ fontSize: 13, color: "#7a7a90", margin: "4px 0 0", lineHeight: 1.6 }}>{edu.notes}</p>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </BentoCard>
-
-          {/* CARD 5: Research + Languages */}
-          <BentoCard style={{ gridColumn: "9 / 13", gridRow: "3", display: "flex", flexDirection: "column", gap: 16 }}>
-            <p style={{ ...MONO, fontSize: 10, color: "#5eead4", letterSpacing: "0.2em", textTransform: "uppercase", margin: 0 }}>Research Focus</p>
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
-              {["Corpus Linguistics", "Large Language Models", "Cognitive Science", "NLP", "ML / Deep Learning"].map(topic => (
-                <div key={topic} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 10, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#5eead4", opacity: 0.5, flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, color: "#a0a0b8" }}>{topic}</span>
+        {/* Experience */}
+        <section style={{ marginBottom: 40 }}>
+          <h2 style={{ ...MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.2em", color: "#9494aa", marginBottom: 16 }}>Experience</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            {experience.map(exp => (
+              <div key={exp.id}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#0f0f1a" }}>{exp.role}</span>
+                  <span style={{ ...MONO, fontSize: 11, color: "#9494aa" }}>{exp.period}</span>
                 </div>
-              ))}
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {languages.map(l => (
-                <span key={l.id} style={{ fontSize: 12, padding: "3px 10px", borderRadius: 20, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#7a7a90" }}>
-                  {l.name} <span style={{ color: "#5b5b74" }}>· {l.level}</span>
-                </span>
-              ))}
-            </div>
-          </BentoCard>
-
-          {/* CARD 6: Projects 50/50 */}
-          {projects.slice(0, 2).map((proj, i) => (
-            <BentoCard key={proj.id} href={proj.link} style={{ gridColumn: i === 0 ? "1 / 7" : "7 / 13", gridRow: "4" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                <span style={{ ...MONO, fontSize: 10, color: "#5eead4", opacity: 0.6 }}>{proj.year}</span>
-                <ArrowUpRight size={14} style={{ color: "#5b5b74" }} />
+                <p style={{ fontSize: 13, color: "#6b6b8a", marginBottom: 6 }}>{exp.company} · {exp.location}</p>
+                <ul style={{ margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 3 }}>
+                  {exp.bullets.filter(Boolean).map((b, i) => (
+                    <li key={i} style={{ fontSize: 13, color: "#4a4a5e", lineHeight: 1.6 }}>{b}</li>
+                  ))}
+                </ul>
               </div>
-              <h3 style={{ fontSize: 16, fontWeight: 600, color: "#eeeef5", margin: "0 0 8px", lineHeight: 1.3 }}>{proj.title}</h3>
-              <p style={{ fontSize: 13, color: "#7a7a90", margin: 0, lineHeight: 1.6 }}>{proj.description}</p>
-            </BentoCard>
-          ))}
+            ))}
+          </div>
+        </section>
 
-          {/* CARD 7: Skills */}
-          <BentoCard style={{ gridColumn: "1 / 9", gridRow: "5" }}>
-            <p style={{ ...MONO, fontSize: 10, color: "#5eead4", letterSpacing: "0.2em", textTransform: "uppercase", marginBottom: 16 }}>Skills & Tools</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {allSkills.map(skill => (
-                <span key={skill} style={{ fontSize: 13, padding: "5px 12px", borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#9494a8", transition: "all 0.2s", cursor: "default" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(94,234,212,0.07)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(94,234,212,0.2)"; (e.currentTarget as HTMLElement).style.color = "#5eead4"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.07)"; (e.currentTarget as HTMLElement).style.color = "#9494a8"; }}>
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </BentoCard>
+        {/* Education */}
+        <section style={{ marginBottom: 40 }}>
+          <h2 style={{ ...MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.2em", color: "#9494aa", marginBottom: 16 }}>Education</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {education.map(edu => (
+              <div key={edu.id}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 2 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#0f0f1a" }}>{edu.degree}</span>
+                  <span style={{ ...MONO, fontSize: 11, color: "#9494aa" }}>{edu.period}</span>
+                </div>
+                <p style={{ fontSize: 13, color: "#6b6b8a", marginBottom: 4 }}>{edu.school} · {edu.location}</p>
+                {edu.notes && <p style={{ fontSize: 13, color: "#7a7a90" }}>{edu.notes}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
 
-          {/* CARD 8: More projects */}
-          <BentoCard style={{ gridColumn: "9 / 13", gridRow: "5", display: "flex", flexDirection: "column", gap: 12 }}>
-            <p style={{ ...MONO, fontSize: 10, color: "#5eead4", letterSpacing: "0.2em", textTransform: "uppercase", margin: 0 }}>More Projects</p>
-            {projects.slice(2).map(proj => (
+        {/* Projects */}
+        <section style={{ marginBottom: 40 }}>
+          <h2 style={{ ...MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.2em", color: "#9494aa", marginBottom: 16 }}>Projects</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {projects.map(proj => (
               <a key={proj.id} href={proj.link} target="_blank" rel="noopener noreferrer"
-                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", textDecoration: "none", transition: "all 0.2s" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(94,234,212,0.2)"; (e.currentTarget as HTMLElement).style.background = "rgba(94,234,212,0.04)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)"; }}>
+                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", textDecoration: "none", color: "inherit" }}>
                 <div>
-                  <p style={{ fontSize: 13, color: "#d4d4e0", margin: "0 0 2px", fontWeight: 500 }}>{proj.title}</p>
-                  <p style={{ ...MONO, fontSize: 10, color: "#5b5b74", margin: 0 }}>{proj.year}</p>
+                  <span style={{ fontSize: 14, color: "#0f0f1a", fontWeight: 500 }}>{proj.title}</span>
+                  <span style={{ ...MONO, fontSize: 11, color: "#9494aa", marginLeft: 10 }}>{proj.year}</span>
                 </div>
-                <ArrowUpRight size={13} style={{ color: "#5b5b74", flexShrink: 0 }} />
+                <ArrowUpRight size={14} style={{ color: "#9494aa", flexShrink: 0 }} />
               </a>
             ))}
-            <a href={`https://${hero.github}`} target="_blank" rel="noopener noreferrer"
-              style={{ display: "flex", alignItems: "center", gap: 6, color: "#5b5b74", textDecoration: "none", fontSize: 12, ...MONO, marginTop: "auto" }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#5eead4"}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#5b5b74"}>
-              <Code2 size={12} /> View all on GitHub <ArrowUpRight size={11} />
-            </a>
-          </BentoCard>
+          </div>
+        </section>
 
-        </div>
+        {/* Skills */}
+        <section style={{ marginBottom: 40 }}>
+          <h2 style={{ ...MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.2em", color: "#9494aa", marginBottom: 16 }}>Skills</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {skills.map(sg => (
+              <div key={sg.id} style={{ display: "flex", gap: 12 }}>
+                <span style={{ ...MONO, fontSize: 12, color: "#9494aa", minWidth: 80 }}>{sg.label}</span>
+                <span style={{ fontSize: 13, color: "#4a4a5e" }}>{sg.skills}</span>
+              </div>
+            ))}
+          </div>
+        </section>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginTop: 48, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-          <p style={{ ...MONO, fontSize: 11, color: "#3a3a50", margin: 0 }}>© {currentYear} {hero.name}</p>
+        {/* Languages */}
+        {languages.length > 0 && (
+          <section style={{ marginBottom: 40 }}>
+            <h2 style={{ ...MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.2em", color: "#9494aa", marginBottom: 16 }}>Languages</h2>
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+              {languages.map(lang => (
+                <span key={lang.id} style={{ fontSize: 13, color: "#4a4a5e" }}>
+                  {lang.name} <span style={{ color: "#9494aa" }}>· {lang.level}</span>
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <footer style={{ paddingTop: 32, borderTop: "1px solid #e8e8f0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <p style={{ ...MONO, fontSize: 11, color: "#c0c0d0" }}>© {currentYear} {hero.name}</p>
           {visitCount !== null && (
-            <span style={{ display: "flex", alignItems: "center", gap: 6, ...MONO, fontSize: 11, color: "#3a3a50" }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#5eead4", opacity: 0.4, display: "inline-block" }} />
-              {visitCount.toLocaleString()} visits
-            </span>
+            <span style={{ ...MONO, fontSize: 11, color: "#c0c0d0" }}>{visitCount.toLocaleString()} visits</span>
           )}
-          <a href={`https://github.com/${OWNER}/${REPO}`} target="_blank" rel="noopener noreferrer"
-            style={{ display: "flex", alignItems: "center", gap: 4, ...MONO, fontSize: 11, color: "#3a3a50", textDecoration: "none", transition: "color 0.2s" }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#5eead4"}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#3a3a50"}>
-            <Globe size={11} /> Source
-          </a>
-        </div>
-      </main>
+        </footer>
+      </div>
 
       <button
         onClick={() => { window.location.hash = "#/cms"; setHash("#/cms"); }}
@@ -466,13 +274,11 @@ export default function App() {
         style={{
           position: "fixed", bottom: 24, right: 24, zIndex: 9998,
           width: 44, height: 44, borderRadius: "50%",
-          background: "#111119", border: "1px solid rgba(94,234,212,0.35)",
-          color: "#5eead4", cursor: "pointer",
+          background: "#fff", border: "1px solid #e0e0ec",
+          color: "#9494aa", cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.5)", transition: "all 0.2s ease",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
         }}
-        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#1a1a2e"}
-        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#111119"}
       >
         <Settings size={18} />
       </button>
