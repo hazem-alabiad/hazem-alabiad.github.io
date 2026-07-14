@@ -3,17 +3,18 @@ name: Deploy Bento Preview
 on:
   push:
     branches: [bento-redesign]
+  workflow_dispatch:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: bento-redesign
 
       - uses: pnpm/action-setup@v3
         with:
@@ -28,10 +29,15 @@ jobs:
 
       - run: pnpm build
 
-      - name: Deploy to GitHub Pages (bento preview)
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-          destination_dir: bento
-          keep_files: true
+      - name: Checkout gh-pages and inject bento/
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin gh-pages || true
+          git checkout gh-pages 2>/dev/null || git checkout --orphan gh-pages
+          git rm -rf bento/ || true
+          mkdir -p bento
+          cp -r dist/. bento/
+          git add bento/
+          git diff --cached --quiet || git commit -m "deploy: bento preview"
+          git push origin gh-pages
