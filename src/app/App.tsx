@@ -148,14 +148,25 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  // ✅ Visitor counter using countapi.xyz — fires only after owner check, skips if owner
+  // ✅ Visitor counter — always fetch current count to display it.
+  // Only call /hit (increment) if NOT the owner. Owner sees count but doesn't increment it.
   useEffect(() => {
     if (!ownerChecked) return;
-    if (isOwner) return;
-    fetch("https://api.countapi.xyz/hit/hazem-alabiad.github.io/portfolio")
-      .then(r => r.json())
-      .then(d => { if (typeof d.value === "number") setVisitCount(d.value); })
-      .catch(() => {});
+    const base = "https://countapi.mileshilliard.com";
+    const key = "hazem-alabiad.github.io/portfolio";
+    if (isOwner) {
+      // Owner: fetch current count without incrementing
+      fetch(`${base}/get/${key}`)
+        .then(r => r.json())
+        .then(d => { if (typeof d.value === "number") setVisitCount(d.value); })
+        .catch(() => {});
+    } else {
+      // Visitor: increment and show updated count
+      fetch(`${base}/hit/${key}`)
+        .then(r => r.json())
+        .then(d => { if (typeof d.value === "number") setVisitCount(d.value); })
+        .catch(() => {});
+    }
   }, [ownerChecked, isOwner]);
 
   useEffect(() => {
@@ -370,7 +381,7 @@ export default function App() {
       <footer className="border-t px-6 md:px-12 py-8" style={{ borderColor: "oklch(1 0 0 / 0.06)" }}>
         <div className="max-w-4xl mx-auto flex items-center justify-center gap-4">
           <p className="text-xs" style={{ ...MONO, color: "#6b6b82" }}>© {currentYear} {hero.name}</p>
-          {!isOwner && visitCount !== null && (
+          {visitCount !== null && (
             <span className="flex items-center gap-1.5 text-xs" style={{ ...MONO, color: "#4a4a60" }}>
               <span className="w-1 h-1 rounded-full inline-block" style={{ background: "#5eead4", opacity: 0.5 }} />
               {visitCount.toLocaleString()} visits
