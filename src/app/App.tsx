@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type ChangeEvent } from "react";
+import { useState, useEffect } from "react";
 import {
   Github, Linkedin, Mail, MapPin,
   ArrowUpRight, Download, Settings,
@@ -6,10 +6,11 @@ import {
 import profilePhoto from "@/imports/IMG_0323.jpeg";
 import cvAsset from "@/imports/Hazem-Alabiad-CV.pdf?url";
 import { resolveCvHref, resolveCvName } from "./cv";
-import CmsPanel from "./components/CmsPanel";
+import CmsPage from "./components/CmsPage";
 
 const OWNER = "hazem-alabiad";
 const TOKEN_KEY = "cms_gh_token";
+const CONTENT_URL = `https://raw.githubusercontent.com/${OWNER}/${OWNER}.github.io/main/src/content.json`;
 
 /* ─── Types ─────────────────────────────────────────────── */
 interface HeroContent {
@@ -103,7 +104,6 @@ function groupByCompany(items: ExpItem[]) {
 const MONO: React.CSSProperties = { fontFamily: "'JetBrains Mono', monospace" };
 const DISPLAY: React.CSSProperties = { fontFamily: "'DM Serif Display', serif" };
 
-/* ─── Section Header ─────────────────────────────────────── */
 function SectionHeader({ label, id }: { label: string; id: string }) {
   return (
     <div id={id} className="flex items-center gap-5 mb-12 scroll-mt-24">
@@ -115,7 +115,6 @@ function SectionHeader({ label, id }: { label: string; id: string }) {
   );
 }
 
-/* ─── Social Link ────────────────────────────────────────── */
 function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
   return (
     <a
@@ -134,9 +133,21 @@ function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode
 export default function App() {
   const [visitCount, setVisitCount] = useState<number | null>(null);
   const [isOwner, setIsOwner] = useState(false);
-  const [cmsOpen, setCmsOpen] = useState(false);
+  const [isCmsRoute, setIsCmsRoute] = useState(false);
+  // content loaded from content.json; falls back to seed
+  const [content, setContent] = useState<SiteContent>(seed);
 
-  // Check if the stored token belongs to the owner (no page reload needed)
+  // Hash-based routing: /#/cms → show CMS page
+  useEffect(() => {
+    function checkHash() {
+      setIsCmsRoute(window.location.hash === "#/cms");
+    }
+    checkHash();
+    window.addEventListener("hashchange", checkHash);
+    return () => window.removeEventListener("hashchange", checkHash);
+  }, []);
+
+  // Check owner
   useEffect(() => {
     const stored = localStorage.getItem(TOKEN_KEY);
     if (!stored) return;
@@ -145,6 +156,14 @@ export default function App() {
     })
       .then(r => r.json())
       .then(u => { if (u.login === OWNER) setIsOwner(true); })
+      .catch(() => {});
+  }, []);
+
+  // Load content.json (remote); fall back to seed silently
+  useEffect(() => {
+    fetch(CONTENT_URL + "?t=" + Date.now())
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setContent({ ...seed, ...data }); })
       .catch(() => {});
   }, []);
 
@@ -158,22 +177,20 @@ export default function App() {
   }, [isOwner]);
 
   useEffect(() => {
-    const title = `${seed.hero.name} • Hazem Alabiad Portfolio`;
+    const title = `${content.hero.name} • Portfolio`;
     document.title = title;
-    const description = `${seed.hero.bio.replace(/\s+/g, " ").trim().slice(0, 155)}${seed.hero.bio.length > 155 ? "…" : ""}`;
-    const descriptionMeta = document.querySelector('meta[name="description"]');
-    if (descriptionMeta) descriptionMeta.setAttribute("content", description);
-    const ogTitle = document.querySelector('meta[property="og:title"]');
-    if (ogTitle) ogTitle.setAttribute("content", title);
-    const ogDescription = document.querySelector('meta[property="og:description"]');
-    if (ogDescription) ogDescription.setAttribute("content", description);
-    const twitterTitle = document.querySelector('meta[name="twitter:title"]');
-    if (twitterTitle) twitterTitle.setAttribute("content", title);
-    const twitterDescription = document.querySelector('meta[name="twitter:description"]');
-    if (twitterDescription) twitterDescription.setAttribute("content", description);
-  }, []);
+    const desc = content.hero.bio.slice(0, 155);
+    document.querySelector('meta[name="description"]')?.setAttribute("content", desc);
+    document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
+    document.querySelector('meta[property="og:description"]')?.setAttribute("content", desc);
+    document.querySelector('meta[name="twitter:title"]')?.setAttribute("content", title);
+    document.querySelector('meta[name="twitter:description"]')?.setAttribute("content", desc);
+  }, [content.hero.name, content.hero.bio]);
 
-  const { hero, experience, projects, skills, education, languages } = seed;
+  // Route to CMS
+  if (isCmsRoute) return <CmsPage />;
+
+  const { hero, experience, projects, skills, education, languages } = content;
 
   return (
     <div className="min-h-screen antialiased" style={{ background: "#09090f", color: "#d4d4e0" }}>
@@ -183,9 +200,9 @@ export default function App() {
         style={{ background: "rgba(9,9,15,0.88)", backdropFilter: "blur(16px)", borderColor: "oklch(1 0 0 / 0.06)" }}>
         <span className="text-sm" style={{ ...DISPLAY, color: "#5eead4" }}>{hero.name}</span>
         <div className="hidden md:flex items-center gap-8">
-          {([["Education", "education"], ["Experience", "experience"], ["Research", "projects"], ["Skills", "skills"]] as [string, string][]).map(([label, id]) => (
+          {([["Education", "education"], ["Experience", "experience"], ["Research", "projects"], ["Skills", "skills"]] as [string, string][]).map(([lbl, id]) => (
             <a key={id} href={`#${id}`} className="text-[11px] uppercase tracking-[0.2em] transition-colors hover:text-[#5eead4]"
-              style={{ ...MONO, color: "#6b6b82" }}>{label}</a>
+              style={{ ...MONO, color: "#6b6b82" }}>{lbl}</a>
           ))}
         </div>
         <a href={`mailto:${hero.email}`} className="hidden md:block text-xs transition-colors hover:text-[#d4d4e0]"
@@ -197,8 +214,6 @@ export default function App() {
         {/* ── Hero ─────────────────────────────────────────── */}
         <section className="mb-32">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10">
-
-            {/* Text */}
             <div className="flex-1 min-w-0">
               <p className="text-[11px] uppercase tracking-[0.3em] mb-5" style={{ ...MONO, color: "#5eead4" }}>
                 Available for opportunities
@@ -218,8 +233,6 @@ export default function App() {
                   <p key={i} className="text-[17px] leading-[1.9] tracking-[0.015em]" style={{ color: "#d8d8ea", fontWeight: 400, fontFamily: "'DM Sans', sans-serif" }}>{para}</p>
                 ))}
               </div>
-
-              {/* CTAs */}
               <div className="flex flex-wrap items-center gap-3 mb-8">
                 <a href={`mailto:${hero.email}`}
                   className="flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium transition-all hover:scale-[1.02]"
@@ -232,8 +245,6 @@ export default function App() {
                   <Download size={14} /> Download CV
                 </a>
               </div>
-
-              {/* Social links */}
               <div className="flex flex-wrap items-center gap-6">
                 <SocialLink href={`https://${hero.github}`} icon={<Github size={14} />} label="GitHub" />
                 <SocialLink href={`https://${hero.linkedin}`} icon={<Linkedin size={14} />} label="LinkedIn" />
@@ -242,24 +253,18 @@ export default function App() {
                 </span>
               </div>
             </div>
-
-            {/* Photo */}
             <div className="flex-shrink-0 self-start md:mt-8">
               <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden"
                 style={{ boxShadow: "0 0 0 1.5px rgba(94,234,212,0.35), 0 0 32px rgba(94,234,212,0.08)" }}>
-                <img
-                  src={profilePhoto}
-                  alt={hero.name}
-                  className="w-full h-full object-cover"
-                  style={{ objectPosition: "center 4%", filter: "brightness(0.92) contrast(1.04) saturate(0.88)" }}
-                />
+                <img src={profilePhoto} alt={hero.name} className="w-full h-full object-cover"
+                  style={{ objectPosition: "center 4%", filter: "brightness(0.92) contrast(1.04) saturate(0.88)" }} />
                 <div className="absolute inset-0 rounded-full" style={{ background: "radial-gradient(circle at center, transparent 55%, rgba(9,9,15,0.5) 100%)" }} />
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── Education ────────────────────────────────────── */}
+        {/* ── Education ── */}
         <section className="mb-28">
           <SectionHeader label="Education" id="education" />
           <div className="space-y-10">
@@ -279,7 +284,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* ── Experience ───────────────────────────────────── */}
+        {/* ── Experience ── */}
         <section className="mb-28">
           <SectionHeader label="Experience" id="experience" />
           <div>
@@ -289,7 +294,6 @@ export default function App() {
                 {gi < arr.length - 1 && (
                   <div className="absolute left-[3px] top-5 bottom-0 w-px" style={{ background: "oklch(1 0 0 / 0.07)" }} />
                 )}
-
                 {group.roles.length === 1 ? (
                   <>
                     <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-1 mb-3">
@@ -346,7 +350,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* ── Research & Projects ───────────────────────────── */}
+        {/* ── Research & Projects ── */}
         <section className="mb-28">
           <SectionHeader label="Research &amp; Projects" id="projects" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -370,7 +374,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* ── Skills ───────────────────────────────────────── */}
+        {/* ── Skills ── */}
         <section className="mb-28">
           <SectionHeader label="Skills" id="skills" />
           <div className="space-y-7">
@@ -392,7 +396,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* ── Languages ────────────────────────────────────── */}
+        {/* ── Languages ── */}
         {languages.length > 0 && (
           <section className="mb-28">
             <SectionHeader label="Languages" id="languages" />
@@ -432,26 +436,24 @@ export default function App() {
         </div>
       </footer>
 
-      {/* ── CMS Floating Button (owner only) ─────────────── */}
-      <button
-        onClick={() => setCmsOpen(o => !o)}
-        title="CMS Panel"
+      {/* ── CMS shortcut (always visible, owner only useful) ── */}
+      <a
+        href="#/cms"
+        title="Open CMS"
         style={{
           position: "fixed", bottom: 24, right: 24, zIndex: 9998,
           width: 44, height: 44, borderRadius: "50%",
-          background: cmsOpen ? "#5eead4" : "#111119",
+          background: "#111119",
           border: "1px solid rgba(94,234,212,0.35)",
-          color: cmsOpen ? "#09090f" : "#5eead4",
+          color: "#5eead4",
           cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
           boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
           transition: "all 0.2s ease",
+          textDecoration: "none",
         }}
       >
         <Settings size={18} />
-      </button>
-
-      {/* ── CMS Panel ────────────────────────────────────── */}
-      {cmsOpen && <CmsPanel onClose={() => setCmsOpen(false)} />}
+      </a>
 
     </div>
   );
