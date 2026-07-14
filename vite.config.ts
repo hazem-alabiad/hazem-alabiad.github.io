@@ -26,7 +26,7 @@ export default defineConfig({
       additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
     }),
   ],
-  base: '/',
+  base: '/bento/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
