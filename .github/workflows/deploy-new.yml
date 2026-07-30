@@ -28,7 +28,7 @@ jobs:
 
       - run: pnpm build
 
-      - name: Deploy to GitHub Pages (new branch → /new subfolder)
+      - name: Deploy to GitHub Pages under /new
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
