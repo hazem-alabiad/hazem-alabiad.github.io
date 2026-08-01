@@ -143,7 +143,7 @@ const skillGroupIcons: Record<string, React.ReactNode> = {
   "DevOps": <Cpu size={16} />,
 };
 
-function StatCounter({ icon, label, target, delay }: { icon: React.ReactNode; label: string; target: number; delay: number }) {
+function StatCounter({ icon, label, target, delay, isDark, mutedColor }: { icon: React.ReactNode; label: string; target: number; delay: number; isDark: boolean; mutedColor: string }) {
   const [count, setCount] = useState(0);
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -650,7 +650,7 @@ export default function App() {
                   { icon: <GraduationCap size={12} />, text: "M.A.", target: 1 },
                   { icon: <Globe size={12} />, text: "4 langs", target: 4 },
                 ].map((stat, si) => (
-                  <StatCounter key={stat.text} icon={stat.icon} label={stat.text} target={stat.target} delay={si * 0.15} />
+                  <StatCounter key={stat.text} icon={stat.icon} label={stat.text} target={stat.target} delay={si * 0.15} isDark={isDark} mutedColor={mutedColor} />
                 ))}
               </motion.div>
 
