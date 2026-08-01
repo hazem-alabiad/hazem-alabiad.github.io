@@ -1,11 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const TEAL = "45,212,191";
 const CYAN = "103,232,249";
 const VIOLET = "167,139,250";
+const PINK = "244,114,182";
 
 export default function NeuralBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [cursor, setCursor] = useState({ x: -1000, y: -1000 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -14,8 +16,9 @@ export default function NeuralBackground() {
     if (!ctx) return;
     let animId: number;
     let w = 0, h = 0;
-    const NODES = 42;
+    const NODES = 48;
     const nodes: { x: number; y: number; vx: number; vy: number; r: number }[] = [];
+    const cursorTrail: { x: number; y: number; life: number }[] = [];
 
     function resize() {
       const dpr = window.devicePixelRatio || 1;
@@ -29,6 +32,8 @@ export default function NeuralBackground() {
     }
     resize();
     window.addEventListener("resize", resize);
+    window.addEventListener("mousemove", e => { setCursor({ x: e.clientX, y: e.clientY }); });
+    window.addEventListener("mouseleave", () => { setCursor({ x: -1000, y: -1000 }); });
 
     for (let i = 0; i < NODES; i++) {
       nodes.push({
@@ -41,7 +46,20 @@ export default function NeuralBackground() {
     function draw() {
       ctx.clearRect(0, 0, w, h);
 
-      // faint grid
+      // cursor trail
+      cursorTrail.push({ x: cursor.x, y: cursor.y, life: 1 });
+      if (cursorTrail.length > 30) cursorTrail.shift();
+      for (let i = cursorTrail.length - 1; i >= 0; i--) {
+        const t = cursorTrail[i];
+        t.life -= 0.03;
+        if (t.life <= 0) { cursorTrail.splice(i, 1); continue; }
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, 2 * t.life, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${TEAL},${t.life * 0.3})`;
+        ctx.fill();
+      }
+
+      // grid
       ctx.strokeStyle = `rgba(${TEAL},0.02)`;
       ctx.lineWidth = 0.5;
       const GRID = 96;
@@ -66,8 +84,19 @@ export default function NeuralBackground() {
         }
       }
 
-      // nodes with glow
+      // cursor influence on nodes
       nodes.forEach(n => {
+        const dx = n.x - cursor.x;
+        const dy = n.y - cursor.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 200 && dist > 0) {
+          const force = (1 - dist / 200) * 0.02;
+          n.vx += (dx / dist) * force;
+          n.vy += (dy / dist) * force;
+        }
+        n.vx *= 0.99;
+        n.vy *= 0.99;
+
         const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 7);
         grad.addColorStop(0, `rgba(${TEAL},0.14)`);
         grad.addColorStop(1, "transparent");
@@ -89,6 +118,7 @@ export default function NeuralBackground() {
     draw();
     return () => {
       window.removeEventListener("resize", resize);
+      window.removeEventListener("mousemove", () => {});
       cancelAnimationFrame(animId);
     };
   }, []);
@@ -96,7 +126,6 @@ export default function NeuralBackground() {
   return (
     <>
       <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", opacity: 0.65 }} />
-      {/* ambient blobs */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: "-18%", left: "-8%", width: 640, height: 640, borderRadius: "50%",
           background: `radial-gradient(circle, rgba(${TEAL},0.07) 0%, transparent 70%)`, animation: "blobPulse 9s ease-in-out infinite" }} />

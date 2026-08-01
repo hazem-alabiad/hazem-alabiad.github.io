@@ -1,0 +1,67 @@
+import { useEffect, useRef } from "react";
+
+export default function GlitchOverlay() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    let animId: number;
+    let w = 0, h = 0;
+
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    function rand(min: number, max: number) { return Math.random() * (max - min) + min; }
+
+    function draw() {
+      ctx.clearRect(0, 0, w, h);
+
+      // Random glitch bars
+      if (Math.random() < 0.03) {
+        const y = rand(0, h);
+        const h2 = rand(2, 8);
+        const shift = rand(-30, 30);
+        ctx.drawImage(canvas, 0, y, w, h2, shift, y, w, h2);
+        ctx.fillStyle = `rgba(45,212,191,${rand(0.03, 0.08)})`;
+        ctx.fillRect(0, y, w, h2);
+      }
+
+      // RGB split flash
+      if (Math.random() < 0.005) {
+        const y = rand(0, h);
+        const h2 = rand(1, 4);
+        ctx.fillStyle = `rgba(255,0,0,${rand(0.02, 0.06)})`;
+        ctx.fillRect(0, y, w, h2);
+        ctx.fillStyle = `rgba(0,255,255,${rand(0.02, 0.06)})`;
+        ctx.fillRect(rand(-5, 5), y, w, h2);
+      }
+
+      // Scanline
+      ctx.fillStyle = "rgba(0,0,0,0.03)";
+      for (let y = 0; y < h; y += 3) {
+        ctx.fillRect(0, y, w, 1);
+      }
+
+      animId = requestAnimationFrame(draw);
+    }
+    draw();
+    return () => {
+      window.removeEventListener("resize", resize);
+      cancelAnimationFrame(animId);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", opacity: 0.5 }}
+    />
+  );
+}
