@@ -2,11 +2,18 @@ import { useState, useEffect } from "react";
 import {
   Github, Linkedin, Mail, MapPin,
   ArrowUpRight, Download, Settings,
+  Code2, Brain, Cpu, Globe, Layers, Zap,
+  GraduationCap, Briefcase, FlaskConical, Star,
+  ChevronRight, Sparkles, Terminal as TerminalIcon, BookOpen,
 } from "lucide-react";
 import profilePhoto from "@/imports/IMG_0323.jpeg";
 import cvAsset from "@/imports/Hazem-Alabiad-CV.pdf?url";
 import { resolveCvHref, resolveCvName } from "./cv";
 import CmsPage from "./components/CmsPage";
+import NeuralBackground from "./components/NeuralBackground";
+import { GlassCard } from "./components/GlassCard";
+import { SectionHeader } from "./components/SectionHeader";
+import Terminal from "./components/Terminal";
 
 const OWNER = "hazem-alabiad";
 const REPO = "hazem-alabiad.github.io";
@@ -91,26 +98,34 @@ function groupByCompany(items: ExpItem[]) {
   }
   return groups;
 }
+
 const MONO: React.CSSProperties = { fontFamily: "'JetBrains Mono', monospace" };
 const DISPLAY: React.CSSProperties = { fontFamily: "'DM Serif Display', serif" };
+const SANS: React.CSSProperties = { fontFamily: "'DM Sans', sans-serif" };
 
-function SectionHeader({ label, id }: { label: string; id: string }) {
-  return (
-    <div id={id} className="flex items-center gap-5 mb-12 scroll-mt-24">
-      <span className="text-[11px] tracking-[0.25em] uppercase shrink-0" style={{ ...MONO, color: "#5eead4" }}>{label}</span>
-      <div className="flex-1 h-px" style={{ background: "oklch(1 0 0 / 0.07)" }} />
-    </div>
-  );
-}
+const N = {
+  teal: "#2dd4bf",
+  violet: "#a78bfa",
+  cyan: "#67e8f9",
+  pink: "#f472b6",
+  bg: "#04040c",
+  text: "#e2e2f0",
+  muted: "#6b6b8a",
+};
 
-function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
-  return (
-    <a href={href} target={href.startsWith("mailto") ? undefined : "_blank"} rel="noopener noreferrer"
-      className="flex items-center gap-1.5 text-sm transition-colors hover:text-[#5eead4]" style={{ color: "#6b6b82" }}>
-      {icon} {label}
-    </a>
-  );
-}
+const skillIcons: Record<string, string> = {
+  "React.js": "⚛️", "Next.js": "▲", "TypeScript": "𝑻", "JavaScript (ES6+)": "𝐉",
+  "Redux": "🔄", "GraphQL": "◆", "Node.js": "🟢", "WebSocket": "🔌",
+  "Elasticsearch": "🔍", "Python": "🐍", "LLMs": "🤖", "NLP": "💬",
+  "TensorFlow": "🧠", "Docker": "🐳", "Git": "📦", "Figma": "🎨",
+  "Cypress": "🧪", "MySQL": "🗄️", "Linux": "🐧", "R": "📊",
+};
+
+const skillGroupIcons: Record<string, React.ReactNode> = {
+  "Full-Stack": <Code2 size={16} />,
+  "AI / NLP": <Brain size={16} />,
+  "DevOps": <Cpu size={16} />,
+};
 
 /* ─── Main App ───────────────────────────────────────────── */
 export default function App() {
@@ -119,6 +134,7 @@ export default function App() {
   const [isOwner, setIsOwner] = useState(false);
   const [ownerChecked, setOwnerChecked] = useState(false);
   const [data, setData] = useState<SiteContent>(seed);
+  const [activeSection, setActiveSection] = useState("education");
 
   useEffect(() => {
     const onHashChange = () => setHash(window.location.hash);
@@ -145,7 +161,6 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  // Key must be a flat string — no slashes (slashes break the API router)
   useEffect(() => {
     if (!ownerChecked) return;
     const base = "https://countapi.mileshilliard.com";
@@ -166,198 +181,416 @@ export default function App() {
     document.querySelector('meta[property="og:description"]')?.setAttribute("content", desc);
   }, [data.hero]);
 
+  useEffect(() => {
+    const sections = ["education", "experience", "projects", "skills"];
+    const handler = () => {
+      for (const id of [...sections].reverse()) {
+        const el = document.getElementById(id);
+        if (el && window.scrollY >= el.offsetTop - 120) { setActiveSection(id); break; }
+      }
+    };
+    window.addEventListener("scroll", handler, { passive: true });
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
+
   if (hash === "#/cms") return <CmsPage onExit={() => { window.location.hash = ""; setHash(""); }} />;
 
   const { hero, experience, projects, skills, education, languages } = data;
-
   const currentYear = new Date().getFullYear();
+  const navLinks: [string, string][] = [["Education", "education"], ["Experience", "experience"], ["Research", "projects"], ["Skills", "skills"]];
+  const heroSkills = ["TypeScript", "React", "Node.js", "Python", "NLP", "LLMs"];
 
   return (
-    <div className="min-h-screen antialiased" style={{ background: "#09090f", color: "#d4d4e0" }}>
+    <div className="min-h-screen antialiased" style={{ background: N.bg, color: N.text, position: "relative" }}>
+
+      <NeuralBackground />
+
+      <style>{`
+        @keyframes termBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+        @keyframes blobPulse { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.08)} }
+        @keyframes fadeInUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        @keyframes scan { 0%{transform:translateY(-100%)} 100%{transform:translateY(200%)} }
+        .fade-up { animation: fadeInUp 0.7s ease forwards; }
+        .name-shimmer {
+          background: linear-gradient(135deg, #e2e2f0 0%, #2dd4bf 40%, #a78bfa 60%, #e2e2f0 100%);
+          background-size: 300% auto;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: shimmer 6s linear infinite;
+        }
+        .float-avatar { animation: float 6s ease-in-out infinite; }
+        .nav-pill { transition: all 0.25s ease; }
+        .nav-pill:hover, .nav-pill.active {
+          background: rgba(45,212,191,0.12) !important;
+          color: #2dd4bf !important;
+          border-color: rgba(45,212,191,0.3) !important;
+        }
+        .skill-tag { transition: all 0.2s ease; cursor: default; }
+        .skill-tag:hover {
+          background: rgba(45,212,191,0.12) !important;
+          border-color: rgba(45,212,191,0.35) !important;
+          color: #2dd4bf !important;
+          transform: translateY(-2px);
+        }
+        .proj-card { transition: all 0.3s ease; }
+        .proj-card:hover { transform: translateY(-4px); }
+        .scanline {
+          background: linear-gradient(180deg, transparent, rgba(45,212,191,0.06), transparent);
+          animation: scan 5s linear infinite;
+        }
+      `}</style>
 
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-8 py-4 border-b"
-        style={{ background: "rgba(9,9,15,0.88)", backdropFilter: "blur(16px)", borderColor: "oklch(1 0 0 / 0.06)" }}>
-        <span className="text-sm" style={{ ...DISPLAY, color: "#5eead4" }}>{hero.name}</span>
-        <div className="hidden md:flex items-center gap-8">
-          {([["Education", "education"], ["Experience", "experience"], ["Research", "projects"], ["Skills", "skills"]] as [string, string][]).map(([label, id]) => (
-            <a key={id} href={`#${id}`} className="text-[11px] uppercase tracking-[0.2em] transition-colors hover:text-[#5eead4]"
-              style={{ ...MONO, color: "#6b6b82" }}>{label}</a>
+      <nav style={{
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "0 2rem", height: 64,
+        background: "rgba(4,4,12,0.8)",
+        backdropFilter: "blur(20px)",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        boxShadow: "0 1px 0 rgba(45,212,191,0.08)",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: 8, background: "rgba(45,212,191,0.12)",
+            border: "1px solid rgba(45,212,191,0.3)", display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <TerminalIcon size={14} style={{ color: N.teal }} />
+          </div>
+          <span style={{ ...MONO, color: N.teal, fontSize: 14, fontWeight: 600 }}>{hero.name.split(" ")[0]}<span style={{ color: N.muted }}>.</span><span style={{ color: N.violet }}>dev</span></span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          {navLinks.map(([label, id]) => (
+            <a key={id} href={`#${id}`}
+              className={`nav-pill ${activeSection === id ? "active" : ""}`}
+              style={{
+                ...MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.18em",
+                padding: "5px 14px", borderRadius: 8, border: "1px solid transparent",
+                color: activeSection === id ? N.teal : N.muted,
+                background: activeSection === id ? "rgba(45,212,191,0.1)" : "transparent",
+                borderColor: activeSection === id ? "rgba(45,212,191,0.25)" : "transparent",
+                textDecoration: "none",
+              }}>{label}</a>
           ))}
         </div>
-        <a href={`mailto:${hero.email}`} className="hidden md:block text-xs transition-colors hover:text-[#d4d4e0]"
-          style={{ ...MONO, color: "#5eead4" }}>{hero.email}</a>
+        <a href={`mailto:${hero.email}`}
+          style={{ ...MONO, fontSize: 12, color: N.teal, textDecoration: "none", opacity: 0.8, display: "none", "@media (min-width: 900px)": { display: "inline" } as React.CSSProperties }}>
+          {hero.email}
+        </a>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-6 md:px-12 pt-36 pb-28">
+      <main style={{ maxWidth: 960, margin: "0 auto", padding: "0 2rem", paddingTop: 100, paddingBottom: 120, position: "relative", zIndex: 1 }}>
 
-        {/* Hero */}
-        <section className="mb-32">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10">
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.3em] mb-5" style={{ ...MONO, color: "#5eead4" }}>Available for opportunities</p>
-              <h1 className="leading-[0.92] tracking-tight mb-5" style={{ ...DISPLAY, color: "#eeeef5", fontSize: "clamp(2.8rem,7vw,5rem)" }}>{hero.name}</h1>
-              <div className="flex flex-wrap gap-2 mb-6">
-                {["TypeScript", "React", "Node.js", "Python", "NLP", "LLMs"].map(skill => (
-                  <span key={skill} className="text-[12px] px-2.5 py-1 rounded-md border" style={{ ...MONO, background: "rgba(94,234,212,0.05)", borderColor: "rgba(94,234,212,0.18)", color: "#5eead4" }}>{skill}</span>
+        {/* ── Hero ─────────────────────────────────────── */}
+        <section style={{ marginBottom: 120 }} className="fade-up">
+          <div style={{ display: "grid", gridTemplateColumns: "1.25fr 1fr", gap: 48, alignItems: "start" }}>
+            {/* Left column */}
+            <div style={{ minWidth: 0 }}>
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px",
+                borderRadius: 100, background: "rgba(45,212,191,0.08)", border: "1px solid rgba(45,212,191,0.2)",
+                marginBottom: 28,
+              }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: N.teal, boxShadow: `0 0 8px ${N.teal}`, display: "inline-block" }} />
+                <span style={{ ...MONO, fontSize: 11, color: N.teal, letterSpacing: "0.2em", textTransform: "uppercase" }}>Available for opportunities</span>
+              </div>
+
+              <h1 className="name-shimmer" style={{ ...DISPLAY, fontSize: "clamp(2.8rem,6vw,4.6rem)", lineHeight: 1, marginBottom: 20, letterSpacing: "-0.02em" }}>
+                {hero.name}
+              </h1>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+                <Sparkles size={14} style={{ color: N.violet, flexShrink: 0 }} />
+                <p style={{ ...MONO, fontSize: 13, color: N.violet, letterSpacing: "0.04em", margin: 0 }}>{hero.tagline}</p>
+              </div>
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 28 }}>
+                {heroSkills.map(skill => (
+                  <span key={skill} className="skill-tag" style={{
+                    ...MONO, fontSize: 11, padding: "5px 12px", borderRadius: 8,
+                    background: "rgba(45,212,191,0.06)", border: "1px solid rgba(45,212,191,0.15)", color: N.teal,
+                  }}>
+                    {skillIcons[skill] && <span style={{ marginRight: 4 }}>{skillIcons[skill]}</span>}{skill}
+                  </span>
                 ))}
               </div>
-              <div className="mb-5 max-w-[52ch] space-y-3">
+
+              <div style={{ marginBottom: 32, maxWidth: "56ch" }}>
                 {hero.bio.split("\n\n").map((para, i) => (
-                  <p key={i} className="text-[17px] leading-[1.9] tracking-[0.015em]" style={{ color: "#d8d8ea", fontWeight: 400, fontFamily: "'DM Sans', sans-serif" }}>{para}</p>
+                  <p key={i} style={{ ...SANS, fontSize: 15.5, lineHeight: 1.85, color: "#c0c0d8", marginBottom: 12 }}>{para}</p>
                 ))}
               </div>
-              <div className="flex flex-wrap items-center gap-3 mb-8">
-                <a href={`mailto:${hero.email}`} className="flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium transition-all hover:scale-[1.02]" style={{ background: "#5eead4", color: "#09090f", border: "none" }}>
-                  <Mail size={14} /> Get in touch
+
+              {hero.researchFocus && (
+                <div style={{
+                  display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 16px",
+                  borderRadius: 10, background: "rgba(167,139,250,0.06)", border: "1px solid rgba(167,139,250,0.15)",
+                  marginBottom: 28,
+                }}>
+                  <BookOpen size={14} style={{ color: N.violet, marginTop: 2, flexShrink: 0 }} />
+                  <p style={{ ...MONO, fontSize: 11, color: N.violet, lineHeight: 1.7, letterSpacing: "0.03em", margin: 0 }}>{hero.researchFocus}</p>
+                </div>
+              )}
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 28 }}>
+                <a href={`mailto:${hero.email}`} style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600,
+                  background: `linear-gradient(135deg, ${N.teal}, #0d9488)`,
+                  color: "#04040c", textDecoration: "none", boxShadow: `0 0 20px rgba(45,212,191,0.25)`,
+                  transition: "all 0.2s ease",
+                }}>
+                  <Mail size={15} /> Get in touch
                 </a>
-                <a href={resolveCvHref(hero, cvAsset)} download={resolveCvName(hero, "Hazem-Alabiad-CV.pdf")} className="flex items-center gap-2 px-4 py-2 rounded border text-sm transition-all hover:border-white/25 hover:text-[#d4d4e0]" style={{ borderColor: "oklch(1 0 0 / 0.12)", color: "#9494a8" }}>
-                  <Download size={14} /> Download CV
+                <a href={resolveCvHref(hero, cvAsset)} download={resolveCvName(hero, "Hazem-Alabiad-CV.pdf")} style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  padding: "10px 22px", borderRadius: 10, fontSize: 14,
+                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
+                  color: N.text, textDecoration: "none", transition: "all 0.2s ease",
+                }}>
+                  <Download size={15} /> Download CV
                 </a>
               </div>
-              <div className="flex flex-wrap items-center gap-6">
-                <SocialLink href={`https://${hero.github}`} icon={<Github size={14} />} label="GitHub" />
-                <SocialLink href={`https://${hero.linkedin}`} icon={<Linkedin size={14} />} label="LinkedIn" />
-                <span className="flex items-center gap-1.5 text-sm" style={{ color: "#6b6b82" }}><MapPin size={14} /> {hero.location}</span>
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+                {[
+                  { href: `https://${hero.github}`, icon: <Github size={15} />, label: "GitHub" },
+                  { href: `https://${hero.linkedin}`, icon: <Linkedin size={15} />, label: "LinkedIn" },
+                ].map(link => (
+                  <a key={link.label} href={link.href} target="_blank" rel="noopener noreferrer" style={{
+                    display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13,
+                    color: N.muted, textDecoration: "none", transition: "color 0.2s ease",
+                  }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = N.teal}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = N.muted}
+                  >
+                    {link.icon} {link.label}
+                  </a>
+                ))}
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: N.muted }}>
+                  <MapPin size={14} /> {hero.location}
+                </span>
               </div>
             </div>
-            <div className="flex-shrink-0 self-start md:mt-8">
-              <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden" style={{ boxShadow: "0 0 0 1.5px rgba(94,234,212,0.35), 0 0 32px rgba(94,234,212,0.08)" }}>
-                <img src={profilePhoto} alt={hero.name} className="w-full h-full object-cover" style={{ objectPosition: "center 4%", filter: "brightness(0.92) contrast(1.04) saturate(0.88)" }} />
-                <div className="absolute inset-0 rounded-full" style={{ background: "radial-gradient(circle at center, transparent 55%, rgba(9,9,15,0.5) 100%)" }} />
+
+            {/* Right column — terminal + avatar */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+              <div className="float-avatar" style={{
+                width: 176, height: 176, borderRadius: "50%", overflow: "hidden", position: "relative",
+                boxShadow: `0 0 0 2px rgba(45,212,191,0.4), 0 0 60px rgba(45,212,191,0.12)`,
+                background: "#0d1117", margin: "0 auto",
+              }}>
+                <img src={profilePhoto} alt={hero.name}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 4%", filter: "brightness(0.93) contrast(1.05)" }} />
+                <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle at center, transparent 55%, rgba(4,4,12,0.4) 100%)" }} />
               </div>
+
+              <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
+                {[
+                  { icon: <Briefcase size={12} />, text: "6+ yrs" },
+                  { icon: <GraduationCap size={12} />, text: "M.A." },
+                  { icon: <Globe size={12} />, text: "4 langs" },
+                ].map(stat => (
+                  <div key={stat.text} style={{
+                    display: "flex", alignItems: "center", gap: 7, padding: "6px 12px", borderRadius: 8,
+                    background: "rgba(255,255,255,0.032)", border: "1px solid rgba(255,255,255,0.07)", fontSize: 11,
+                    color: N.muted, ...MONO,
+                  }}>
+                    <span style={{ color: N.teal }}>{stat.icon}</span> {stat.text}
+                  </div>
+                ))}
+              </div>
+
+              <Terminal
+                name={hero.name}
+                email={hero.email}
+                github={hero.github}
+                linkedin={hero.linkedin}
+                location={hero.location}
+                skills={heroSkills}
+              />
             </div>
           </div>
         </section>
 
-        {/* Education */}
-        <section className="mb-28">
-          <SectionHeader label="Education" id="education" />
-          <div className="space-y-10">
-            {education.map(edu => (
-              <div key={edu.id} className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
-                <div>
-                  <h3 className="font-medium" style={{ color: "#eeeef5" }}>{edu.degree}</h3>
-                  <p className="text-sm mt-0.5"><span style={{ color: "#5eead4", opacity: 0.8 }}>{edu.school}</span><span style={{ color: "#6b6b82" }}> · {edu.location}</span></p>
-                  {edu.notes && <p className="text-[14px] mt-2 leading-relaxed" style={{ color: "#8f8fa8" }}>{edu.notes}</p>}
+        {/* ── Education ────────────────────────────────── */}
+        <section style={{ marginBottom: 100 }}>
+          <SectionHeader label="Education" id="education" icon={<GraduationCap size={16} />} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {education.map((edu, i) => (
+              <GlassCard key={edu.id} style={{ padding: "24px 28px", animationDelay: `${i * 0.1}s` }}>
+                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                  <div>
+                    <h3 style={{ ...SANS, fontSize: 16, fontWeight: 600, color: "#eeeef5", marginBottom: 4 }}>{edu.degree}</h3>
+                    <p style={{ fontSize: 14, marginBottom: 8 }}>
+                      <span style={{ color: N.teal }}>{edu.school}</span>
+                      <span style={{ color: N.muted }}> · {edu.location}</span>
+                    </p>
+                    {edu.notes && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <Star size={11} style={{ color: N.violet, flexShrink: 0 }} />
+                        <p style={{ ...MONO, fontSize: 11, color: "#8080a8", lineHeight: 1.6, margin: 0 }}>{edu.notes}</p>
+                      </div>
+                    )}
+                  </div>
+                  <span style={{ ...MONO, fontSize: 11, color: N.muted, whiteSpace: "nowrap",
+                    padding: "4px 10px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: `1px solid rgba(255,255,255,0.07)`,
+                  }}>{edu.period}</span>
                 </div>
-                <span className="text-[11px] whitespace-nowrap shrink-0 mt-1" style={{ ...MONO, color: "#6b6b82" }}>{edu.period}</span>
-              </div>
+              </GlassCard>
             ))}
           </div>
         </section>
 
-        {/* Experience */}
-        <section className="mb-28">
-          <SectionHeader label="Experience" id="experience" />
-          <div>
+        {/* ── Experience ───────────────────────────────── */}
+        <section style={{ marginBottom: 100 }}>
+          <SectionHeader label="Experience" id="experience" icon={<Briefcase size={16} />} />
+          <div style={{ position: "relative" }}>
             {groupByCompany(experience).map((group, gi, arr) => (
-              <div key={group.company + gi} className="relative pl-7 pb-12 last:pb-0">
-                <div className="absolute left-0 top-[8px] w-2 h-2 rounded-full" style={{ background: "#5eead4", opacity: 0.35 }} />
-                {gi < arr.length - 1 && <div className="absolute left-[3px] top-5 bottom-0 w-px" style={{ background: "oklch(1 0 0 / 0.07)" }} />}
-                {group.roles.length === 1 ? (
-                  <>
-                    <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-1 mb-3">
-                      <div>
-                        <h3 className="font-medium text-[15px]" style={{ color: "#eeeef5" }}>{group.roles[0].role}</h3>
-                        <p className="text-[13.5px] mt-0.5"><span style={{ color: "#5eead4", opacity: 0.9 }}>{group.company}</span><span style={{ color: "#707088" }}> · {group.location}</span></p>
+              <div key={group.company + gi} style={{ position: "relative", paddingLeft: 28, paddingBottom: gi < arr.length - 1 ? 32 : 0 }}>
+                <div style={{
+                  position: "absolute", left: 0, top: 10, width: 10, height: 10, borderRadius: "50%",
+                  background: N.teal, boxShadow: `0 0 10px ${N.teal}`, opacity: 0.7,
+                }} />
+                {gi < arr.length - 1 && (
+                  <div style={{
+                    position: "absolute", left: 4, top: 24, bottom: 0, width: 2,
+                    background: `linear-gradient(180deg, rgba(45,212,191,0.25), transparent)`,
+                  }} />
+                )}
+                <GlassCard style={{ padding: "20px 24px" }}>
+                  {group.roles.length === 1 ? (
+                    <>
+                      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 12 }}>
+                        <div>
+                          <h3 style={{ ...SANS, fontSize: 15, fontWeight: 600, color: "#eeeef5", marginBottom: 3 }}>{group.roles[0].role}</h3>
+                          <p style={{ fontSize: 13 }}>
+                            <span style={{ color: N.teal }}>{group.company}</span>
+                            <span style={{ color: N.muted }}> · {group.location}</span>
+                          </p>
+                        </div>
+                        <span style={{ ...MONO, fontSize: 11, color: N.muted, whiteSpace: "nowrap",
+                          padding: "4px 10px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: `1px solid rgba(255,255,255,0.07)`,
+                        }}>{group.roles[0].period}</span>
                       </div>
-                      <span className="text-[11px] whitespace-nowrap shrink-0" style={{ ...MONO, color: "#6b6b82" }}>{group.roles[0].period}</span>
-                    </div>
-                    {group.roles[0].bullets.filter(Boolean).length > 0 && (
-                      <ul className="space-y-1.5">
+                      <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
                         {group.roles[0].bullets.filter(Boolean).map((b, bi) => (
-                          <li key={bi} className="text-[14px] leading-relaxed flex gap-2.5" style={{ color: "#ababc0" }}>
-                            <span className="mt-[3px] shrink-0" style={{ color: "#5eead4", opacity: 0.3 }}>—</span><span>{b}</span>
+                          <li key={bi} style={{ display: "flex", gap: 10, fontSize: 14, color: "#ababc0", lineHeight: 1.6 }}>
+                            <ChevronRight size={14} style={{ color: N.teal, opacity: 0.5, marginTop: 2, flexShrink: 0 }} />
+                            <span>{b}</span>
                           </li>
                         ))}
                       </ul>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className="mb-4">
-                      <h3 className="font-medium text-[15px]" style={{ color: "#5eead4" }}>{group.company}</h3>
-                      <p className="text-[13px] mt-0.5" style={{ color: "#707088" }}>{group.location}</p>
-                    </div>
-                    <div className="space-y-6 border-l pl-5" style={{ borderColor: "oklch(1 0 0 / 0.07)" }}>
-                      {group.roles.map(role => (
-                        <div key={role.id}>
-                          <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-1 mb-2">
-                            <span className="font-medium text-[14px]" style={{ color: "#d8d8ec" }}>{role.role}</span>
-                            <span className="text-[11px] whitespace-nowrap shrink-0" style={{ ...MONO, color: "#6b6b82" }}>{role.period}</span>
-                          </div>
-                          {role.bullets.filter(Boolean).length > 0 && (
-                            <ul className="space-y-1.5">
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ marginBottom: 16 }}>
+                        <h3 style={{ ...SANS, fontSize: 15, fontWeight: 700, color: N.teal, marginBottom: 2 }}>{group.company}</h3>
+                        <p style={{ fontSize: 13, color: N.muted, margin: 0 }}>{group.location}</p>
+                      </div>
+                      <div style={{ borderLeft: `2px solid rgba(45,212,191,0.15)`, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 20 }}>
+                        {group.roles.map(role => (
+                          <div key={role.id}>
+                            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 8 }}>
+                              <span style={{ ...SANS, fontSize: 14, fontWeight: 500, color: "#d8d8ec" }}>{role.role}</span>
+                              <span style={{ ...MONO, fontSize: 11, color: N.muted }}>{role.period}</span>
+                            </div>
+                            <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 5 }}>
                               {role.bullets.filter(Boolean).map((b, bi) => (
-                                <li key={bi} className="text-[14px] leading-relaxed flex gap-2.5" style={{ color: "#ababc0" }}>
-                                  <span className="mt-[3px] shrink-0" style={{ color: "#5eead4", opacity: 0.3 }}>—</span><span>{b}</span>
+                                <li key={bi} style={{ display: "flex", gap: 10, fontSize: 13, color: "#ababc0", lineHeight: 1.6 }}>
+                                  <ChevronRight size={13} style={{ color: N.teal, opacity: 0.4, marginTop: 2, flexShrink: 0 }} />
+                                  <span>{b}</span>
                                 </li>
                               ))}
                             </ul>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </GlassCard>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Projects */}
-        <section className="mb-28">
-          <SectionHeader label="Research &amp; Projects" id="projects" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {projects.map(proj => (
+        {/* ── Projects ─────────────────────────────────── */}
+        <section style={{ marginBottom: 100 }}>
+          <SectionHeader label="Research & Projects" id="projects" icon={<FlaskConical size={16} />} />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+            {projects.map((proj, i) => (
               <a key={proj.id} href={proj.link.startsWith("http") ? proj.link : `https://${proj.link}`}
-                target="_blank" rel="noopener noreferrer"
-                className="group block rounded-xl p-5 border transition-all"
-                style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.08)" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(94,234,212,0.22)"; (e.currentTarget as HTMLElement).style.background = "#12121f"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(1 0 0 / 0.08)"; (e.currentTarget as HTMLElement).style.background = "#111119"; }}
+                target="_blank" rel="noopener noreferrer" className="proj-card"
+                style={{ textDecoration: "none", display: "block" }}
               >
-                <div className="flex items-start justify-between mb-3">
-                  <span className="text-[11px]" style={{ ...MONO, color: "#5eead4", opacity: 0.6 }}>{proj.year}</span>
-                  <ArrowUpRight size={14} style={{ color: "#6b6b82" }} />
-                </div>
-                <h3 className="font-medium mb-2 leading-snug" style={{ color: "#eeeef5" }}>{proj.title}</h3>
-                <p className="text-[14px] leading-relaxed" style={{ color: "#8f8fa8" }}>{proj.description}</p>
+                <GlassCard style={{ padding: "22px", height: "100%" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+                    <div style={{
+                      width: 36, height: 36, borderRadius: 10,
+                      background: `rgba(${i % 2 === 0 ? "45,212,191" : "167,139,250"},0.12)`,
+                      border: `1px solid rgba(${i % 2 === 0 ? "45,212,191" : "167,139,250"},0.2)`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      color: i % 2 === 0 ? N.teal : N.violet,
+                    }}>
+                      {i % 3 === 0 ? <Brain size={16} /> : i % 3 === 1 ? <Layers size={16} /> : <Zap size={16} />}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ ...MONO, fontSize: 11, color: N.muted }}>{proj.year}</span>
+                      <ArrowUpRight size={13} style={{ color: N.muted }} />
+                    </div>
+                  </div>
+                  <h3 style={{ ...SANS, fontSize: 15, fontWeight: 600, color: "#eeeef5", marginBottom: 8, lineHeight: 1.3 }}>{proj.title}</h3>
+                  <p style={{ fontSize: 13, color: "#8f8fa8", lineHeight: 1.6 }}>{proj.description}</p>
+                </GlassCard>
               </a>
             ))}
           </div>
         </section>
 
-        {/* Skills */}
-        <section className="mb-28">
-          <SectionHeader label="Skills" id="skills" />
-          <div className="space-y-7">
+        {/* ── Skills ───────────────────────────────────── */}
+        <section style={{ marginBottom: 100 }}>
+          <SectionHeader label="Skills" id="skills" icon={<Code2 size={16} />} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {skills.map(sg => (
-              <div key={sg.id} className="flex flex-col md:flex-row gap-3 md:gap-6">
-                <span className="text-[11px] uppercase tracking-[0.2em] shrink-0 pt-1 w-28" style={{ ...MONO, color: "#5eead4", opacity: 0.65 }}>{sg.label}</span>
-                <div className="flex flex-wrap gap-2">
+              <GlassCard key={sg.id} style={{ padding: "20px 24px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                  <div style={{
+                    width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
+                    background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.18)", color: N.teal,
+                  }}>{skillGroupIcons[sg.label] ?? <Star size={14} />}</div>
+                  <span style={{ ...MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.22em", color: N.teal }}>{sg.label}</span>
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                   {sg.skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
-                    <span key={skill} className="text-[13px] px-3 py-1.5 rounded border cursor-default"
-                      style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.09)", color: "#a0a0b8" }}>{skill}</span>
+                    <span key={skill} className="skill-tag" style={{
+                      ...MONO, fontSize: 12, padding: "6px 12px", borderRadius: 8,
+                      background: "rgba(255,255,255,0.03)", border: `1px solid rgba(255,255,255,0.07)`, color: "#a0a0b8",
+                    }}>
+                      {skillIcons[skill] && <span style={{ marginRight: 5 }}>{skillIcons[skill]}</span>}{skill}
+                    </span>
                   ))}
                 </div>
-              </div>
+              </GlassCard>
             ))}
           </div>
         </section>
 
-        {/* Languages */}
+        {/* ── Languages ────────────────────────────────── */}
         {languages.length > 0 && (
-          <section className="mb-28">
-            <SectionHeader label="Languages" id="languages" />
-            <div className="flex flex-wrap gap-4">
+          <section style={{ marginBottom: 80 }}>
+            <SectionHeader label="Languages" id="languages" icon={<Globe size={16} />} />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
               {languages.map(lang => (
-                <div key={lang.id} className="flex items-center gap-3 px-4 py-3 rounded-lg border"
-                  style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.08)" }}>
-                  <span className="font-medium text-sm" style={{ color: "#eeeef5" }}>{lang.name}</span>
-                  <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ ...MONO, background: "rgba(94,234,212,0.08)", color: "#5eead4" }}>{lang.level}</span>
-                </div>
+                <GlassCard key={lang.id} style={{ padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 }}>
+                  <span style={{ ...SANS, fontSize: 15, fontWeight: 500, color: "#eeeef5" }}>{lang.name}</span>
+                  <span style={{
+                    ...MONO, fontSize: 11, padding: "3px 10px", borderRadius: 20,
+                    background: "rgba(45,212,191,0.08)", color: N.teal, border: "1px solid rgba(45,212,191,0.18)",
+                  }}>{lang.level}</span>
+                </GlassCard>
               ))}
             </div>
           </section>
@@ -365,32 +598,37 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t px-6 md:px-12 py-8" style={{ borderColor: "oklch(1 0 0 / 0.06)" }}>
-        <div className="max-w-4xl mx-auto flex items-center justify-center gap-4">
-          <p className="text-xs" style={{ ...MONO, color: "#6b6b82" }}>© {currentYear} {hero.name}</p>
+      <footer style={{
+        position: "relative", zIndex: 1, borderTop: `1px solid rgba(255,255,255,0.07)`,
+        padding: "28px 2rem",
+      }}>
+        <div style={{ maxWidth: 960, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: 20 }}>
+          <p style={{ ...MONO, fontSize: 12, color: N.muted }}>© {currentYear} {hero.name}</p>
           {visitCount !== null && (
-            <span className="flex items-center gap-1.5 text-xs" style={{ ...MONO, color: "#4a4a60" }}>
-              <span className="w-1 h-1 rounded-full inline-block" style={{ background: "#5eead4", opacity: 0.5 }} />
+            <span style={{ ...MONO, fontSize: 12, color: "#4a4a60", display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: N.teal, opacity: 0.5, display: "inline-block" }} />
               {visitCount.toLocaleString()} visits
             </span>
           )}
         </div>
       </footer>
 
-      {/* CMS button */}
+      {/* CMS button — preserved */}
       <button
         onClick={() => { window.location.hash = "#/cms"; setHash("#/cms"); }}
         title="Open CMS"
         style={{
           position: "fixed", bottom: 24, right: 24, zIndex: 9998,
           width: 44, height: 44, borderRadius: "50%",
-          background: "#111119", border: "1px solid rgba(94,234,212,0.35)",
-          color: "#5eead4", cursor: "pointer",
+          background: "rgba(4,4,12,0.9)",
+          border: "1px solid rgba(45,212,191,0.4)",
+          color: N.teal, cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.5)", transition: "all 0.2s ease",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.6), 0 0 12px rgba(45,212,191,0.1)",
+          transition: "all 0.2s ease",
         }}
-        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#1a1a2e"}
-        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#111119"}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(45,212,191,0.12)"; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 24px rgba(0,0,0,0.6), 0 0 20px rgba(45,212,191,0.2)`; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(4,4,12,0.9)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(0,0,0,0.6), 0 0 12px rgba(45,212,191,0.1)"; }}
       >
         <Settings size={18} />
       </button>
