@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "build:preview": "vite build --base=/preview/",
     "dev": "vite",
     "test": "vitest run"
   },
