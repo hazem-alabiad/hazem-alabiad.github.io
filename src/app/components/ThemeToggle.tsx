@@ -26,21 +26,23 @@ export function ThemeToggle() {
   const cycle: Theme[] = ["dark", "light", "auto"];
   const next = cycle[(cycle.indexOf(theme) + 1) % cycle.length];
 
+  const icons = { dark: "◑", light: "☀", auto: "◐" } as const;
+
   return (
     <button
       onClick={() => setTheme(next)}
       title={`Theme: ${theme} → ${next}`}
       aria-label="Toggle theme"
       style={{
-        ...MONO, fontSize: 11, padding: "6px 10px", borderRadius: 8,
+        ...MONO, fontSize: 12, padding: "7px 12px", borderRadius: 8,
         background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-        color: "#6b6b82", cursor: "pointer", transition: "all 0.2s ease",
+        color: "#7a7a9a", cursor: "pointer", transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
         display: "flex", alignItems: "center", gap: 5,
       }}
       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#2dd4bf"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,212,191,0.3)"; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#6b6b82"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)"; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#7a7a9a"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)"; }}
     >
-      {theme === "dark" ? "◑" : theme === "light" ? "☀" : "◐"} {next}
+      {icons[theme]} {next}
     </button>
   );
 }

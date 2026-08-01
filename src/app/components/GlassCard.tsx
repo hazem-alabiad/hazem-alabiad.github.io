@@ -14,13 +14,13 @@ export function GlassCard({ children, className = "", style = {}, hover = true }
       onMouseEnter={() => hover && setHovered(true)}
       onMouseLeave={() => hover && setHovered(false)}
       style={{
-        background: hovered ? "rgba(255,255,255,0.055)" : SURFACE,
-        border: `1px solid ${hovered ? `rgba(${TEAL},0.28)` : BORDER}`,
+        background: hovered ? "rgba(20,20,38,0.7)" : SURFACE,
+        border: `1px solid ${hovered ? `rgba(${TEAL},0.3)` : BORDER}`,
         borderRadius: 16,
-        backdropFilter: "blur(12px)",
-        transition: "all 0.3s ease",
+        backdropFilter: "blur(16px)",
+        transition: "all 0.35s cubic-bezier(0.16,1,0.3,1)",
         boxShadow: hovered
-          ? `0 0 32px rgba(${TEAL},0.08), inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 32px rgba(0,0,0,0.3)`
+          ? `0 0 40px rgba(${TEAL},0.1), inset 0 1px 0 rgba(255,255,255,0.06), 0 12px 40px rgba(0,0,0,0.4)`
           : "inset 0 1px 0 rgba(255,255,255,0.04)",
         ...style,
       }}

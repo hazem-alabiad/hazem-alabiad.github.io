@@ -106,16 +106,21 @@ const SANS: React.CSSProperties = { fontFamily: "'DM Sans', sans-serif" };
 
 const N = {
   teal: "#2dd4bf",
+  tealDark: "#0d9488",
   violet: "#a78bfa",
+  violetDark: "#7c3aed",
   cyan: "#67e8f9",
   pink: "#f472b6",
-  bg: "#04040c",
-  text: "#e2e2f0",
-  muted: "#6b6b8a",
+  bg: "#05050e",
+  text: "#e0e0ec",
+  textSoft: "#c0c0d8",
+  muted: "#7a7a9a",
+  border: "rgba(255,255,255,0.06)",
+  borderHover: "rgba(45,212,191,0.25)",
 };
 
 const L = {
-  bg: "#fafafa",
+  bg: "#fbfbff",
   text: "#111",
   muted: "#666",
   card: "#fff",
@@ -170,9 +175,9 @@ function StatCounter({ icon, label, target, delay }: { icon: React.ReactNode; la
 
   return (
     <div ref={ref} className="stat-counter" style={{
-      display: "flex", alignItems: "center", gap: 7, padding: "6px 12px", borderRadius: 8,
-      background: isDark ? "rgba(255,255,255,0.032)" : "rgba(0,0,0,0.03)",
-      border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)"}`, fontSize: 11,
+      display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderRadius: 10,
+      background: isDark ? "rgba(255,255,255,0.035)" : "rgba(0,0,0,0.03)",
+      border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, fontSize: 12.5,
       color: mutedColor, ...MONO,
     }}>
       <span style={{ color: N.teal }}>{icon}</span> {count}{label.includes("yrs") ? "+" : ""}{label.includes("M") ? "." : ""}{label.includes("langs") ? "" : ""}
@@ -263,8 +268,13 @@ export default function App() {
         const el = document.getElementById(id);
         if (el && window.scrollY >= el.offsetTop - 120) { setActiveSection(id); break; }
       }
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = total > 0 ? (window.scrollY / total) * 100 : 0;
+      const bar = document.getElementById("scroll-progress");
+      if (bar) bar.style.width = `${pct}%`;
     };
     window.addEventListener("scroll", handler, { passive: true });
+    handler();
     return () => window.removeEventListener("scroll", handler);
   }, []);
 
@@ -291,20 +301,33 @@ export default function App() {
         @keyframes termBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
         @keyframes blobPulse { 0%,100%{opacity:.5;transform:scale(1)} 50%{opacity:1;transform:scale(1.08)} }
         @keyframes fadeInUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes fadeInLeft { from{opacity:0;transform:translateX(-30px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes fadeInRight { from{opacity:0;transform:translateX(30px)} to{opacity:1;transform:translateX(0)} }
         @keyframes shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
         @keyframes scan { 0%{transform:translateY(-100%)} 100%{transform:translateY(200%)} }
         @keyframes ringFill { from{stroke-dashoffset:251} }
         @keyframes hexPulse { 0%,100%{filter:drop-shadow(0 0 8px rgba(45,212,191,0.3))} 50%{filter:drop-shadow(0 0 20px rgba(45,212,191,0.6))} }
         @keyframes glitch { 0%,100%{transform:translate(0)} 20%{transform:translate(-2px,1px)} 40%{transform:translate(2px,-1px)} 60%{transform:translate(-1px,2px)} 80%{transform:translate(1px,-2px)} }
+        @keyframes ringRotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes countUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes typewriter { from{width:0} to{width:100%} }
+        @keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+        @keyframes glowPulse { 0%,100%{box-shadow:0 0 20px rgba(45,212,191,0.1)} 50%{box-shadow:0 0 40px rgba(45,212,191,0.25)} }
+        @keyframes slideInUp { from{opacity:0;transform:translateY(40px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+        @keyframes slideInLeft { from{opacity:0;transform:translateX(-40px) scale(0.97)} to{opacity:1;transform:translateX(0) scale(1)} }
+        @keyframes slideInRight { from{opacity:0;transform:translateX(40px) scale(0.97)} to{opacity:1;transform:translateX(0) scale(1)} }
+        @keyframes pulseGlow { 0%,100%{box-shadow:0 0 20px rgba(45,212,191,0.1)} 50%{box-shadow:0 0 40px rgba(45,212,191,0.25)} }
+        @keyframes borderGlow { 0%,100%{border-color:rgba(45,212,191,0.15)} 50%{border-color:rgba(45,212,191,0.35)} }
+        @keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
         .fade-up { animation: fadeInUp 0.7s ease forwards; }
         .name-shimmer {
-          background: linear-gradient(135deg, #e2e2f0 0%, #2dd4bf 40%, #a78bfa 60%, #e2e2f0 100%);
+          background: linear-gradient(135deg, #e2e2f0 0%, #2dd4bf 30%, #a78bfa 60%, #67e8f9 80%, #e2e2f0 100%);
           background-size: 300% auto;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          animation: shimmer 6s linear infinite;
+          animation: shimmer 5s linear infinite;
         }
         .float-avatar { animation: float 6s ease-in-out infinite; }
         .nav-pill { transition: all 0.25s ease; }
@@ -313,15 +336,16 @@ export default function App() {
           color: #2dd4bf !important;
           border-color: rgba(45,212,191,0.3) !important;
         }
-        .skill-tag { transition: all 0.2s ease; cursor: default; }
+        .skill-tag { transition: all 0.25s cubic-bezier(0.16,1,0.3,1); cursor: default; }
         .skill-tag:hover {
           background: rgba(45,212,191,0.12) !important;
           border-color: rgba(45,212,191,0.35) !important;
           color: #2dd4bf !important;
-          transform: translateY(-2px);
+          transform: translateY(-3px) scale(1.03);
+          box-shadow: 0 4px 12px rgba(45,212,191,0.1);
         }
-        .proj-card { transition: all 0.3s ease; }
-        .proj-card:hover { transform: translateY(-4px); }
+        .proj-card { transition: all 0.35s cubic-bezier(0.16,1,0.3,1); }
+        .proj-card:hover { transform: translateY(-6px) scale(1.01); }
         .scanline {
           background: linear-gradient(180deg, transparent, rgba(45,212,191,0.06), transparent);
           animation: scan 5s linear infinite;
@@ -331,15 +355,14 @@ export default function App() {
           background: conic-gradient(from 0deg, #2dd4bf, #a78bfa, #67e8f9, #2dd4bf);
           animation: ringRotate 6s linear infinite;
         }
-        @keyframes ringRotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-        @keyframes ringFill { from{stroke-dashoffset:251} }
-        @keyframes countUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes typewriter { from{width:0} to{width:100%} }
-        @keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
-        .skill-ring { transition: stroke-dashoffset 1s ease; }
-        .mobile-nav { transform: translateX(100%); transition: transform 0.3s ease; }
+        .stat-counter { animation: countUp 0.6s ease forwards; }
+        .glow-pulse { animation: glowPulse 3s ease-in-out infinite; }
+        .glass-hover { transition: all 0.35s cubic-bezier(0.16,1,0.3,1); }
+        .glass-hover:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(45,212,191,0.1); }
+        .tagline-cursor { display: inline-block; width: 2px; height: 1em; background: #a78bfa; margin-left: 2px; animation: blink 1s steps(2) infinite; vertical-align: text-bottom; }
+        .mobile-nav { transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.16,1,0.3,1); }
         .mobile-nav.open { transform: translateX(0); }
-        .mobile-overlay { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .mobile-overlay { opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
         .mobile-overlay.open { opacity: 1; pointer-events: auto; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -352,12 +375,13 @@ export default function App() {
           background-repeat: repeat;
           background-size: 256px 256px;
         }
-        .stat-counter { animation: countUp 0.6s ease forwards; }
-        .glow-pulse { animation: glowPulse 3s ease-in-out infinite; }
-        @keyframes glowPulse { 0%,100%{box-shadow:0 0 20px rgba(45,212,191,0.1)} 50%{box-shadow:0 0 40px rgba(45,212,191,0.25)} }
-        .glass-hover { transition: all 0.3s ease; }
-        .glass-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(45,212,191,0.08); }
-        .tagline-cursor { display: inline-block; width: 2px; height: 1em; background: #a78bfa; margin-left: 2px; animation: blink 1s steps(2) infinite; vertical-align: text-bottom; }
+        .scroll-progress {
+          position: fixed; top: 0; left: 0; height: 2px; z-index: 9999;
+          background: linear-gradient(90deg, #5eead4, #a78bfa, #67e8f9);
+          transition: width 0.1s ease;
+          border-radius: 0 2px 2px 0;
+        }
+        .hero-grid { transition: all 0.5s ease; }
         @media (max-width: 768px) {
           .hero-grid { grid-template-columns: 1fr !important; }
           .nav-pills { display: none !important; }
@@ -366,15 +390,24 @@ export default function App() {
         @media (min-width: 769px) {
           .mobile-menu-btn { display: none !important; }
         }
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
       `}</style>
+
+      <div className="scroll-progress" id="scroll-progress" />
 
       {/* Nav */}
       <nav style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 2rem", height: 64,
-        background: "rgba(4,4,12,0.8)",
-        backdropFilter: "blur(20px)",
+        background: "rgba(8,8,14,0.85)",
+        backdropFilter: "blur(24px)",
         borderBottom: "1px solid rgba(255,255,255,0.06)",
         boxShadow: "0 1px 0 rgba(45,212,191,0.08)",
       }}>
@@ -392,7 +425,7 @@ export default function App() {
             <a key={id} href={`#${id}`}
               className={`nav-pill ${activeSection === id ? "active" : ""}`}
               style={{
-                ...MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.18em",
+                ...MONO, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.18em",
                 padding: "5px 14px", borderRadius: 8, border: "1px solid transparent",
                 color: activeSection === id ? N.teal : N.muted,
                 background: activeSection === id ? "rgba(45,212,191,0.1)" : "transparent",
@@ -404,7 +437,7 @@ export default function App() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <a href={`mailto:${hero.email}`}
-            style={{ ...MONO, fontSize: 12, color: N.teal, textDecoration: "none", opacity: 0.8 }}>
+            style={{ ...MONO, fontSize: 13, color: N.teal, textDecoration: "none", opacity: 0.8 }}>
             {hero.email}
           </a>
           <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(true)}
@@ -445,9 +478,9 @@ export default function App() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8 }}
-          style={{ marginBottom: 120 }}
+          style={{ marginBottom: 140 }}
         >
-          <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "1.25fr 1fr", gap: 48, alignItems: "start" }}>
+          <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 56, alignItems: "start" }}>
             {/* Left column */}
             <motion.div style={{ minWidth: 0 }}
               initial={{ opacity: 0, x: -40 }}
@@ -463,7 +496,11 @@ export default function App() {
                   marginBottom: 28,
                 }}>
                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: N.teal, boxShadow: `0 0 8px ${N.teal}`, display: "inline-block" }} />
-                <span style={{ ...MONO, fontSize: 11, color: N.teal, letterSpacing: "0.2em", textTransform: "uppercase" }}>Available for opportunities</span>
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  style={{ ...MONO, fontSize: 13, color: N.teal, letterSpacing: "0.2em", textTransform: "uppercase" }}>Available for opportunities</motion.span>
               </motion.div>
 
               <motion.h1
@@ -471,7 +508,7 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.8 }}
                 className="name-shimmer"
-                style={{ ...DISPLAY, fontSize: "clamp(2.8rem,6vw,4.6rem)", lineHeight: 1, marginBottom: 20, letterSpacing: "-0.02em" }}>
+                style={{ ...DISPLAY, fontSize: "clamp(3rem,7vw,5.2rem)", lineHeight: 1.05, marginBottom: 24, letterSpacing: "-0.03em" }}>
                 {hero.name}
               </motion.h1>
 
@@ -479,9 +516,9 @@ export default function App() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.7 }}
-                style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
-                <Sparkles size={14} style={{ color: N.violet, flexShrink: 0 }} />
-                <p style={{ ...MONO, fontSize: 13, color: N.violet, letterSpacing: "0.04em", margin: 0 }}>
+                style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 24 }}>
+                <Sparkles size={16} style={{ color: N.violet, flexShrink: 0 }} />
+                <p style={{ ...MONO, fontSize: 14, color: N.violet, letterSpacing: "0.04em", margin: 0 }}>
                   {typedTagline}<span className="tagline-cursor" />
                 </p>
               </motion.div>
@@ -490,13 +527,13 @@ export default function App() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.8 }}
-                style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 28 }}>
+                style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 32 }}>
                 {heroSkills.map(skill => (
                   <span key={skill} className="skill-tag" style={{
-                    ...MONO, fontSize: 11, padding: "5px 12px", borderRadius: 8,
+                    ...MONO, fontSize: 12, padding: "6px 14px", borderRadius: 8,
                     background: "rgba(45,212,191,0.06)", border: "1px solid rgba(45,212,191,0.15)", color: N.teal,
                   }}>
-                    {skillIcons[skill] && <span style={{ marginRight: 4 }}>{skillIcons[skill]}</span>}{skill}
+                    {skillIcons[skill] && <span style={{ marginRight: 5 }}>{skillIcons[skill]}</span>}{skill}
                   </span>
                 ))}
               </motion.div>
@@ -505,9 +542,9 @@ export default function App() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.9 }}
-                style={{ marginBottom: 32, maxWidth: "56ch" }}>
+                style={{ marginBottom: 36, maxWidth: "60ch" }}>
                 {hero.bio.split("\n\n").map((para, i) => (
-                  <p key={i} style={{ ...SANS, fontSize: 15.5, lineHeight: 1.85, color: isDark ? "#c0c0d8" : "#444", marginBottom: 12 }}>{para}</p>
+                  <p key={i} style={{ ...SANS, fontSize: 16, lineHeight: 1.85, color: isDark ? "#c0c0d8" : "#444", marginBottom: 14 }}>{para}</p>
                 ))}
               </motion.div>
 
@@ -523,7 +560,7 @@ export default function App() {
                     marginBottom: 28,
                   }}>
                   <BookOpen size={14} style={{ color: isDark ? N.violet : L.violet, marginTop: 2, flexShrink: 0 }} />
-                  <p style={{ ...MONO, fontSize: 11, color: isDark ? N.violet : L.violet, lineHeight: 1.7, letterSpacing: "0.03em", margin: 0 }}>{hero.researchFocus}</p>
+                  <p style={{ ...MONO, fontSize: 13, color: isDark ? N.violet : L.violet, lineHeight: 1.7, letterSpacing: "0.03em", margin: 0 }}>{hero.researchFocus}</p>
                 </motion.div>
               )}
 
@@ -531,24 +568,28 @@ export default function App() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.1 }}
-                style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 28 }}>
+                style={{ display: "flex", flexWrap: "wrap", gap: 14, marginBottom: 32 }}>
                 <a href={`mailto:${hero.email}`} style={{
                   display: "inline-flex", alignItems: "center", gap: 8,
-                  padding: "10px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600,
+                  padding: "12px 26px", borderRadius: 10, fontSize: 15, fontWeight: 600,
                   background: `linear-gradient(135deg, ${N.teal}, #0d9488)`,
-                  color: "#04040c", textDecoration: "none", boxShadow: `0 0 20px rgba(45,212,191,0.25)`,
-                  transition: "all 0.2s ease",
-                }}>
-                  <Mail size={15} /> Get in touch
+                  color: "#08080e", textDecoration: "none", boxShadow: `0 0 24px rgba(45,212,191,0.3)`,
+                  transition: "all 0.25s ease",
+                }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = `0 0 32px rgba(45,212,191,0.4)`; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = `0 0 24px rgba(45,212,191,0.3)`; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
+                  <Mail size={16} /> Get in touch
                 </a>
                 <a href={resolveCvHref(hero, cvAsset)} download={resolveCvName(hero, "Hazem-Alabiad-CV.pdf")} style={{
                   display: "inline-flex", alignItems: "center", gap: 8,
-                  padding: "10px 22px", borderRadius: 10, fontSize: 14,
+                  padding: "12px 26px", borderRadius: 10, fontSize: 15,
                   background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
                   border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
-                  color: textColor, textDecoration: "none", transition: "all 0.2s ease",
-                }}>
-                  <Download size={15} /> Download CV
+                  color: textColor, textDecoration: "none", transition: "all 0.25s ease",
+                }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,212,191,0.3)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
+                  <Download size={16} /> Download CV
                 </a>
               </motion.div>
 
@@ -583,15 +624,15 @@ export default function App() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}>
               {/* Avatar with hexagon + animated ring */}
-              <div className="float-avatar" style={{ width: 176, height: 176, margin: "0 auto", position: "relative" }}>
+              <div className="float-avatar" style={{ width: 200, height: 200, margin: "0 auto", position: "relative" }}>
                 <div className="avatar-ring" style={{
-                  position: "absolute", inset: -3, borderRadius: "50%",
+                  position: "absolute", inset: -4, borderRadius: "50%",
                   animation: "ringRotate 6s linear infinite",
                 }} />
                 <div className="hex-avatar" style={{
-                  width: 176, height: 176, overflow: "hidden", position: "relative",
+                  width: 200, height: 200, overflow: "hidden", position: "relative",
                   background: "#0d1117",
-                  boxShadow: `0 0 0 3px rgba(45,212,191,0.4), 0 0 60px rgba(45,212,191,0.12)`,
+                  boxShadow: `0 0 0 3px rgba(45,212,191,0.4), 0 0 80px rgba(45,212,191,0.15), 0 0 120px rgba(45,212,191,0.08)`,
                 }}>
                   <img src={profilePhoto} alt={hero.name}
                     style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 4%", filter: "brightness(0.93) contrast(1.05)" }} />
@@ -628,12 +669,12 @@ export default function App() {
         {/* ── Education ────────────────────────────────── */}
         <motion.section
           id="education"
-          style={{ marginBottom: 100 }}
+          style={{ marginBottom: 120 }}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.6 }}>
-          <SectionHeader label="Education" id="education" icon={<GraduationCap size={16} />} />
+          <SectionHeader label="Education" id="education" icon={<GraduationCap size={18} />} />
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {education.map((edu, i) => (
               <motion.div key={edu.id}
@@ -644,19 +685,19 @@ export default function App() {
                 <GlassCard style={{ padding: "24px 28px" }}>
                   <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                     <div>
-                      <h3 style={{ ...SANS, fontSize: 16, fontWeight: 600, color: textColor, marginBottom: 4 }}>{edu.degree}</h3>
-                      <p style={{ fontSize: 14, marginBottom: 8 }}>
+                      <h3 style={{ ...SANS, fontSize: 17, fontWeight: 600, color: textColor, marginBottom: 4 }}>{edu.degree}</h3>
+                      <p style={{ fontSize: 15, marginBottom: 8 }}>
                         <span style={{ color: N.teal }}>{edu.school}</span>
                         <span style={{ color: mutedColor }}> · {edu.location}</span>
                       </p>
                       {edu.notes && (
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <Star size={11} style={{ color: N.violet, flexShrink: 0 }} />
-                          <p style={{ ...MONO, fontSize: 11, color: isDark ? "#8080a8" : "#666", lineHeight: 1.6, margin: 0 }}>{edu.notes}</p>
+                          <Star size={12} style={{ color: N.violet, flexShrink: 0 }} />
+                          <p style={{ ...MONO, fontSize: 12, color: isDark ? "#8080a8" : "#666", lineHeight: 1.6, margin: 0 }}>{edu.notes}</p>
                         </div>
                       )}
                     </div>
-                    <span style={{ ...MONO, fontSize: 11, color: mutedColor, whiteSpace: "nowrap",
+                    <span style={{ ...MONO, fontSize: 12, color: mutedColor, whiteSpace: "nowrap",
                       padding: "4px 10px", borderRadius: 6, background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
                       border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)"}`,
                     }}>{edu.period}</span>
@@ -670,12 +711,12 @@ export default function App() {
         {/* ── Experience ───────────────────────────────── */}
         <motion.section
           id="experience"
-          style={{ marginBottom: 100 }}
+          style={{ marginBottom: 120 }}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.6 }}>
-          <SectionHeader label="Experience" id="experience" icon={<Briefcase size={16} />} />
+          <SectionHeader label="Experience" id="experience" icon={<Briefcase size={18} />} />
           <div style={{ position: "relative" }}>
             {groupByCompany(experience).map((group, gi, arr) => (
               <motion.div key={group.company + gi}
@@ -699,20 +740,20 @@ export default function App() {
                     <>
                       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 12 }}>
                         <div>
-                          <h3 style={{ ...SANS, fontSize: 15, fontWeight: 600, color: textColor, marginBottom: 3 }}>{group.roles[0].role}</h3>
-                          <p style={{ fontSize: 13 }}>
+                          <h3 style={{ ...SANS, fontSize: 16, fontWeight: 600, color: textColor, marginBottom: 3 }}>{group.roles[0].role}</h3>
+                          <p style={{ fontSize: 14 }}>
                             <span style={{ color: N.teal }}>{group.company}</span>
                             <span style={{ color: mutedColor }}> · {group.location}</span>
                           </p>
                         </div>
-                        <span style={{ ...MONO, fontSize: 11, color: mutedColor, whiteSpace: "nowrap",
+                        <span style={{ ...MONO, fontSize: 12, color: mutedColor, whiteSpace: "nowrap",
                           padding: "4px 10px", borderRadius: 6, background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
                           border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)"}`,
                         }}>{group.roles[0].period}</span>
                       </div>
                       <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
                         {group.roles[0].bullets.filter(Boolean).map((b, bi) => (
-                          <li key={bi} style={{ display: "flex", gap: 10, fontSize: 14, color: isDark ? "#ababc0" : "#555", lineHeight: 1.6 }}>
+                          <li key={bi} style={{ display: "flex", gap: 10, fontSize: 15, color: isDark ? "#ababc0" : "#555", lineHeight: 1.7 }}>
                             <ChevronRight size={14} style={{ color: N.teal, opacity: 0.5, marginTop: 2, flexShrink: 0 }} />
                             <span>{b}</span>
                           </li>
@@ -722,19 +763,19 @@ export default function App() {
                   ) : (
                     <>
                       <div style={{ marginBottom: 16 }}>
-                        <h3 style={{ ...SANS, fontSize: 15, fontWeight: 700, color: N.teal, marginBottom: 2 }}>{group.company}</h3>
-                        <p style={{ fontSize: 13, color: mutedColor, margin: 0 }}>{group.location}</p>
+                        <h3 style={{ ...SANS, fontSize: 17, fontWeight: 700, color: N.teal, marginBottom: 2 }}>{group.company}</h3>
+                        <p style={{ fontSize: 14, color: mutedColor, margin: 0 }}>{group.location}</p>
                       </div>
                       <div style={{ borderLeft: `2px solid rgba(45,212,191,0.15)`, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 20 }}>
                         {group.roles.map(role => (
                           <div key={role.id}>
                             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 8 }}>
-                              <span style={{ ...SANS, fontSize: 14, fontWeight: 500, color: textColor }}>{role.role}</span>
-                              <span style={{ ...MONO, fontSize: 11, color: mutedColor }}>{role.period}</span>
+                              <span style={{ ...SANS, fontSize: 15, fontWeight: 500, color: textColor }}>{role.role}</span>
+                              <span style={{ ...MONO, fontSize: 12, color: mutedColor }}>{role.period}</span>
                             </div>
                             <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 5 }}>
                               {role.bullets.filter(Boolean).map((b, bi) => (
-                                <li key={bi} style={{ display: "flex", gap: 10, fontSize: 13, color: isDark ? "#ababc0" : "#555", lineHeight: 1.6 }}>
+                                <li key={bi} style={{ display: "flex", gap: 10, fontSize: 14, color: isDark ? "#ababc0" : "#555", lineHeight: 1.7 }}>
                                   <ChevronRight size={13} style={{ color: N.teal, opacity: 0.4, marginTop: 2, flexShrink: 0 }} />
                                   <span>{b}</span>
                                 </li>
@@ -754,12 +795,12 @@ export default function App() {
         {/* ── Projects ─────────────────────────────────── */}
         <motion.section
           id="projects"
-          style={{ marginBottom: 100 }}
+          style={{ marginBottom: 120 }}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.6 }}>
-          <SectionHeader label="Research & Projects" id="projects" icon={<FlaskConical size={16} />} />
+          <SectionHeader label="Research & Projects" id="projects" icon={<FlaskConical size={18} />} />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
             {projects.map((proj, i) => (
               <motion.div key={proj.id}
@@ -780,27 +821,27 @@ export default function App() {
                         display: "flex", alignItems: "center", justifyContent: "center",
                         color: i % 2 === 0 ? N.teal : N.violet,
                       }}>
-                        {i % 3 === 0 ? <Brain size={16} /> : i % 3 === 1 ? <Layers size={16} /> : <Zap size={16} />}
+                        {i % 3 === 0 ? <Brain size={18} /> : i % 3 === 1 ? <Layers size={18} /> : <Zap size={18} />}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ ...MONO, fontSize: 11, color: mutedColor }}>{proj.year}</span>
-                        <ArrowUpRight size={13} style={{ color: mutedColor }} />
+                        <span style={{ ...MONO, fontSize: 13, color: mutedColor }}>{proj.year}</span>
+                        <ArrowUpRight size={15} style={{ color: mutedColor }} />
                       </div>
                     </div>
-                    <h3 style={{ ...SANS, fontSize: 15, fontWeight: 600, color: textColor, marginBottom: 8, lineHeight: 1.3 }}>{proj.title}</h3>
+                    <h3 style={{ ...SANS, fontSize: 17, fontWeight: 600, color: textColor, marginBottom: 8, lineHeight: 1.3 }}>{proj.title}</h3>
                     {expandedProject === proj.id && (
                       <motion.p
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         transition={{ duration: 0.3 }}
-                        style={{ fontSize: 13, color: isDark ? "#8f8fa8" : "#666", lineHeight: 1.6, marginBottom: 12, overflow: "hidden" }}>
+                        style={{ fontSize: 15, color: isDark ? "#8f8fa8" : "#666", lineHeight: 1.7, marginBottom: 12, overflow: "hidden" }}>
                         {proj.description}
                       </motion.p>
                     )}
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                       {(proj.tags || []).map(tag => (
                         <span key={tag} style={{
-                          ...MONO, fontSize: 10, padding: "3px 8px", borderRadius: 6,
+                          ...MONO, fontSize: 12, padding: "3px 8px", borderRadius: 6,
                           background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.04)",
                           border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)"}`,
                           color: isDark ? "#a0a0b8" : "#666",
@@ -817,26 +858,27 @@ export default function App() {
         {/* ── Skills ───────────────────────────────────── */}
         <motion.section
           id="skills"
-          style={{ marginBottom: 100 }}
+          style={{ marginBottom: 120 }}
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.6 }}>
-          <SectionHeader label="Skills" id="skills" icon={<Code2 size={16} />} />
+          <SectionHeader label="Skills" id="skills" icon={<Code2 size={18} />} />
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {skills.map(sg => (
-              <GlassCard key={sg.id} style={{ padding: "20px 24px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+              <GlassCard key={sg.id} style={{ padding: "22px 28px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
                   <div style={{
-                    width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-                    background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.18)", color: N.teal,
-                  }}>{skillGroupIcons[sg.label] ?? <Star size={14} />}</div>
-                  <span style={{ ...MONO, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.22em", color: N.teal }}>{sg.label}</span>
+                    width: 34, height: 34, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
+                    background: "rgba(45,212,191,0.12)", border: "1px solid rgba(45,212,191,0.25)", color: N.teal,
+                    boxShadow: "0 0 12px rgba(45,212,191,0.08)",
+                  }}>{skillGroupIcons[sg.label] ?? <Star size={16} />}</div>
+                  <span style={{ ...MONO, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.22em", color: N.teal }}>{sg.label}</span>
                 </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 14 }}>
                   {sg.skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
                     <span key={skill} className="skill-tag" style={{
-                      ...MONO, fontSize: 12, padding: "6px 12px", borderRadius: 8,
+                      ...MONO, fontSize: 14, padding: "7px 14px", borderRadius: 8,
                       background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)",
                       border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)"}`,
                       color: isDark ? "#a0a0b8" : "#666",
@@ -846,15 +888,15 @@ export default function App() {
                   ))}
                 </div>
                 {/* Skill proficiency ring */}
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <svg width="40" height="40" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <svg width="50" height="50" viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)" }}>
                     <circle cx="50" cy="50" r="40" fill="none" stroke={isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)"} strokeWidth="6" />
                     <circle cx="50" cy="50" r="40" fill="none" stroke={N.teal} strokeWidth="6"
                       strokeDasharray={251} strokeDashoffset={251 - (251 * (sg.level || 80)) / 100}
                       strokeLinecap="round"
                       style={{ animation: "ringFill 1.2s ease forwards", transition: "stroke-dashoffset 1s ease" }} />
                   </svg>
-                  <span style={{ ...MONO, fontSize: 11, color: mutedColor }}>{sg.label} — {sg.level || 80}%</span>
+                  <span style={{ ...MONO, fontSize: 13, color: mutedColor }}>{sg.label} — {sg.level || 80}%</span>
                 </div>
               </GlassCard>
             ))}
@@ -865,18 +907,18 @@ export default function App() {
         {languages.length > 0 && (
           <motion.section
             id="languages"
-            style={{ marginBottom: 80 }}
+            style={{ marginBottom: 100 }}
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.1 }}
             transition={{ duration: 0.6 }}>
-            <SectionHeader label="Languages" id="languages" icon={<Globe size={16} />} />
+            <SectionHeader label="Languages" id="languages" icon={<Globe size={18} />} />
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
               {languages.map(lang => (
-                <GlassCard key={lang.id} style={{ padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 }}>
-                  <span style={{ ...SANS, fontSize: 15, fontWeight: 500, color: textColor }}>{lang.name}</span>
+                <GlassCard key={lang.id} style={{ padding: "16px 24px", display: "flex", alignItems: "center", gap: 14 }}>
+                  <span style={{ ...SANS, fontSize: 17, fontWeight: 500, color: textColor }}>{lang.name}</span>
                   <span style={{
-                    ...MONO, fontSize: 11, padding: "3px 10px", borderRadius: 20,
+                    ...MONO, fontSize: 13, padding: "4px 12px", borderRadius: 20,
                     background: "rgba(45,212,191,0.08)", color: N.teal, border: "1px solid rgba(45,212,191,0.18)",
                   }}>{lang.level}</span>
                   {/* proficiency bar */}
@@ -900,14 +942,14 @@ export default function App() {
 
       {/* Footer */}
       <footer style={{
-        position: "relative", zIndex: 1, borderTop: `1px solid rgba(255,255,255,0.07)`,
-        padding: "28px 2rem",
+        position: "relative", zIndex: 1, borderTop: `1px solid ${N.border}`,
+        padding: "32px 2rem",
       }}>
-        <div style={{ maxWidth: 960, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: 20 }}>
-          <p style={{ ...MONO, fontSize: 12, color: mutedColor }}>© {currentYear} {hero.name}</p>
+        <div style={{ maxWidth: 960, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: 24 }}>
+          <p style={{ ...MONO, fontSize: 13, color: N.muted }}>© {currentYear} {hero.name}</p>
           {visitCount !== null && (
-            <span style={{ ...MONO, fontSize: 12, color: "#4a4a60", display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: N.teal, opacity: 0.5, display: "inline-block" }} />
+            <span style={{ ...MONO, fontSize: 13, color: N.muted, display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: N.teal, opacity: 0.6, display: "inline-block", boxShadow: `0 0 8px ${N.teal}` }} />
               {visitCount.toLocaleString()} visits
             </span>
           )}
@@ -915,24 +957,23 @@ export default function App() {
       </footer>
 
       {/* CMS button */}
-      <button
+      <motion.button
+        whileHover={{ scale: 1.08, boxShadow: `0 4px 24px rgba(0,0,0,0.6), 0 0 20px rgba(45,212,191,0.35)` }}
         onClick={() => { window.location.hash = "#/cms"; setHash("#/cms"); }}
         title="Open CMS"
         style={{
           position: "fixed", bottom: 24, right: 24, zIndex: 9998,
-          width: 44, height: 44, borderRadius: "50%",
-          background: "rgba(4,4,12,0.9)",
+          width: 48, height: 48, borderRadius: "50%",
+          background: N.bg,
           border: "1px solid rgba(45,212,191,0.4)",
           color: N.teal, cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.6), 0 0 12px rgba(45,212,191,0.1)",
-          transition: "all 0.2s ease",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.6), 0 0 16px rgba(45,212,191,0.15)",
+          transition: "all 0.25s ease",
         }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(45,212,191,0.12)"; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 24px rgba(0,0,0,0.6), 0 0 20px rgba(45,212,191,0.2)`; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(4,4,12,0.9)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 24px rgba(0,0,0,0.6), 0 0 12px rgba(45,212,191,0.1)"; }}
       >
-        <Settings size={18} />
-      </button>
+        <Settings size={20} />
+      </motion.button>
     </div>
   );
 }
