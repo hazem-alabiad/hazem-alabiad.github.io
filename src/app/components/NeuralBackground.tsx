@@ -19,6 +19,7 @@ export default function NeuralBackground() {
     const NODES = 48;
     const nodes: { x: number; y: number; vx: number; vy: number; r: number }[] = [];
     const cursorTrail: { x: number; y: number; life: number }[] = [];
+    const shapes: { x: number; y: number; size: number; rotation: number; rotSpeed: number; type: "hex" | "diamond" | "ring" }[] = [];
 
     function resize() {
       const dpr = window.devicePixelRatio || 1;
@@ -43,24 +44,89 @@ export default function NeuralBackground() {
       });
     }
 
+    for (let i = 0; i < 12; i++) {
+      shapes.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        size: Math.random() * 60 + 20,
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.005,
+        type: ["hex", "diamond", "ring"][i % 3] as "hex" | "diamond" | "ring",
+      });
+    }
+
+    function drawHex(cx: number, cy: number, r: number) {
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 3) * i - Math.PI / 6;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+    }
+
     function draw() {
       ctx.clearRect(0, 0, w, h);
 
+      // gradient mesh blobs
+      const t = Date.now() * 0.0003;
+      const blobs = [
+        { x: w * 0.3 + Math.sin(t) * 100, y: h * 0.3 + Math.cos(t * 0.7) * 80, r: 300, c: TEAL, a: 0.04 },
+        { x: w * 0.7 + Math.cos(t * 0.8) * 120, y: h * 0.5 + Math.sin(t * 0.5) * 100, r: 350, c: VIOLET, a: 0.035 },
+        { x: w * 0.5 + Math.sin(t * 1.2) * 80, y: h * 0.7 + Math.cos(t * 0.9) * 90, r: 280, c: CYAN, a: 0.03 },
+        { x: w * 0.2 + Math.cos(t * 0.6) * 60, y: h * 0.8 + Math.sin(t) * 70, r: 250, c: PINK, a: 0.025 },
+      ];
+      blobs.forEach(b => {
+        const grad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+        grad.addColorStop(0, `rgba(${b.c},${b.a})`);
+        grad.addColorStop(1, "transparent");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+      });
+
       // cursor trail
       cursorTrail.push({ x: cursor.x, y: cursor.y, life: 1 });
-      if (cursorTrail.length > 30) cursorTrail.shift();
+      if (cursorTrail.length > 40) cursorTrail.shift();
       for (let i = cursorTrail.length - 1; i >= 0; i--) {
-        const t = cursorTrail[i];
-        t.life -= 0.03;
-        if (t.life <= 0) { cursorTrail.splice(i, 1); continue; }
+        const tr = cursorTrail[i];
+        tr.life -= 0.025;
+        if (tr.life <= 0) { cursorTrail.splice(i, 1); continue; }
         ctx.beginPath();
-        ctx.arc(t.x, t.y, 2 * t.life, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${TEAL},${t.life * 0.3})`;
+        ctx.arc(tr.x, tr.y, 3 * tr.life, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${TEAL},${tr.life * 0.25})`;
         ctx.fill();
       }
 
+      // floating geometric shapes
+      shapes.forEach(s => {
+        s.rotation += s.rotSpeed;
+        ctx.save();
+        ctx.translate(s.x, s.y);
+        ctx.rotate(s.rotation);
+        ctx.strokeStyle = `rgba(${TEAL},0.06)`;
+        ctx.lineWidth = 1;
+        if (s.type === "hex") {
+          drawHex(0, 0, s.size);
+          ctx.stroke();
+        } else if (s.type === "diamond") {
+          ctx.beginPath();
+          ctx.moveTo(0, -s.size);
+          ctx.lineTo(s.size * 0.6, 0);
+          ctx.lineTo(0, s.size);
+          ctx.lineTo(-s.size * 0.6, 0);
+          ctx.closePath();
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.arc(0, 0, s.size, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      });
+
       // grid
-      ctx.strokeStyle = `rgba(${TEAL},0.02)`;
+      ctx.strokeStyle = `rgba(${TEAL},0.015)`;
       ctx.lineWidth = 0.5;
       const GRID = 96;
       for (let x = 0; x < w; x += GRID) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
@@ -118,22 +184,13 @@ export default function NeuralBackground() {
     draw();
     return () => {
       window.removeEventListener("resize", resize);
-      window.removeEventListener("mousemove", () => {});
       cancelAnimationFrame(animId);
     };
   }, []);
 
   return (
     <>
-      <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", opacity: 0.65 }} />
-      <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: "-18%", left: "-8%", width: 640, height: 640, borderRadius: "50%",
-          background: `radial-gradient(circle, rgba(${TEAL},0.07) 0%, transparent 70%)`, animation: "blobPulse 9s ease-in-out infinite" }} />
-        <div style={{ position: "absolute", top: "30%", right: "-12%", width: 560, height: 560, borderRadius: "50%",
-          background: `radial-gradient(circle, rgba(${VIOLET},0.06) 0%, transparent 70%)`, animation: "blobPulse 11s ease-in-out infinite 2s" }} />
-        <div style={{ position: "absolute", bottom: "-10%", left: "24%", width: 520, height: 520, borderRadius: "50%",
-          background: `radial-gradient(circle, rgba(${CYAN},0.05) 0%, transparent 70%)`, animation: "blobPulse 13s ease-in-out infinite 4s" }} />
-      </div>
+      <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", opacity: 0.7 }} />
     </>
   );
 }

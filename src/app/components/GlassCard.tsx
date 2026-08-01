@@ -10,7 +10,7 @@ export function GlassCard({ children, className = "", style = {}, hover = true }
   const [hovered, setHovered] = useState(false);
   return (
     <div
-      className={className}
+      className={`${className} glass-hover`}
       onMouseEnter={() => hover && setHovered(true)}
       onMouseLeave={() => hover && setHovered(false)}
       style={{
@@ -20,7 +20,7 @@ export function GlassCard({ children, className = "", style = {}, hover = true }
         backdropFilter: "blur(12px)",
         transition: "all 0.3s ease",
         boxShadow: hovered
-          ? `0 0 32px rgba(${TEAL},0.06), inset 0 1px 0 rgba(255,255,255,0.06)`
+          ? `0 0 32px rgba(${TEAL},0.08), inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 32px rgba(0,0,0,0.3)`
           : "inset 0 1px 0 rgba(255,255,255,0.04)",
         ...style,
       }}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import {
   Github, Linkedin, Mail, MapPin,
@@ -138,6 +138,48 @@ const skillGroupIcons: Record<string, React.ReactNode> = {
   "DevOps": <Cpu size={16} />,
 };
 
+function StatCounter({ icon, label, target, delay }: { icon: React.ReactNode; label: string; target: number; delay: number }) {
+  const [count, setCount] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setVisible(true); }, { threshold: 0.5 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!visible) return;
+    const t = setTimeout(() => {
+      let start = 0;
+      const duration = 1200;
+      const startTime = performance.now();
+      function step(now: number) {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setCount(Math.round(eased * target));
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }, delay * 1000);
+    return () => clearTimeout(t);
+  }, [visible, target, delay]);
+
+  return (
+    <div ref={ref} className="stat-counter" style={{
+      display: "flex", alignItems: "center", gap: 7, padding: "6px 12px", borderRadius: 8,
+      background: isDark ? "rgba(255,255,255,0.032)" : "rgba(0,0,0,0.03)",
+      border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)"}`, fontSize: 11,
+      color: mutedColor, ...MONO,
+    }}>
+      <span style={{ color: N.teal }}>{icon}</span> {count}{label.includes("yrs") ? "+" : ""}{label.includes("M") ? "." : ""}{label.includes("langs") ? "" : ""}
+    </div>
+  );
+}
+
 function hexToRgb(hex: string) {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -154,6 +196,20 @@ export default function App() {
   const [activeSection, setActiveSection] = useState("education");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
+  const [typedTagline, setTypedTagline] = useState("");
+  const [taglineIdx, setTaglineIdx] = useState(0);
+  const fullTagline = hero.tagline;
+
+  useEffect(() => {
+    if (taglineIdx < fullTagline.length) {
+      const t = setTimeout(() => setTaglineIdx(i => i + 1), 40);
+      return () => clearTimeout(t);
+    }
+  }, [taglineIdx, fullTagline]);
+
+  useEffect(() => {
+    setTypedTagline(fullTagline.slice(0, taglineIdx));
+  }, [taglineIdx, fullTagline]);
 
   useEffect(() => {
     const onHashChange = () => setHash(window.location.hash);
@@ -229,6 +285,7 @@ export default function App() {
 
       <NeuralBackground />
       <GlitchOverlay />
+      <div className="noise-overlay" />
 
       <style>{`
         @keyframes termBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
@@ -276,11 +333,31 @@ export default function App() {
         }
         @keyframes ringRotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes ringFill { from{stroke-dashoffset:251} }
+        @keyframes countUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes typewriter { from{width:0} to{width:100%} }
+        @keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
         .skill-ring { transition: stroke-dashoffset 1s ease; }
         .mobile-nav { transform: translateX(100%); transition: transform 0.3s ease; }
         .mobile-nav.open { transform: translateX(0); }
         .mobile-overlay { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .mobile-overlay.open { opacity: 1; pointer-events: auto; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(45,212,191,0.3); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(45,212,191,0.5); }
+        * { scrollbar-width: thin; scrollbar-color: rgba(45,212,191,0.3) transparent; }
+        .noise-overlay {
+          position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.03;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+          background-repeat: repeat;
+          background-size: 256px 256px;
+        }
+        .stat-counter { animation: countUp 0.6s ease forwards; }
+        .glow-pulse { animation: glowPulse 3s ease-in-out infinite; }
+        @keyframes glowPulse { 0%,100%{box-shadow:0 0 20px rgba(45,212,191,0.1)} 50%{box-shadow:0 0 40px rgba(45,212,191,0.25)} }
+        .glass-hover { transition: all 0.3s ease; }
+        .glass-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(45,212,191,0.08); }
+        .tagline-cursor { display: inline-block; width: 2px; height: 1em; background: #a78bfa; margin-left: 2px; animation: blink 1s steps(2) infinite; vertical-align: text-bottom; }
         @media (max-width: 768px) {
           .hero-grid { grid-template-columns: 1fr !important; }
           .nav-pills { display: none !important; }
@@ -404,7 +481,9 @@ export default function App() {
                 transition={{ delay: 0.7 }}
                 style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
                 <Sparkles size={14} style={{ color: N.violet, flexShrink: 0 }} />
-                <p style={{ ...MONO, fontSize: 13, color: N.violet, letterSpacing: "0.04em", margin: 0 }}>{hero.tagline}</p>
+                <p style={{ ...MONO, fontSize: 13, color: N.violet, letterSpacing: "0.04em", margin: 0 }}>
+                  {typedTagline}<span className="tagline-cursor" />
+                </p>
               </motion.div>
 
               <motion.div
@@ -526,18 +605,11 @@ export default function App() {
                 transition={{ delay: 0.6 }}
                 style={{ display: "flex", justifyContent: "center", gap: 8 }}>
                 {[
-                  { icon: <Briefcase size={12} />, text: "6+ yrs" },
-                  { icon: <GraduationCap size={12} />, text: "M.A." },
-                  { icon: <Globe size={12} />, text: "4 langs" },
-                ].map(stat => (
-                  <div key={stat.text} style={{
-                    display: "flex", alignItems: "center", gap: 7, padding: "6px 12px", borderRadius: 8,
-                    background: isDark ? "rgba(255,255,255,0.032)" : "rgba(0,0,0,0.03)",
-                    border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)"}`, fontSize: 11,
-                    color: mutedColor, ...MONO,
-                  }}>
-                    <span style={{ color: N.teal }}>{stat.icon}</span> {stat.text}
-                  </div>
+                  { icon: <Briefcase size={12} />, text: "6+ yrs", target: 6 },
+                  { icon: <GraduationCap size={12} />, text: "M.A.", target: 1 },
+                  { icon: <Globe size={12} />, text: "4 langs", target: 4 },
+                ].map((stat, si) => (
+                  <StatCounter key={stat.text} icon={stat.icon} label={stat.text} target={stat.target} delay={si * 0.15} />
                 ))}
               </motion.div>
 
