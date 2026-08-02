@@ -203,7 +203,7 @@ export default function App() {
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const [typedTagline, setTypedTagline] = useState("");
   const [taglineIdx, setTaglineIdx] = useState(0);
-  const fullTagline = hero.tagline;
+  const fullTagline = data.hero.tagline;
 
   useEffect(() => {
     if (taglineIdx < fullTagline.length) {
