@@ -67,10 +67,10 @@ export default function NeuralBackground() {
       onPointerMove(e);
       const color = [TEAL, CYAN, VIOLET, PINK][Math.floor(Math.random() * 4)];
       pulses.push({ x: e.clientX, y: e.clientY, r: 6, life: 1, color });
-      const burst = 14;
+      const burst = 6;
       for (let i = 0; i < burst; i++) {
         const ang = (Math.PI * 2 * i) / burst + Math.random() * 0.3;
-        const sp = Math.random() * 2.4 + 0.8;
+        const sp = Math.random() * 1.2 + 0.4;
         sparks.push({
           x: e.clientX, y: e.clientY,
           vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp,
@@ -167,9 +167,9 @@ export default function NeuralBackground() {
       const sc = scrollRef.current;
       const t = Date.now() * 0.0004;
       const ribbons = [
-        { yBase: h * 0.18 - sc * h * 0.05, amp: 60, len: h * 0.55, freq: 0.006, phase: 0, color: CYAN, alpha: 0.05 },
-        { yBase: h * 0.3 - sc * h * 0.08, amp: 90, len: h * 0.6, freq: 0.004, phase: 2.1, color: VIOLET, alpha: 0.05 },
-        { yBase: h * 0.12 - sc * h * 0.04, amp: 45, len: h * 0.4, freq: 0.008, phase: 4.2, color: TEAL, alpha: 0.04 },
+        { yBase: h * 0.18 - sc * h * 0.05, amp: 60, len: h * 0.55, freq: 0.006, phase: 0, color: CYAN, alpha: 0.035 },
+        { yBase: h * 0.3 - sc * h * 0.08, amp: 90, len: h * 0.6, freq: 0.004, phase: 2.1, color: VIOLET, alpha: 0.035 },
+        { yBase: h * 0.12 - sc * h * 0.04, amp: 45, len: h * 0.4, freq: 0.008, phase: 4.2, color: TEAL, alpha: 0.028 },
       ];
       ribbons.forEach((rb, ri) => {
         ctx.save();
@@ -185,7 +185,7 @@ export default function NeuralBackground() {
         }
         ctx.closePath();
         const grad = ctx.createLinearGradient(0, rb.yBase, 0, rb.yBase + rb.len);
-        grad.addColorStop(0, `rgba(${rb.color},${rb.alpha + ri * 0.005 + sc * 0.04})`);
+        grad.addColorStop(0, `rgba(${rb.color},${rb.alpha + ri * 0.003 + sc * 0.03})`);
         grad.addColorStop(1, "rgba(0,0,0,0)");
         ctx.fillStyle = grad;
         ctx.globalCompositeOperation = "screen";
@@ -201,7 +201,7 @@ export default function NeuralBackground() {
       const glowH = 120;
       const glow = ctx.createLinearGradient(0, horizonY - glowH, 0, horizonY);
       glow.addColorStop(0, "rgba(0,0,0,0)");
-      glow.addColorStop(1, `rgba(${VIOLET},${0.16 + Math.sin(t * 1.5) * 0.05 + sc * 0.15})`);
+      glow.addColorStop(1, `rgba(${VIOLET},${0.12 + Math.sin(t * 1.5) * 0.04 + sc * 0.12})`);
       ctx.fillStyle = glow;
       ctx.fillRect(0, horizonY - glowH, w, glowH);
 
@@ -241,12 +241,12 @@ export default function NeuralBackground() {
       const vx = c.x - c.px;
       const vy = c.y - c.py;
       const speed = Math.hypot(vx, vy);
-      const glowR = 90 + speed * 2;
+      const glowR = 55 + speed * 1.4;
 
       const grad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, glowR);
-      grad.addColorStop(0, "rgba(255,255,255,0.18)");
-      grad.addColorStop(0.08, `rgba(${TEAL},0.14)`);
-      grad.addColorStop(0.4, `rgba(${CYAN},0.05)`);
+      grad.addColorStop(0, "rgba(255,255,255,0.10)");
+      grad.addColorStop(0.08, `rgba(${TEAL},0.08)`);
+      grad.addColorStop(0.4, `rgba(${CYAN},0.03)`);
       grad.addColorStop(1, "rgba(0,0,0,0)");
       ctx.save();
       ctx.globalCompositeOperation = "screen";
@@ -255,21 +255,21 @@ export default function NeuralBackground() {
 
       // pulsing ring
       const pulse = 0.5 + 0.5 * Math.sin(t * 4);
-      ctx.strokeStyle = `rgba(${TEAL},${0.07 + pulse * 0.07})`;
+      ctx.strokeStyle = `rgba(${TEAL},${0.04 + pulse * 0.04})`;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(c.x, c.y, 16 + pulse * 4 + speed, 0, Math.PI * 2);
+      ctx.arc(c.x, c.y, 12 + pulse * 3 + speed * 0.6, 0, Math.PI * 2);
       ctx.stroke();
 
       // velocity streak (comet tail)
-      if (speed > 0.4) {
-        const len = Math.min(40, speed * 7);
+      if (speed > 0.6) {
+        const len = Math.min(26, speed * 5);
         const nx = -vx / speed, ny = -vy / speed;
         const tail = ctx.createLinearGradient(c.x, c.y, c.x + nx * len, c.y + ny * len);
-        tail.addColorStop(0, `rgba(${CYAN},0.22)`);
+        tail.addColorStop(0, `rgba(${CYAN},0.12)`);
         tail.addColorStop(1, "rgba(0,0,0,0)");
         ctx.strokeStyle = tail;
-        ctx.lineWidth = 1.4;
+        ctx.lineWidth = 1.2;
         ctx.lineCap = "round";
         ctx.beginPath();
         ctx.moveTo(c.x, c.y);
@@ -279,11 +279,11 @@ export default function NeuralBackground() {
       ctx.restore();
 
       // pointer sparks
-      if (Math.random() < 0.2) {
+      if (Math.random() < 0.06) {
         const ang = Math.random() * Math.PI * 2;
-        const sp = Math.random() * 1.2 + 0.2;
-        sparks.push({ x: c.x, y: c.y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 0.3, life: 1, color: [TEAL, CYAN, VIOLET][Math.floor(Math.random() * 3)] });
-        if (sparks.length > 160) sparks.splice(0, sparks.length - 160);
+        const sp = Math.random() * 0.7 + 0.15;
+        sparks.push({ x: c.x, y: c.y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 0.2, life: 1, color: [TEAL, CYAN, VIOLET][Math.floor(Math.random() * 3)] });
+        if (sparks.length > 80) sparks.splice(0, sparks.length - 80);
       }
     }
 
@@ -295,8 +295,8 @@ export default function NeuralBackground() {
         if (p.life <= 0) { pulses.splice(i, 1); continue; }
         ctx.save();
         ctx.globalCompositeOperation = "screen";
-        ctx.strokeStyle = `rgba(${p.color},${p.life * 0.6})`;
-        ctx.lineWidth = 2 * p.life;
+        ctx.strokeStyle = `rgba(${p.color},${p.life * 0.45})`;
+        ctx.lineWidth = 1.6 * p.life;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.stroke();
@@ -311,8 +311,8 @@ export default function NeuralBackground() {
         s.life -= 0.018;
         if (s.life <= 0) return;
         ctx.beginPath();
-        ctx.arc(s.x, s.y, 1.4 * s.life, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${s.color},${s.life * 0.8})`;
+        ctx.arc(s.x, s.y, 1.2 * s.life, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${s.color},${s.life * 0.6})`;
         ctx.fill();
       });
       for (let i = sparks.length - 1; i >= 0; i--) { if (sparks[i].life <= 0) sparks.splice(i, 1); }
@@ -333,13 +333,13 @@ export default function NeuralBackground() {
           const dx = c.x - s.x;
           const dy = c.y - s.y;
           const dist = Math.hypot(dx, dy);
-          if (dist < 190 && dist > 0.01) {
-            const pull = (1 - dist / 190) * 0.045;
-            s.x += (dx / dist) * pull * 3;
-            s.y += (dy / dist) * pull * 3;
+          if (dist < 120 && dist > 0.01) {
+            const pull = (1 - dist / 120) * 0.02;
+            s.x += (dx / dist) * pull * 2;
+            s.y += (dy / dist) * pull * 2;
             // tangential swirl
-            s.x += (-dy / dist) * pull * 1.6;
-            s.y += (dx / dist) * pull * 1.6;
+            s.x += (-dy / dist) * pull * 1;
+            s.y += (dx / dist) * pull * 1;
           }
         }
 
@@ -350,18 +350,18 @@ export default function NeuralBackground() {
         // stars light up near cursor
         if (c.active) {
           const dist = Math.hypot(c.x - s.x, c.y - s.y);
-          if (dist < 190) a = Math.min(1, a + (1 - dist / 190) * 0.7);
+          if (dist < 120) a = Math.min(1, a + (1 - dist / 120) * 0.4);
         }
 
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255,255,255,${a})`;
         ctx.fill();
-        if (tw > 0.85 || (c.active && Math.hypot(c.x - s.x, c.y - s.y) < 90)) {
-          const flare = tw > 0.85 ? (tw - 0.85) * 0.35 : (1 - Math.hypot(c.x - s.x, c.y - s.y) / 90) * 0.3;
+        if (tw > 0.85 || (c.active && Math.hypot(c.x - s.x, c.y - s.y) < 70)) {
+          const flare = tw > 0.85 ? (tw - 0.85) * 0.35 : (1 - Math.hypot(c.x - s.x, c.y - s.y) / 70) * 0.2;
           ctx.beginPath();
           ctx.arc(s.x, s.y, s.r * 4.5, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${CYAN},${Math.min(flare, 0.5)})`;
+          ctx.fillStyle = `rgba(${CYAN},${Math.min(flare, 0.35)})`;
           ctx.fill();
         }
       });
@@ -377,12 +377,12 @@ export default function NeuralBackground() {
           const dx = c.x - e.x;
           const dy = c.y - e.y;
           const dist = Math.hypot(dx, dy);
-          if (dist < 260 && dist > 0.01) {
-            const force = (1 - dist / 260) * 0.35;
-            e.vx += (-dy / dist) * force * 0.08;
-            e.vy += (dx / dist) * force * 0.08;
-            e.vx += (dx / dist) * force * 0.02;
-            e.vy += (dy / dist) * force * 0.02;
+          if (dist < 150 && dist > 0.01) {
+            const force = (1 - dist / 150) * 0.18;
+            e.vx += (-dy / dist) * force * 0.05;
+            e.vy += (dx / dist) * force * 0.05;
+            e.vx += (dx / dist) * force * 0.01;
+            e.vy += (dy / dist) * force * 0.01;
           }
         }
         e.vx *= 0.985; e.vy *= 0.985;
@@ -394,7 +394,7 @@ export default function NeuralBackground() {
         const flicker = 0.5 + 0.5 * Math.sin(t * 2 + e.phase);
         ctx.beginPath();
         ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${e.color},${0.12 + flicker * 0.22 + sc * 0.15})`;
+        ctx.fillStyle = `rgba(${e.color},${0.10 + flicker * 0.16 + sc * 0.12})`;
         ctx.fill();
       });
     }
@@ -460,8 +460,8 @@ export default function NeuralBackground() {
           const isHead = i === 0;
           const tailFade = 1 - i / d.chars.length;
           ctx.fillStyle = isHead
-            ? `rgba(255,255,255,0.95)`
-            : `rgba(${TEAL},${0.32 * tailFade})`;
+            ? `rgba(255,255,255,0.7)`
+            : `rgba(${TEAL},${0.24 * tailFade})`;
           ctx.fillText(d.chars[(d.head + i) % d.chars.length], d.x, cy);
         }
         d.head = (d.head + 1) % d.chars.length;
@@ -482,12 +482,12 @@ export default function NeuralBackground() {
       // gradient mesh blobs (breathing + scroll intensity)
       const t = Date.now() * 0.0003;
       const breathe = 0.85 + 0.15 * Math.sin(Date.now() * 0.0006);
-      const boost = 1 + sc * 1.6;
+      const boost = 1 + sc * 1.2;
       const blobs = [
-        { x: w * 0.3 + Math.sin(t) * 100, y: h * 0.3 + Math.cos(t * 0.7) * 80, r: 300 * breathe, c: TEAL, a: 0.06 * boost },
-        { x: w * 0.7 + Math.cos(t * 0.8) * 120, y: h * 0.5 + Math.sin(t * 0.5) * 100, r: 350 * breathe, c: VIOLET, a: 0.055 * boost },
-        { x: w * 0.5 + Math.sin(t * 1.2) * 80, y: h * 0.7 + Math.cos(t * 0.9) * 90, r: 280 * breathe, c: CYAN, a: 0.045 * boost },
-        { x: w * 0.2 + Math.cos(t * 0.6) * 60, y: h * 0.8 + Math.sin(t) * 70, r: 250 * breathe, c: PINK, a: 0.035 * boost },
+        { x: w * 0.3 + Math.sin(t) * 100, y: h * 0.3 + Math.cos(t * 0.7) * 80, r: 300 * breathe, c: TEAL, a: 0.045 * boost },
+        { x: w * 0.7 + Math.cos(t * 0.8) * 120, y: h * 0.5 + Math.sin(t * 0.5) * 100, r: 350 * breathe, c: VIOLET, a: 0.04 * boost },
+        { x: w * 0.5 + Math.sin(t * 1.2) * 80, y: h * 0.7 + Math.cos(t * 0.9) * 90, r: 280 * breathe, c: CYAN, a: 0.032 * boost },
+        { x: w * 0.2 + Math.cos(t * 0.6) * 60, y: h * 0.8 + Math.sin(t) * 70, r: 250 * breathe, c: PINK, a: 0.025 * boost },
       ];
       blobs.forEach(b => {
         const grad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
@@ -510,14 +510,14 @@ export default function NeuralBackground() {
       // cursor trail
       const c = cursorRef.current;
       cursorTrail.push({ x: c.x, y: c.y, life: 1 });
-      if (cursorTrail.length > 40) cursorTrail.shift();
+      if (cursorTrail.length > 24) cursorTrail.shift();
       for (let i = cursorTrail.length - 1; i >= 0; i--) {
         const tr = cursorTrail[i];
-        tr.life -= 0.025;
+        tr.life -= 0.04;
         if (tr.life <= 0) { cursorTrail.splice(i, 1); continue; }
         ctx.beginPath();
-        ctx.arc(tr.x, tr.y, 3 * tr.life, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${TEAL},${tr.life * 0.3})`;
+        ctx.arc(tr.x, tr.y, 2 * tr.life, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${TEAL},${tr.life * 0.18})`;
         ctx.fill();
       }
 
@@ -578,14 +578,14 @@ export default function NeuralBackground() {
         const dx = n.x - c.x;
         const dy = n.y - c.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 220 && dist > 0) {
-          const force = (1 - dist / 220) * 0.02;
+        if (dist < 140 && dist > 0) {
+          const force = (1 - dist / 140) * 0.008;
           n.vx += (dx / dist) * force;
           n.vy += (dy / dist) * force;
 
           // connection line to cursor
-          ctx.strokeStyle = `rgba(${TEAL},${(1 - dist / 220) * 0.35})`;
-          ctx.lineWidth = 0.8;
+          ctx.strokeStyle = `rgba(${TEAL},${(1 - dist / 140) * 0.18})`;
+          ctx.lineWidth = 0.7;
           ctx.beginPath();
           ctx.moveTo(n.x, n.y);
           ctx.lineTo(c.x, c.y);
@@ -595,7 +595,7 @@ export default function NeuralBackground() {
         n.vy *= 0.99;
 
         const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 7);
-        grad.addColorStop(0, `rgba(${TEAL},0.16)`);
+        grad.addColorStop(0, `rgba(${TEAL},0.10)`);
         grad.addColorStop(1, "transparent");
         ctx.beginPath();
         ctx.arc(n.x, n.y, n.r * 7, 0, Math.PI * 2);
@@ -603,7 +603,7 @@ export default function NeuralBackground() {
         ctx.fill();
         ctx.beginPath();
         ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${TEAL},0.55)`;
+        ctx.fillStyle = `rgba(${TEAL},0.42)`;
         ctx.fill();
         n.x += n.vx; n.y += n.vy;
         if (n.x < 0 || n.x > w) n.vx *= -1;

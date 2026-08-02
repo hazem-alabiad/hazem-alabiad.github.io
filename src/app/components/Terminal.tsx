@@ -41,10 +41,10 @@ function Line({ line }: { line: OutputLine }) {
   }
   if (line.kind === "out-anchor") {
     return (
-      <a href={line.href} target="_blank" rel="noopener noreferrer"
+      <a href={line.href} target="_blank" rel="noopener noreferrer" className="fx-link"
         style={{ ...MONO, fontSize: 12.5, color: "#67e8f9", textDecoration: "none", display: "block", marginBottom: 6 }}
-        onMouseEnter={e => (e.currentTarget as HTMLElement).style.textDecoration = "underline"}
-        onMouseLeave={e => (e.currentTarget as HTMLElement).style.textDecoration = "none"}>
+        onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#5eead4"}
+        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#67e8f9"}>
         {line.text}
       </a>
     );

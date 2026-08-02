@@ -2,8 +2,9 @@ import { useRef } from "react";
 
 const TEAL = "45,212,191";
 
-export function GlassCard({ children, className = "", style = {}, hover = true }: {
+export function GlassCard({ children, className = "", style = {}, hover = true, fxStatus = "linked" }: {
   children: React.ReactNode; className?: string; style?: React.CSSProperties; hover?: boolean;
+  fxStatus?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const glareRef = useRef<HTMLDivElement>(null);
@@ -33,7 +34,8 @@ export function GlassCard({ children, className = "", style = {}, hover = true }
   return (
     <div
       ref={ref}
-      className={`${className} glass-hover`}
+      className={`${className} glass-hover fx-scan fx-status`}
+      data-fx={fxStatus}
       onMouseMove={onMove}
       onMouseEnter={onMove}
       onMouseLeave={onLeave}

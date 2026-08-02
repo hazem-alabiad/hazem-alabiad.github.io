@@ -335,12 +335,20 @@ export default function App() {
         }
         .float-avatar { animation: float 6s ease-in-out infinite; }
         .nav-pill { transition: all 0.25s ease; }
+        .nav-pill-dot {
+          display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+          margin-right: 6px; vertical-align: middle;
+          background: transparent; transition: all 0.25s ease;
+        }
+        .nav-pill:hover .nav-pill-dot, .nav-pill.active .nav-pill-dot {
+          background: #5eead4; box-shadow: 0 0 8px rgba(94,234,212,0.8);
+        }
         .nav-pill:hover, .nav-pill.active {
           background: rgba(45,212,191,0.12) !important;
           color: #2dd4bf !important;
           border-color: rgba(45,212,191,0.3) !important;
         }
-        .skill-tag { transition: all 0.25s cubic-bezier(0.16,1,0.3,1); cursor: default; }
+        .skill-tag { transition: all 0.25s cubic-bezier(0.16,1,0.3,1); cursor: default; position: relative; overflow: hidden; }
         .skill-tag:hover {
           background: rgba(45,212,191,0.12) !important;
           border-color: rgba(45,212,191,0.35) !important;
@@ -348,6 +356,13 @@ export default function App() {
           transform: translateY(-3px) scale(1.03);
           box-shadow: 0 4px 12px rgba(45,212,191,0.1);
         }
+        .skill-tag::after {
+          content: ""; position: absolute; top: -40%; bottom: -40%; left: -80%; width: 40%;
+          transform: skewX(-25deg); background: linear-gradient(90deg, transparent, rgba(94,234,212,0.18), transparent);
+          pointer-events: none;
+        }
+        .skill-tag:hover::after { animation: tagSweep 0.7s ease-in-out; }
+        @keyframes tagSweep { from { left: -80%; } to { left: 140%; } }
         .proj-card { transition: all 0.35s cubic-bezier(0.16,1,0.3,1); }
         .proj-card:hover { transform: translateY(-6px) scale(1.01); }
         .scanline {
@@ -390,6 +405,77 @@ export default function App() {
           transition: width 0.1s ease;
           border-radius: 0 2px 2px 0;
         }
+
+        /* ============ 2050 hover FX ============ */
+        .fx-shimmer { position: relative; overflow: hidden; }
+        .fx-shimmer::after {
+          content: ""; position: absolute; top: -20%; bottom: -20%; left: -90%; width: 45%;
+          transform: skewX(-25deg);
+          background: linear-gradient(90deg, transparent, rgba(94,234,212,0.16), transparent);
+          pointer-events: none;
+          animation: fxShimmer 1.2s ease-in-out infinite;
+          animation-play-state: paused;
+        }
+        .fx-shimmer:hover::after { animation-play-state: running; }
+        @keyframes fxShimmer { from { left: -90%; } to { left: 140%; } }
+
+        .fx-link { position: relative; }
+        .fx-link::after {
+          content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 1px;
+          background: linear-gradient(90deg, #2dd4bf, #a78bfa);
+          transform: scaleX(0); transform-origin: left;
+          transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+        }
+        .fx-link:hover::after { transform: scaleX(1); }
+        .fx-link .fx-arrow { display: inline-block; transition: transform 0.3s cubic-bezier(0.16,1,0.3,1); }
+        .fx-link:hover .fx-arrow { transform: translate(2px, -2px); }
+
+        .fx-pulse-border { transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+        .fx-pulse-border:hover {
+          border-color: rgba(45,212,191,0.5);
+          box-shadow: 0 0 0 1px rgba(45,212,191,0.25), 0 0 24px rgba(45,212,191,0.15);
+        }
+
+        .fx-scan::before {
+          content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+          background: linear-gradient(90deg, transparent, rgba(94,234,212,0.55), transparent);
+          opacity: 0; pointer-events: none; z-index: 3;
+        }
+        .fx-scan:hover::before {
+          animation: fxScan 1.1s cubic-bezier(0.16,1,0.3,1) infinite;
+          opacity: 1;
+        }
+        @keyframes fxScan { 0% { top: 0; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+
+        .fx-lock { position: relative; }
+        .fx-lock::before, .fx-lock::after {
+          content: ""; position: absolute; width: 14px; height: 14px;
+          opacity: 0; transition: opacity 0.25s ease; pointer-events: none; z-index: 3;
+        }
+        .fx-lock::before {
+          top: -2px; left: -2px;
+          border-top: 2px solid rgba(94,234,212,0.9); border-left: 2px solid rgba(94,234,212,0.9);
+          border-top-left-radius: 6px;
+        }
+        .fx-lock::after {
+          bottom: -2px; right: -2px;
+          border-bottom: 2px solid rgba(94,234,212,0.9); border-right: 2px solid rgba(94,234,212,0.9);
+          border-bottom-right-radius: 6px;
+        }
+        .fx-lock:hover::before, .fx-lock:hover::after { opacity: 1; }
+
+        .fx-status { position: relative; }
+        .fx-status::before {
+          content: attr(data-fx);
+          position: absolute; top: 8px; right: 10px;
+          font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.22em;
+          color: #5eead4; text-transform: uppercase;
+          opacity: 0; transform: translateY(3px);
+          transition: opacity 0.25s ease, transform 0.25s ease;
+          pointer-events: none; z-index: 3;
+          text-shadow: 0 0 10px rgba(45,212,191,0.6);
+        }
+        .fx-status:hover::before { opacity: 1; transform: translateY(0); }
         .hero-grid { transition: all 0.5s ease; }
         @media (max-width: 768px) {
           .hero-grid { grid-template-columns: 1fr !important; }
@@ -433,14 +519,17 @@ export default function App() {
           {navLinks.map(([label, id]) => (
             <a key={id} href={`#${id}`}
               className={`nav-pill ${activeSection === id ? "active" : ""}`}
-              style={{
-                ...MONO, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.18em",
-                padding: "5px 14px", borderRadius: 8, border: "1px solid transparent",
-                color: activeSection === id ? N.teal : N.muted,
-                background: activeSection === id ? "rgba(45,212,191,0.1)" : "transparent",
-                borderColor: activeSection === id ? "rgba(45,212,191,0.25)" : "transparent",
-                textDecoration: "none",
-              }}>{label}</a>
+                style={{
+                  ...MONO, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.18em",
+                  padding: "5px 14px", borderRadius: 8, border: "1px solid transparent",
+                  color: activeSection === id ? N.teal : N.muted,
+                  background: activeSection === id ? "rgba(45,212,191,0.1)" : "transparent",
+                  borderColor: activeSection === id ? "rgba(45,212,191,0.25)" : "transparent",
+                  textDecoration: "none", position: "relative",
+                }}>
+                <span className="nav-pill-dot" />
+                {label}
+              </a>
           ))}
           <ThemeToggle />
         </div>
@@ -578,23 +667,23 @@ export default function App() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.1 }}
                 style={{ display: "flex", flexWrap: "wrap", gap: 14, marginBottom: 32 }}>
-                <a href={`mailto:${hero.email}`} style={{
+                <a href={`mailto:${hero.email}`} className="fx-shimmer fx-pulse-border" style={{
                   display: "inline-flex", alignItems: "center", gap: 8,
                   padding: "12px 26px", borderRadius: 10, fontSize: 15, fontWeight: 600,
                   background: `linear-gradient(135deg, ${N.teal}, #0d9488)`,
                   color: "#08080e", textDecoration: "none", boxShadow: `0 0 24px rgba(45,212,191,0.3)`,
-                  transition: "all 0.25s ease",
+                  transition: "all 0.25s ease", position: "relative",
                 }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = `0 0 32px rgba(45,212,191,0.4)`; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = `0 0 24px rgba(45,212,191,0.3)`; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
                   <Mail size={16} /> Get in touch
                 </a>
-                <a href={resolveCvHref(hero, cvAsset)} download={resolveCvName(hero, "Hazem-Alabiad-CV.pdf")} style={{
+                <a href={resolveCvHref(hero, cvAsset)} download={resolveCvName(hero, "Hazem-Alabiad-CV.pdf")} className="fx-shimmer fx-pulse-border" style={{
                   display: "inline-flex", alignItems: "center", gap: 8,
                   padding: "12px 26px", borderRadius: 10, fontSize: 15,
                   background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
                   border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
-                  color: textColor, textDecoration: "none", transition: "all 0.25s ease",
+                  color: textColor, textDecoration: "none", transition: "all 0.25s ease", position: "relative",
                 }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,212,191,0.3)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}>
@@ -611,14 +700,14 @@ export default function App() {
                   { href: `https://${hero.github}`, icon: <Github size={15} />, label: "GitHub" },
                   { href: `https://${hero.linkedin}`, icon: <Linkedin size={15} />, label: "LinkedIn" },
                 ].map(link => (
-                  <a key={link.label} href={link.href} target="_blank" rel="noopener noreferrer" style={{
+                  <a key={link.label} href={link.href} target="_blank" rel="noopener noreferrer" className="fx-link" style={{
                     display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13,
                     color: mutedColor, textDecoration: "none", transition: "color 0.2s ease",
                   }}
                     onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = N.teal}
                     onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = mutedColor}
                   >
-                    {link.icon} {link.label}
+                    {link.icon} {link.label} <ArrowUpRight size={12} className="fx-arrow" />
                   </a>
                 ))}
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: mutedColor }}>
@@ -818,7 +907,7 @@ export default function App() {
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ delay: i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}>
                 <a href={proj.link.startsWith("http") ? proj.link : `https://${proj.link}`}
-                  target="_blank" rel="noopener noreferrer" className="proj-card"
+                  target="_blank" rel="noopener noreferrer" className="proj-card fx-lock"
                   style={{ textDecoration: "none", display: "block" }}
                   onClick={() => setExpandedProject(expandedProject === proj.id ? null : proj.id)}>
                   <GlassCard style={{ padding: "22px", height: "100%" }}>
