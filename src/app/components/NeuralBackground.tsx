@@ -27,7 +27,7 @@ export default function NeuralBackground() {
     if (!ctx) return;
     let animId: number;
     let w = 0, h = 0;
-    const NODES = 40;
+    const NODES = 28;
     const nodes: Node[] = [];
     const cursorTrail: { x: number; y: number; life: number }[] = [];
     const shapes: Shape[] = [];
@@ -97,56 +97,56 @@ export default function NeuralBackground() {
       });
     }
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 6; i++) {
       shapes.push({
         x: Math.random() * w,
         y: Math.random() * h,
         size: Math.random() * 60 + 20,
         rotation: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.005,
+        rotSpeed: (Math.random() - 0.5) * 0.0015,
         type: ["hex", "diamond", "ring"][i % 3] as "hex" | "diamond" | "ring",
       });
     }
 
-    const starCount = Math.min(130, Math.floor((w * h) / 13000));
+    const starCount = Math.min(90, Math.floor((w * h) / 18000));
     for (let i = 0; i < starCount; i++) {
       stars.push({
         x: Math.random() * w,
         y: Math.random() * h * 0.75,
-        r: Math.random() * 1.4 + 0.3,
-        base: Math.random() * 0.4 + 0.15,        phase: Math.random() * Math.PI * 2,
-        speed: Math.random() * 0.9 + 0.3,
+        r: Math.random() * 1.3 + 0.3,
+        base: Math.random() * 0.35 + 0.12,        phase: Math.random() * Math.PI * 2,
+        speed: Math.random() * 0.5 + 0.2,
       });
     }
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 18; i++) {
       embers.push({
         x: Math.random() * w,
         y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.12,
-        vy: -(Math.random() * 0.35 + 0.08),
-        r: Math.random() * 1.8 + 0.6,
+        vx: (Math.random() - 0.5) * 0.08,
+        vy: -(Math.random() * 0.2 + 0.05),
+        r: Math.random() * 1.6 + 0.5,
         color: [TEAL, CYAN, VIOLET, PINK][i % 4],
         phase: Math.random() * Math.PI * 2,
       });
     }
 
     pillars.push(
-      { x: w * 0.25, drift: 0.12, w: 90, phase: 0, color: TEAL },
-      { x: w * 0.62, drift: -0.09, w: 130, phase: Math.PI, color: VIOLET },
-      { x: w * 0.85, drift: 0.07, w: 70, phase: Math.PI * 0.5, color: CYAN },
+      { x: w * 0.25, drift: 0.08, w: 90, phase: 0, color: TEAL },
+      { x: w * 0.62, drift: -0.06, w: 130, phase: Math.PI, color: VIOLET },
+      { x: w * 0.85, drift: 0.05, w: 70, phase: Math.PI * 0.5, color: CYAN },
     );
 
     const RAIN_CHARS = "01アカサタナハマヤラワ0123456789ABCDEF";
-    const rainCols = Math.min(26, Math.max(10, Math.floor(w / 70)));
+    const rainCols = Math.min(18, Math.max(6, Math.floor(w / 110)));
     for (let i = 0; i < rainCols; i++) {
       const chars: string[] = [];
-      const len = Math.floor(Math.random() * 16) + 8;
+      const len = Math.floor(Math.random() * 14) + 6;
       for (let j = 0; j < len; j++) chars.push(RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)]);
       rainDrops.push({
         x: (i / rainCols) * w + Math.random() * 20,
         y: -Math.random() * h,
-        vy: Math.random() * 3.2 + 1.2,
+        vy: Math.random() * 2.2 + 0.8,
         chars,
         head: 0,
       });
@@ -165,7 +165,7 @@ export default function NeuralBackground() {
 
     function drawAurora() {
       const sc = scrollRef.current;
-      const t = Date.now() * 0.0004;
+      const t = Date.now() * 0.00025;
       const ribbons = [
         { yBase: h * 0.18 - sc * h * 0.05, amp: 60, len: h * 0.55, freq: 0.006, phase: 0, color: CYAN, alpha: 0.035 },
         { yBase: h * 0.3 - sc * h * 0.08, amp: 90, len: h * 0.6, freq: 0.004, phase: 2.1, color: VIOLET, alpha: 0.035 },
@@ -324,7 +324,7 @@ export default function NeuralBackground() {
       const t = Date.now() * 0.001;
       stars.forEach(s => {
         // stars parallax-drift upward as you scroll
-        const drift = sc * 1.5;
+        const drift = sc * 1.0;
         if (s.y - drift < -5) { s.y = h * 0.75 + 5; s.x = Math.random() * w; }
         s.y -= drift;
 
@@ -386,8 +386,8 @@ export default function NeuralBackground() {
           }
         }
         e.vx *= 0.985; e.vy *= 0.985;
-        e.x += e.vx + Math.sin(t + e.phase) * 0.15;
-        e.y += e.vy - sc * 0.3;
+        e.x += e.vx + Math.sin(t + e.phase) * 0.1;
+        e.y += e.vy - sc * 0.2;
         if (e.y < -10) { e.y = h + 10; e.x = Math.random() * w; }
         if (e.x < -10) e.x = w + 10;
         if (e.x > w + 10) e.x = -10;
@@ -424,7 +424,7 @@ export default function NeuralBackground() {
           life: 1,
           maxLife: Math.random() * 30 + 20,
         });
-        nextMeteor = performance.now() + Math.random() * 7000 + 6000;
+        nextMeteor = performance.now() + Math.random() * 12000 + 9000;
       }
       for (let i = meteors.length - 1; i >= 0; i--) {
         const m = meteors[i];
@@ -451,7 +451,7 @@ export default function NeuralBackground() {
       const sc = scrollRef.current;
       ctx.font = "12px 'JetBrains Mono', monospace";
       rainDrops.forEach(d => {
-        d.y += d.vy + sc * 0.7;
+        d.y += d.vy + sc * 0.5;
         if (d.y - d.chars.length * 13 > h) { d.y = -Math.random() * h; d.head = 0; }
         const charH = 13;
         for (let i = 0; i < d.chars.length; i++) {
@@ -480,9 +480,9 @@ export default function NeuralBackground() {
       ctx.fillRect(0, 0, w, h);
 
       // gradient mesh blobs (breathing + scroll intensity)
-      const t = Date.now() * 0.0003;
-      const breathe = 0.85 + 0.15 * Math.sin(Date.now() * 0.0006);
-      const boost = 1 + sc * 1.2;
+      const t = Date.now() * 0.0002;
+      const breathe = 0.9 + 0.1 * Math.sin(Date.now() * 0.0004);
+      const boost = 1 + sc * 1.0;
       const blobs = [
         { x: w * 0.3 + Math.sin(t) * 100, y: h * 0.3 + Math.cos(t * 0.7) * 80, r: 300 * breathe, c: TEAL, a: 0.045 * boost },
         { x: w * 0.7 + Math.cos(t * 0.8) * 120, y: h * 0.5 + Math.sin(t * 0.5) * 100, r: 350 * breathe, c: VIOLET, a: 0.04 * boost },

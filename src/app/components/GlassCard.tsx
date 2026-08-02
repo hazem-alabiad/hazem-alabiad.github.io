@@ -34,8 +34,7 @@ export function GlassCard({ children, className = "", style = {}, hover = true, 
   return (
     <div
       ref={ref}
-      className={`${className} glass-hover fx-scan fx-status`}
-      data-fx={fxStatus}
+      className={`${className} glass-hover fx-scan`}
       onMouseMove={onMove}
       onMouseEnter={onMove}
       onMouseLeave={onLeave}
@@ -58,6 +57,7 @@ export function GlassCard({ children, className = "", style = {}, hover = true, 
           transition: "opacity 0.2s ease",
         }}
       />
+      {fxStatus && <span className="gc-status" data-fx={fxStatus}>{fxStatus}</span>}
       {children}
     </div>
   );

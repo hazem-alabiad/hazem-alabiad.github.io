@@ -464,9 +464,7 @@ export default function App() {
         }
         .fx-lock:hover::before, .fx-lock:hover::after { opacity: 1; }
 
-        .fx-status { position: relative; }
-        .fx-status::before {
-          content: attr(data-fx);
+        .gc-status {
           position: absolute; top: 8px; right: 10px;
           font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.22em;
           color: #5eead4; text-transform: uppercase;
@@ -475,7 +473,7 @@ export default function App() {
           pointer-events: none; z-index: 3;
           text-shadow: 0 0 10px rgba(45,212,191,0.6);
         }
-        .fx-status:hover::before { opacity: 1; transform: translateY(0); }
+        .glass-hover:hover .gc-status { opacity: 1; transform: translateY(0); }
         .hero-grid { transition: all 0.5s ease; }
         @media (max-width: 768px) {
           .hero-grid { grid-template-columns: 1fr !important; }
