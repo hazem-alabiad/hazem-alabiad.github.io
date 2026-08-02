@@ -12,6 +12,7 @@ import profilePhoto from "@/imports/IMG_0323.jpeg";
 import cvAsset from "@/imports/Hazem-Alabiad-CV.pdf?url";
 import { resolveCvHref, resolveCvName } from "./cv";
 import CmsPage from "./components/CmsPage";
+import CustomCursor from "./components/CustomCursor";
 import NeuralBackground from "./components/NeuralBackground";
 import GlitchOverlay from "./components/GlitchOverlay";
 import { ThemeToggle } from "./components/ThemeToggle";
@@ -262,7 +263,7 @@ export default function App() {
   }, [data.hero]);
 
   useEffect(() => {
-    const sections = ["education", "experience", "projects", "skills"];
+    const sections = ["education", "experience", "projects", "skills", "languages"];
     const handler = () => {
       for (const id of [...sections].reverse()) {
         const el = document.getElementById(id);
@@ -296,6 +297,7 @@ export default function App() {
       <NeuralBackground />
       <GlitchOverlay />
       <div className="noise-overlay" />
+      <CustomCursor />
 
       <style>{`
         @keyframes termBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
@@ -374,6 +376,11 @@ export default function App() {
           background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
           background-repeat: repeat;
           background-size: 256px 256px;
+        }
+        @media (hover: hover) and (pointer: fine) {
+          html, body, a, button, [role="button"], .skill-tag {
+            cursor: none !important;
+          }
         }
         .scroll-progress {
           position: fixed; top: 0; left: 0; height: 2px; z-index: 9999;
@@ -670,18 +677,18 @@ export default function App() {
         <motion.section
           id="education"
           style={{ marginBottom: 120 }}
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 40, scale: 0.96, filter: "blur(6px)" }}
+          whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
           viewport={{ once: true, amount: 0.1 }}
-          transition={{ duration: 0.6 }}>
-          <SectionHeader label="Education" id="education" icon={<GraduationCap size={18} />} />
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
+          <SectionHeader label="Education" id="education" icon={<GraduationCap size={18} />} active={activeSection === "education"} />
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {education.map((edu, i) => (
               <motion.div key={edu.id}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}>
+                initial={{ opacity: 0, x: -20, scale: 0.97, filter: "blur(4px)" }}
+                whileInView={{ opacity: 1, x: 0, scale: 1, filter: "blur(0px)" }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ delay: i * 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}>
                 <GlassCard style={{ padding: "24px 28px" }}>
                   <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                     <div>
@@ -712,18 +719,18 @@ export default function App() {
         <motion.section
           id="experience"
           style={{ marginBottom: 120 }}
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 40, scale: 0.96, filter: "blur(6px)" }}
+          whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
           viewport={{ once: true, amount: 0.1 }}
-          transition={{ duration: 0.6 }}>
-          <SectionHeader label="Experience" id="experience" icon={<Briefcase size={18} />} />
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
+          <SectionHeader label="Experience" id="experience" icon={<Briefcase size={18} />} active={activeSection === "experience"} />
           <div style={{ position: "relative" }}>
             {groupByCompany(experience).map((group, gi, arr) => (
               <motion.div key={group.company + gi}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: gi * 0.1 }}
+                initial={{ opacity: 0, x: -20, scale: 0.97, filter: "blur(4px)" }}
+                whileInView={{ opacity: 1, x: 0, scale: 1, filter: "blur(0px)" }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ delay: gi * 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 style={{ position: "relative", paddingLeft: 28, paddingBottom: gi < arr.length - 1 ? 32 : 0 }}>
                 <div style={{
                   position: "absolute", left: 0, top: 10, width: 10, height: 10, borderRadius: "50%",
@@ -796,18 +803,18 @@ export default function App() {
         <motion.section
           id="projects"
           style={{ marginBottom: 120 }}
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 40, scale: 0.96, filter: "blur(6px)" }}
+          whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
           viewport={{ once: true, amount: 0.1 }}
-          transition={{ duration: 0.6 }}>
-          <SectionHeader label="Research & Projects" id="projects" icon={<FlaskConical size={18} />} />
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
+          <SectionHeader label="Research & Projects" id="projects" icon={<FlaskConical size={18} />} active={activeSection === "projects"} />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
             {projects.map((proj, i) => (
               <motion.div key={proj.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}>
+                initial={{ opacity: 0, y: 30, scale: 0.94, filter: "blur(4px)" }}
+                whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ delay: i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}>
                 <a href={proj.link.startsWith("http") ? proj.link : `https://${proj.link}`}
                   target="_blank" rel="noopener noreferrer" className="proj-card"
                   style={{ textDecoration: "none", display: "block" }}
@@ -859,14 +866,19 @@ export default function App() {
         <motion.section
           id="skills"
           style={{ marginBottom: 120 }}
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 40, scale: 0.96, filter: "blur(6px)" }}
+          whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
           viewport={{ once: true, amount: 0.1 }}
-          transition={{ duration: 0.6 }}>
-          <SectionHeader label="Skills" id="skills" icon={<Code2 size={18} />} />
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
+          <SectionHeader label="Skills" id="skills" icon={<Code2 size={18} />} active={activeSection === "skills"} />
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {skills.map(sg => (
-              <GlassCard key={sg.id} style={{ padding: "22px 28px" }}>
+            {skills.map((sg, i) => (
+              <motion.div key={sg.id}
+                initial={{ opacity: 0, y: 24, scale: 0.96, filter: "blur(3px)" }}
+                whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ delay: i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}>
+                <GlassCard style={{ padding: "22px 28px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
                   <div style={{
                     width: 34, height: 34, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
@@ -898,7 +910,8 @@ export default function App() {
                   </svg>
                   <span style={{ ...MONO, fontSize: 13, color: mutedColor }}>{sg.label} — {sg.level || 80}%</span>
                 </div>
-              </GlassCard>
+                </GlassCard>
+              </motion.div>
             ))}
           </div>
         </motion.section>
@@ -908,14 +921,19 @@ export default function App() {
           <motion.section
             id="languages"
             style={{ marginBottom: 100 }}
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 40, scale: 0.96, filter: "blur(6px)" }}
+            whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
             viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 0.6 }}>
-            <SectionHeader label="Languages" id="languages" icon={<Globe size={18} />} />
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
+            <SectionHeader label="Languages" id="languages" icon={<Globe size={18} />} active={activeSection === "languages"} />
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-              {languages.map(lang => (
-                <GlassCard key={lang.id} style={{ padding: "16px 24px", display: "flex", alignItems: "center", gap: 14 }}>
+              {languages.map((lang, i) => (
+                <motion.div key={lang.id}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
+                  <GlassCard style={{ padding: "16px 24px", display: "flex", alignItems: "center", gap: 14 }}>
                   <span style={{ ...SANS, fontSize: 17, fontWeight: 500, color: textColor }}>{lang.name}</span>
                   <span style={{
                     ...MONO, fontSize: 13, padding: "4px 12px", borderRadius: 20,
@@ -933,7 +951,8 @@ export default function App() {
                         background: `linear-gradient(90deg, ${N.teal}, ${N.violet})`,
                       }} />
                   </div>
-                </GlassCard>
+                  </GlassCard>
+                </motion.div>
               ))}
             </div>
           </motion.section>
