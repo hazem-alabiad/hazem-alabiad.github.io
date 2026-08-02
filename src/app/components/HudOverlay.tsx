@@ -1,20 +1,76 @@
+import { useEffect, useState } from "react";
+
+function useClock() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  return now;
+}
+
+function useUptime() {
+  const [uptime, setUptime] = useState(0);
+  useEffect(() => {
+    const t0 = performance.now();
+    const t = setInterval(() => setUptime((performance.now() - t0) / 1000), 1000);
+    return () => clearInterval(t);
+  }, []);
+  return uptime;
+}
+
 export default function HudOverlay({ isDark = true }: { isDark?: boolean }) {
+  const now = useClock();
+  const uptime = useUptime();
+
+  const utc = now.toISOString().slice(11, 19);
+  const date = now.toISOString().slice(0, 10).replace(/-/g, ".");
+  const hh = String(Math.floor(uptime / 3600)).padStart(2, "0");
+  const mm = String(Math.floor((uptime % 3600) / 60)).padStart(2, "0");
+  const ss = String(Math.floor(uptime % 60)).padStart(2, "0");
+  const ms = String(Math.floor((uptime % 1) * 100)).padStart(2, "0");
+
   return (
     <>
-      <div className="hud-corner hud-corner-tl" />
-      <div className="hud-corner hud-corner-tr" />
-      <div className="hud-corner hud-corner-bl" />
-      <div className="hud-corner hud-corner-br" />
+      <div className="hud-ticker" role="status" aria-label="System status">
+        <span className="hud-led" />
+        <span className="hud-item">SYS.ONLINE</span>
+        <span className="hud-divider" />
+        <span className="hud-item hud-dim">UPTIME {hh}:{mm}:{ss}.{ms}</span>
+        <span className="hud-divider" />
+        <span className="hud-item hud-dim">UTC {utc} — {date}</span>
+      </div>
       <div className="hud-reticle" />
       <style>{`
-        .hud-corner {
-          position: fixed; width: 34px; height: 34px; z-index: 40; pointer-events: none;
-          opacity: ${isDark ? 0.8 : 0.5}; filter: drop-shadow(0 0 10px rgba(45,212,191,0.9));
+        .hud-ticker {
+          position: fixed; left: 50%; transform: translateX(-50%);
+          bottom: 12px; z-index: 40; pointer-events: none;
+          display: flex; align-items: center; gap: 12px;
+          padding: 6px 16px; border-radius: 999px;
+          background: ${isDark ? "rgba(8,8,14,0.6)" : "rgba(244,245,251,0.6)"};
+          border: 1px solid ${isDark ? "rgba(45,212,191,0.25)" : "rgba(13,148,136,0.25)"};
+          backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+          box-shadow: 0 0 18px ${isDark ? "rgba(45,212,191,0.12)" : "rgba(13,148,136,0.1)"};
+          font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+          font-size: 11px; letter-spacing: 0.14em;
+          color: ${isDark ? "rgba(148,163,184,0.9)" : "rgba(71,85,105,0.9)"};
         }
-        .hud-corner-tl { top: 14px; left: 14px; border-top: 2px solid rgba(45,212,191,0.9); border-left: 2px solid rgba(45,212,191,0.9); }
-        .hud-corner-tr { top: 14px; right: 14px; border-top: 2px solid rgba(45,212,191,0.9); border-right: 2px solid rgba(45,212,191,0.9); }
-        .hud-corner-bl { bottom: 14px; left: 14px; border-bottom: 2px solid rgba(45,212,191,0.9); border-left: 2px solid rgba(45,212,191,0.9); }
-        .hud-corner-br { bottom: 14px; right: 14px; border-bottom: 2px solid rgba(45,212,191,0.9); border-right: 2px solid rgba(45,212,191,0.9); }
+        .hud-led {
+          width: 7px; height: 7px; border-radius: 50%;
+          background: #2dd4bf; flex-shrink: 0;
+          box-shadow: 0 0 8px rgba(45,212,191,0.9), 0 0 16px rgba(45,212,191,0.5);
+          animation: hudLedPulse 2s ease-in-out infinite;
+        }
+        .hud-item { white-space: nowrap; }
+        .hud-item.hud-dim { opacity: 0.75; }
+        .hud-divider {
+          width: 1px; height: 12px; background: ${isDark ? "rgba(45,212,191,0.3)" : "rgba(13,148,136,0.3)"};
+          opacity: 0.6;
+        }
+        @keyframes hudLedPulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.55; transform: scale(0.82); }
+        }
 
         .hud-reticle {
           position: fixed; right: 34px; bottom: 34px; width: 46px; height: 46px; z-index: 40; pointer-events: none;
@@ -35,10 +91,12 @@ export default function HudOverlay({ isDark = true }: { isDark?: boolean }) {
         }
 
         @media (max-width: 768px) {
-          .hud-corner, .hud-reticle { display: none; }
+          .hud-reticle { display: none; }
+          .hud-ticker { bottom: 8px; font-size: 9.5px; gap: 8px; padding: 5px 12px; }
+          .hud-item.hud-dim { display: none; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .hud-reticle { animation: none; }
+          .hud-reticle, .hud-led { animation: none; }
         }
       `}</style>
     </>
