@@ -75,10 +75,22 @@ export default function GlitchOverlay() {
       animId = requestAnimationFrame(draw);
     }
     draw();
+    let paused = false;
+    function onVisibility() {
+      if (document.hidden) {
+        paused = true;
+        cancelAnimationFrame(animId);
+      } else if (paused) {
+        paused = false;
+        animId = requestAnimationFrame(draw);
+      }
+    }
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       window.removeEventListener("resize", resize);
       cancelAnimationFrame(animId);
       observer.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 

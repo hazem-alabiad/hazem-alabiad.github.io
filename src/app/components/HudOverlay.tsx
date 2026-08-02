@@ -5,7 +5,6 @@ export default function HudOverlay({ isDark = true }: { isDark?: boolean }) {
       <div className="hud-corner hud-corner-tr" />
       <div className="hud-corner hud-corner-bl" />
       <div className="hud-corner hud-corner-br" />
-      <div className="hud-scanline" />
       <div className="hud-reticle" />
       <style>{`
         .hud-corner {
@@ -16,20 +15,6 @@ export default function HudOverlay({ isDark = true }: { isDark?: boolean }) {
         .hud-corner-tr { top: 14px; right: 14px; border-top: 2px solid rgba(45,212,191,0.9); border-right: 2px solid rgba(45,212,191,0.9); }
         .hud-corner-bl { bottom: 14px; left: 14px; border-bottom: 2px solid rgba(45,212,191,0.9); border-left: 2px solid rgba(45,212,191,0.9); }
         .hud-corner-br { bottom: 14px; right: 14px; border-bottom: 2px solid rgba(45,212,191,0.9); border-right: 2px solid rgba(45,212,191,0.9); }
-
-        .hud-scanline {
-          position: fixed; left: 0; right: 0; height: 2px; z-index: 40; pointer-events: none;
-          background: linear-gradient(90deg, transparent, rgba(94,234,212,0.7), transparent);
-          filter: drop-shadow(0 0 10px rgba(45,212,191,0.8));
-          animation: hudScan 6s linear infinite;
-        }
-        @keyframes hudScan {
-          0% { top: 0; opacity: 0; }
-          6% { opacity: 1; }
-          50% { top: 100%; }
-          94% { opacity: 1; }
-          100% { top: 100%; opacity: 0; }
-        }
 
         .hud-reticle {
           position: fixed; right: 34px; bottom: 34px; width: 46px; height: 46px; z-index: 40; pointer-events: none;
@@ -53,7 +38,7 @@ export default function HudOverlay({ isDark = true }: { isDark?: boolean }) {
           .hud-corner, .hud-reticle { display: none; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .hud-scanline, .hud-reticle { animation: none; }
+          .hud-reticle { animation: none; }
         }
       `}</style>
     </>

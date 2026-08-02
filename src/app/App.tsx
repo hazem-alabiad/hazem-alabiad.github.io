@@ -8,7 +8,7 @@ import {
   ChevronRight, Sparkles, Terminal as TerminalIcon, BookOpen,
   Menu, X, Sun, Moon, Monitor,
 } from "lucide-react";
-import profilePhoto from "@/imports/IMG_0323.jpeg";
+import profilePhoto from "@/imports/IMG_0323_avatar.jpeg";
 import cvAsset from "@/imports/Hazem-Alabiad-CV.pdf?url";
 import { resolveCvHref, resolveCvName } from "./cv";
 import CmsPage from "./components/CmsPage";
@@ -181,7 +181,11 @@ function StatCounter({ icon, label, target, delay, isDark, mutedColor }: { icon:
       background: isDark ? "rgba(255,255,255,0.035)" : "rgba(0,0,0,0.03)",
       border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`, fontSize: 12.5,
       color: mutedColor, ...MONO,
-    }}>
+      transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
+    }}
+      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.06)"; e.currentTarget.style.borderColor = "rgba(45,212,191,0.45)"; e.currentTarget.style.boxShadow = "0 0 18px rgba(45,212,191,0.2)"; e.currentTarget.style.color = N.teal; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.borderColor = ""; e.currentTarget.style.boxShadow = ""; e.currentTarget.style.color = ""; }}
+    >
       <span style={{ color: N.teal }}>{icon}</span> {count}{label.includes("yrs") ? "+" : ""}{label.includes("M") ? "." : ""}{label.includes("langs") ? "" : ""}
     </div>
   );
@@ -383,6 +387,10 @@ export default function App() {
           animation: scan 5s linear infinite;
         }
         .hex-avatar { clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); animation: hexPulse 4s ease-in-out infinite; }
+        .avatar-hover { transition: transform 0.4s cubic-bezier(0.16,1,0.3,1); }
+        .avatar-hover:hover { transform: scale(1.06) rotate(2deg); }
+        .avatar-hover:hover .hex-avatar { filter: drop-shadow(0 0 28px rgba(45,212,191,0.7)); }
+        .avatar-hover:hover .avatar-ring { filter: drop-shadow(0 0 14px rgba(45,212,191,0.9)); }
         .avatar-ring {
           background: conic-gradient(from 0deg, #2dd4bf, #a78bfa, #67e8f9, #2dd4bf);
           animation: ringRotate 6s linear infinite;
@@ -487,6 +495,29 @@ export default function App() {
           text-shadow: 0 0 10px rgba(45,212,191,0.6);
         }
         .glass-hover:hover .gc-status { opacity: 1; transform: translateY(0); }
+
+        /* ============ project card hover motion ============ */
+        .proj-card { transition: all 0.35s cubic-bezier(0.16,1,0.3,1); }
+        .proj-card:hover { transform: translateY(-6px) scale(1.02); }
+        .proj-card .proj-title { transition: color 0.25s ease; }
+        .proj-card:hover .proj-title { color: #2dd4bf; }
+        .proj-card .proj-arrow { transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), color 0.25s ease; }
+        .proj-card:hover .proj-arrow { transform: translate(3px, -3px) scale(1.15); color: #2dd4bf; }
+        .proj-card .proj-icon { transition: transform 0.35s cubic-bezier(0.16,1,0.3,1); }
+        .proj-card:hover .proj-icon { transform: rotate(-8deg) scale(1.12); }
+        .proj-card .proj-tag { transition: all 0.25s ease; }
+        .proj-card:hover .proj-tag { transform: translateY(-2px); border-color: rgba(45,212,191,0.35) !important; color: #2dd4bf !important; }
+
+        .available-pill { transition: all 0.3s ease; }
+        .available-pill:hover {
+          background: rgba(45,212,191,0.16) !important;
+          border-color: rgba(45,212,191,0.45) !important;
+          transform: scale(1.04);
+          box-shadow: 0 0 18px rgba(45,212,191,0.25);
+        }
+        .available-pill:hover .dot { animation: dotPulse 0.8s ease-in-out infinite; }
+        @keyframes dotPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.6); } }
+
         .hero-grid { transition: all 0.5s ease; }
         @media (max-width: 768px) {
           .hero-grid { grid-template-columns: 1fr !important; }
@@ -599,12 +630,13 @@ export default function App() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
+                className="available-pill"
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px",
                   borderRadius: 100, background: "rgba(45,212,191,0.08)", border: "1px solid rgba(45,212,191,0.2)",
                   marginBottom: 28,
                 }}>
-                <span style={{ width: 7, height: 7, borderRadius: "50%", background: N.teal, boxShadow: `0 0 8px ${N.teal}`, display: "inline-block" }} />
+                <span className="dot" style={{ width: 7, height: 7, borderRadius: "50%", background: N.teal, boxShadow: `0 0 8px ${N.teal}`, display: "inline-block" }} />
                 <motion.span
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -733,7 +765,7 @@ export default function App() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}>
               {/* Avatar with hexagon + animated ring */}
-              <div className="float-avatar" style={{ width: 200, height: 200, margin: "0 auto", position: "relative" }}>
+              <div className="float-avatar avatar-hover" style={{ width: 200, height: 200, margin: "0 auto", position: "relative" }}>
                 <div className="avatar-ring" style={{
                   position: "absolute", inset: -4, borderRadius: "50%",
                   animation: "ringRotate 6s linear infinite",
@@ -743,7 +775,7 @@ export default function App() {
                   background: "#0d1117",
                   boxShadow: `0 0 0 3px rgba(45,212,191,0.4), 0 0 80px rgba(45,212,191,0.15), 0 0 120px rgba(45,212,191,0.08)`,
                 }}>
-                  <img src={profilePhoto} alt={hero.name}
+                  <img src={profilePhoto} alt={hero.name} loading="lazy" decoding="async" fetchPriority="high"
                     style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 4%", filter: "brightness(0.93) contrast(1.05)" }} />
                   <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at center, transparent 55%, rgba(4,4,12,0.4) 100%)" }} />
                 </div>
@@ -920,10 +952,18 @@ export default function App() {
                 <a href={proj.link.startsWith("http") ? proj.link : `https://${proj.link}`}
                   target="_blank" rel="noopener noreferrer" className="proj-card fx-lock"
                   style={{ textDecoration: "none", display: "block" }}
+                  onMouseEnter={e => {
+                    const t = e.currentTarget.querySelector('.proj-title'); if (t) (t as HTMLElement).style.color = N.teal;
+                    const a = e.currentTarget.querySelector('.proj-arrow'); if (a) (a as HTMLElement).style.color = N.teal;
+                  }}
+                  onMouseLeave={e => {
+                    const t = e.currentTarget.querySelector('.proj-title'); if (t) (t as HTMLElement).style.color = "";
+                    const a = e.currentTarget.querySelector('.proj-arrow'); if (a) (a as HTMLElement).style.color = "";
+                  }}
                   onClick={() => setExpandedProject(expandedProject === proj.id ? null : proj.id)}>
                   <GlassCard style={{ padding: "22px", height: "100%" }} isDark={isDark}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
-                      <div style={{
+                      <div className="proj-icon" style={{
                         width: 36, height: 36, borderRadius: 10,
                         background: `rgba(${i % 2 === 0 ? "45,212,191" : "167,139,250"},0.12)`,
                         border: `1px solid rgba(${i % 2 === 0 ? "45,212,191" : "167,139,250"},0.2)`,
@@ -934,10 +974,10 @@ export default function App() {
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <span style={{ ...MONO, fontSize: 13, color: mutedColor }}>{proj.year}</span>
-                        <ArrowUpRight size={15} style={{ color: mutedColor }} />
+                        <ArrowUpRight size={15} className="proj-arrow" style={{ color: mutedColor }} />
                       </div>
                     </div>
-                    <h3 style={{ ...SANS, fontSize: 17, fontWeight: 600, color: textColor, marginBottom: 8, lineHeight: 1.3 }}>{proj.title}</h3>
+                    <h3 className="proj-title" style={{ ...SANS, fontSize: 17, fontWeight: 600, color: textColor, marginBottom: 8, lineHeight: 1.3 }}>{proj.title}</h3>
                     {expandedProject === proj.id && (
                       <motion.p
                         initial={{ opacity: 0, height: 0 }}
@@ -949,7 +989,7 @@ export default function App() {
                     )}
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                       {(proj.tags || []).map(tag => (
-                        <span key={tag} style={{
+                        <span key={tag} className="proj-tag" style={{
                           ...MONO, fontSize: 12, padding: "3px 8px", borderRadius: 6,
                           background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.04)",
                           border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)"}`,

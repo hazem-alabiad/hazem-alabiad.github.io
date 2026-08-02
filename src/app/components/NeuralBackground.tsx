@@ -43,11 +43,11 @@ export default function NeuralBackground({ isDark = true }: { isDark?: boolean }
     let nextMeteor = performance.now() + 6000;
 
     function resize() {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       w = window.innerWidth;
       h = window.innerHeight;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -625,12 +625,24 @@ export default function NeuralBackground({ isDark = true }: { isDark?: boolean }
       animId = requestAnimationFrame(draw);
     }
     draw();
+    let paused = false;
+    function onVisibility() {
+      if (document.hidden) {
+        paused = true;
+        cancelAnimationFrame(animId);
+      } else if (paused) {
+        paused = false;
+        animId = requestAnimationFrame(draw);
+      }
+    }
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerleave", onPointerLeave);
       window.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("visibilitychange", onVisibility);
       cancelAnimationFrame(animId);
     };
   }, []);
