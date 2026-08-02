@@ -13,6 +13,7 @@ import cvAsset from "@/imports/Hazem-Alabiad-CV.pdf?url";
 import { resolveCvHref, resolveCvName } from "./cv";
 import CmsPage from "./components/CmsPage";
 import CustomCursor from "./components/CustomCursor";
+import HudOverlay from "./components/HudOverlay";
 import NeuralBackground from "./components/NeuralBackground";
 import GlitchOverlay from "./components/GlitchOverlay";
 import { ThemeToggle } from "./components/ThemeToggle";
@@ -296,6 +297,7 @@ export default function App() {
 
       <NeuralBackground />
       <GlitchOverlay />
+      <HudOverlay />
       <div className="noise-overlay" />
       <CustomCursor />
 

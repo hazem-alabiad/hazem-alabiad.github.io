@@ -13,6 +13,7 @@ interface Pillar { x: number; drift: number; w: number; phase: number; color: st
 interface Meteor { x: number; y: number; vx: number; vy: number; life: number; maxLife: number }
 interface Spark { x: number; y: number; vx: number; vy: number; life: number; color: string }
 interface Pulse { x: number; y: number; r: number; life: number; color: string }
+interface RainDrop { x: number; y: number; vy: number; chars: string[]; head: number }
 
 export default function NeuralBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -36,6 +37,7 @@ export default function NeuralBackground() {
     const meteors: Meteor[] = [];
     const sparks: Spark[] = [];
     const pulses: Pulse[] = [];
+    const rainDrops: RainDrop[] = [];
     let nextMeteor = performance.now() + 6000;
 
     function resize() {
@@ -112,8 +114,7 @@ export default function NeuralBackground() {
         x: Math.random() * w,
         y: Math.random() * h * 0.75,
         r: Math.random() * 1.4 + 0.3,
-        base: Math.random() * 0.4 + 0.15,
-        phase: Math.random() * Math.PI * 2,
+        base: Math.random() * 0.4 + 0.15,        phase: Math.random() * Math.PI * 2,
         speed: Math.random() * 0.9 + 0.3,
       });
     }
@@ -135,6 +136,21 @@ export default function NeuralBackground() {
       { x: w * 0.62, drift: -0.09, w: 130, phase: Math.PI, color: VIOLET },
       { x: w * 0.85, drift: 0.07, w: 70, phase: Math.PI * 0.5, color: CYAN },
     );
+
+    const RAIN_CHARS = "01アカサタナハマヤラワ0123456789ABCDEF";
+    const rainCols = Math.min(14, Math.max(6, Math.floor(w / 130)));
+    for (let i = 0; i < rainCols; i++) {
+      const chars: string[] = [];
+      const len = Math.floor(Math.random() * 12) + 6;
+      for (let j = 0; j < len; j++) chars.push(RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)]);
+      rainDrops.push({
+        x: (i / rainCols) * w + Math.random() * 30,
+        y: -Math.random() * h,
+        vy: Math.random() * 1.6 + 0.6,
+        chars,
+        head: 0,
+      });
+    }
 
     function drawHex(cx: number, cy: number, r: number) {
       ctx.beginPath();
@@ -431,6 +447,27 @@ export default function NeuralBackground() {
       }
     }
 
+    function drawRain() {
+      const sc = scrollRef.current;
+      ctx.font = "11px 'JetBrains Mono', monospace";
+      rainDrops.forEach(d => {
+        d.y += d.vy + sc * 0.4;
+        if (d.y - d.chars.length * 12 > h) { d.y = -Math.random() * h; d.head = 0; }
+        const charH = 12;
+        for (let i = 0; i < d.chars.length; i++) {
+          const cy = d.y - i * charH;
+          if (cy < 0 || cy > h) continue;
+          const isHead = i === 0;
+          const tailFade = 1 - i / d.chars.length;
+          ctx.fillStyle = isHead
+            ? `rgba(${TEAL},0.75)`
+            : `rgba(${CYAN},${0.16 * tailFade})`;
+          ctx.fillText(d.chars[(d.head + i) % d.chars.length], d.x, cy);
+        }
+        d.head = (d.head + 1) % d.chars.length;
+      });
+    }
+
     function draw() {
       const sc = scrollRef.current;
       ctx.clearRect(0, 0, w, h);
@@ -463,6 +500,7 @@ export default function NeuralBackground() {
       drawPillars();
       drawAurora();
       drawHorizon();
+      drawRain();
       drawStars();
       drawEmbers();
 
