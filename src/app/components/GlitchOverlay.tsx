@@ -49,6 +49,18 @@ export default function GlitchOverlay() {
         ctx.fillRect(0, y, w, 1);
       }
 
+      // Rare full-frame chromatic aberration flash (2050 datastream feel)
+      if (Math.random() < 0.002) {
+        const f = rand(0.5, 1);
+        ctx.drawImage(canvas, -2, 0, w, h);
+        ctx.globalCompositeOperation = "lighter";
+        ctx.fillStyle = `rgba(45,212,191,${0.05 * f})`;
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = `rgba(167,139,250,${0.04 * f})`;
+        ctx.fillRect(0, 0, w, h);
+        ctx.globalCompositeOperation = "source-over";
+      }
+
       animId = requestAnimationFrame(draw);
     }
     draw();
