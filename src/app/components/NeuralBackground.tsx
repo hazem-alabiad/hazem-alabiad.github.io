@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 const TEAL = "45,212,191";
 const CYAN = "103,232,249";
@@ -11,10 +11,12 @@ interface Ember { x: number; y: number; vx: number; vy: number; r: number; color
 interface Shape { x: number; y: number; size: number; rotation: number; rotSpeed: number; type: "hex" | "diamond" | "ring" }
 interface Pillar { x: number; drift: number; w: number; phase: number; color: string }
 interface Meteor { x: number; y: number; vx: number; vy: number; life: number; maxLife: number }
+interface Spark { x: number; y: number; vx: number; vy: number; life: number; color: string }
+interface Pulse { x: number; y: number; r: number; life: number; color: string }
 
 export default function NeuralBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [cursor, setCursor] = useState({ x: -1000, y: -1000 });
+  const cursorRef = useRef({ x: -1000, y: -1000, px: -1000, py: -1000, active: false });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -31,6 +33,8 @@ export default function NeuralBackground() {
     const embers: Ember[] = [];
     const pillars: Pillar[] = [];
     const meteors: Meteor[] = [];
+    const sparks: Spark[] = [];
+    const pulses: Pulse[] = [];
     let nextMeteor = performance.now() + 6000;
 
     function resize() {
@@ -45,8 +49,35 @@ export default function NeuralBackground() {
     }
     resize();
     window.addEventListener("resize", resize);
-    window.addEventListener("mousemove", e => { setCursor({ x: e.clientX, y: e.clientY }); });
-    window.addEventListener("mouseleave", () => { setCursor({ x: -1000, y: -1000 }); });
+
+    function onPointerMove(e: PointerEvent) {
+      const c = cursorRef.current;
+      c.px = c.x; c.py = c.y;
+      c.x = e.clientX; c.y = e.clientY;
+      c.active = true;
+    }
+    function onPointerLeave() {
+      cursorRef.current.active = false;
+      cursorRef.current.x = -1000; cursorRef.current.y = -1000;
+    }
+    function onPointerDown(e: PointerEvent) {
+      onPointerMove(e);
+      const color = [TEAL, CYAN, VIOLET, PINK][Math.floor(Math.random() * 4)];
+      pulses.push({ x: e.clientX, y: e.clientY, r: 6, life: 1, color });
+      const burst = 14;
+      for (let i = 0; i < burst; i++) {
+        const ang = (Math.PI * 2 * i) / burst + Math.random() * 0.3;
+        const sp = Math.random() * 2.4 + 0.8;
+        sparks.push({
+          x: e.clientX, y: e.clientY,
+          vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp,
+          life: 1, color,
+        });
+      }
+    }
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerleave", onPointerLeave);
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
 
     for (let i = 0; i < NODES; i++) {
       nodes.push({
@@ -67,19 +98,19 @@ export default function NeuralBackground() {
       });
     }
 
-    const starCount = Math.min(120, Math.floor((w * h) / 14000));
+    const starCount = Math.min(130, Math.floor((w * h) / 13000));
     for (let i = 0; i < starCount; i++) {
       stars.push({
         x: Math.random() * w,
         y: Math.random() * h * 0.75,
-        r: Math.random() * 1.3 + 0.3,
+        r: Math.random() * 1.4 + 0.3,
         base: Math.random() * 0.4 + 0.15,
         phase: Math.random() * Math.PI * 2,
         speed: Math.random() * 0.9 + 0.3,
       });
     }
 
-    for (let i = 0; i < 28; i++) {
+    for (let i = 0; i < 30; i++) {
       embers.push({
         x: Math.random() * w,
         y: Math.random() * h,
@@ -177,28 +208,150 @@ export default function NeuralBackground() {
       ctx.stroke();
     }
 
+    function drawCursorGlow() {
+      const c = cursorRef.current;
+      if (!c.active) return;
+      const t = Date.now() * 0.001;
+      const vx = c.x - c.px;
+      const vy = c.y - c.py;
+      const speed = Math.hypot(vx, vy);
+      const glowR = 130 + speed * 3;
+
+      const grad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, glowR);
+      grad.addColorStop(0, "rgba(255,255,255,0.5)");
+      grad.addColorStop(0.08, `rgba(${TEAL},0.35)`);
+      grad.addColorStop(0.4, `rgba(${CYAN},0.12)`);
+      grad.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      ctx.fillStyle = grad;
+      ctx.fillRect(c.x - glowR, c.y - glowR, glowR * 2, glowR * 2);
+
+      // pulsing ring
+      const pulse = 0.5 + 0.5 * Math.sin(t * 4);
+      ctx.strokeStyle = `rgba(${TEAL},${0.16 + pulse * 0.16})`;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, 22 + pulse * 6 + speed * 1.5, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // velocity streak (comet tail)
+      if (speed > 0.4) {
+        const len = Math.min(60, speed * 10);
+        const nx = -vx / speed, ny = -vy / speed;
+        const tail = ctx.createLinearGradient(c.x, c.y, c.x + nx * len, c.y + ny * len);
+        tail.addColorStop(0, `rgba(${CYAN},0.5)`);
+        tail.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.strokeStyle = tail;
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(c.x, c.y);
+        ctx.lineTo(c.x + nx * len, c.y + ny * len);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // pointer sparks
+      if (Math.random() < 0.5) {
+        const ang = Math.random() * Math.PI * 2;
+        const sp = Math.random() * 1.2 + 0.2;
+        sparks.push({ x: c.x, y: c.y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 0.3, life: 1, color: [TEAL, CYAN, VIOLET][Math.floor(Math.random() * 3)] });
+        if (sparks.length > 160) sparks.splice(0, sparks.length - 160);
+      }
+    }
+
+    function drawPulses() {
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        const p = pulses[i];
+        p.r += 3.2;
+        p.life -= 0.022;
+        if (p.life <= 0) { pulses.splice(i, 1); continue; }
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        ctx.strokeStyle = `rgba(${p.color},${p.life * 0.6})`;
+        ctx.lineWidth = 2 * p.life;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function drawSparks() {
+      sparks.forEach(s => {
+        s.x += s.vx; s.y += s.vy;
+        s.vx *= 0.96; s.vy = s.vy * 0.96 + 0.03;
+        s.life -= 0.018;
+        if (s.life <= 0) return;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 1.4 * s.life, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${s.color},${s.life * 0.8})`;
+        ctx.fill();
+      });
+      for (let i = sparks.length - 1; i >= 0; i--) { if (sparks[i].life <= 0) sparks.splice(i, 1); }
+    }
+
     function drawStars() {
+      const c = cursorRef.current;
       const t = Date.now() * 0.001;
       stars.forEach(s => {
+        // stars gravitate & swirl toward cursor
+        if (c.active) {
+          const dx = c.x - s.x;
+          const dy = c.y - s.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 190 && dist > 0.01) {
+            const pull = (1 - dist / 190) * 0.045;
+            s.x += (dx / dist) * pull * 3;
+            s.y += (dy / dist) * pull * 3;
+            // tangential swirl
+            s.x += (-dy / dist) * pull * 1.6;
+            s.y += (dx / dist) * pull * 1.6;
+          }
+        }
+
         const tw = 0.5 + 0.5 * Math.sin(t * s.speed + s.phase);
-        const a = s.base * (0.35 + 0.65 * tw);
+        let a = s.base * (0.35 + 0.65 * tw);
+
+        // stars light up near cursor
+        if (c.active) {
+          const dist = Math.hypot(c.x - s.x, c.y - s.y);
+          if (dist < 190) a = Math.min(1, a + (1 - dist / 190) * 0.7);
+        }
+
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255,255,255,${a})`;
         ctx.fill();
-        if (tw > 0.85) {
-          const flare = (tw - 0.85) * 0.35;
+        if (tw > 0.85 || (c.active && Math.hypot(c.x - s.x, c.y - s.y) < 90)) {
+          const flare = tw > 0.85 ? (tw - 0.85) * 0.35 : (1 - Math.hypot(c.x - s.x, c.y - s.y) / 90) * 0.3;
           ctx.beginPath();
-          ctx.arc(s.x, s.y, s.r * 4, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${CYAN},${flare})`;
+          ctx.arc(s.x, s.y, s.r * 4.5, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${CYAN},${Math.min(flare, 0.5)})`;
           ctx.fill();
         }
       });
     }
 
     function drawEmbers() {
+      const c = cursorRef.current;
       const t = Date.now() * 0.001;
       embers.forEach(e => {
+        // embers swirl in a vortex around cursor
+        if (c.active) {
+          const dx = c.x - e.x;
+          const dy = c.y - e.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 260 && dist > 0.01) {
+            const force = (1 - dist / 260) * 0.35;
+            e.vx += (-dy / dist) * force * 0.08;
+            e.vy += (dx / dist) * force * 0.08;
+            e.vx += (dx / dist) * force * 0.02;
+            e.vy += (dy / dist) * force * 0.02;
+          }
+        }
+        e.vx *= 0.985; e.vy *= 0.985;
         e.x += e.vx + Math.sin(t + e.phase) * 0.15;
         e.y += e.vy;
         if (e.y < -10) { e.y = h + 10; e.x = Math.random() * w; }
@@ -293,8 +446,12 @@ export default function NeuralBackground() {
       drawStars();
       drawEmbers();
 
+      // cursor emotion
+      drawCursorGlow();
+
       // cursor trail
-      cursorTrail.push({ x: cursor.x, y: cursor.y, life: 1 });
+      const c = cursorRef.current;
+      cursorTrail.push({ x: c.x, y: c.y, life: 1 });
       if (cursorTrail.length > 40) cursorTrail.shift();
       for (let i = cursorTrail.length - 1; i >= 0; i--) {
         const tr = cursorTrail[i];
@@ -358,15 +515,23 @@ export default function NeuralBackground() {
         }
       }
 
-      // cursor influence on nodes
+      // nodes react to cursor (attract + connect + glow)
       nodes.forEach(n => {
-        const dx = n.x - cursor.x;
-        const dy = n.y - cursor.y;
+        const dx = n.x - c.x;
+        const dy = n.y - c.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 200 && dist > 0) {
-          const force = (1 - dist / 200) * 0.02;
+        if (dist < 220 && dist > 0) {
+          const force = (1 - dist / 220) * 0.02;
           n.vx += (dx / dist) * force;
           n.vy += (dy / dist) * force;
+
+          // connection line to cursor
+          ctx.strokeStyle = `rgba(${TEAL},${(1 - dist / 220) * 0.35})`;
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          ctx.moveTo(n.x, n.y);
+          ctx.lineTo(c.x, c.y);
+          ctx.stroke();
         }
         n.vx *= 0.99;
         n.vy *= 0.99;
@@ -387,6 +552,8 @@ export default function NeuralBackground() {
         if (n.y < 0 || n.y > h) n.vy *= -1;
       });
 
+      drawSparks();
+      drawPulses();
       drawMeteors();
 
       animId = requestAnimationFrame(draw);
@@ -394,6 +561,9 @@ export default function NeuralBackground() {
     draw();
     return () => {
       window.removeEventListener("resize", resize);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerleave", onPointerLeave);
+      window.removeEventListener("pointerdown", onPointerDown);
       cancelAnimationFrame(animId);
     };
   }, []);
