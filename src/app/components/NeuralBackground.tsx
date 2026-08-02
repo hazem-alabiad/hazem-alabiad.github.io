@@ -15,10 +15,12 @@ interface Spark { x: number; y: number; vx: number; vy: number; life: number; co
 interface Pulse { x: number; y: number; r: number; life: number; color: string }
 interface RainDrop { x: number; y: number; vy: number; chars: string[]; head: number }
 
-export default function NeuralBackground() {
+export default function NeuralBackground({ isDark = true }: { isDark?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cursorRef = useRef({ x: -1000, y: -1000, px: -1000, py: -1000, active: false });
   const scrollRef = useRef(0);
+  const themeRef = useRef(isDark);
+  themeRef.current = isDark;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -163,6 +165,12 @@ export default function NeuralBackground() {
       ctx.closePath();
     }
 
+    function pal() {
+      return themeRef.current
+        ? { star: "255,255,255", head: "255,255,255", glowCore: "255,255,255", gridA: 0.018, shapesA: 0.07, base0: "rgba(16,16,34,1)", base1: "rgba(5,5,12,1)" }
+        : { star: "70,74,110", head: "45,212,191", glowCore: "45,212,191", gridA: 0.02, shapesA: 0.08, base0: "rgba(244,245,251,1)", base1: "rgba(228,230,244,1)" };
+    }
+
     function drawAurora() {
       const sc = scrollRef.current;
       const t = Date.now() * 0.00025;
@@ -244,7 +252,7 @@ export default function NeuralBackground() {
       const glowR = 55 + speed * 1.4;
 
       const grad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, glowR);
-      grad.addColorStop(0, "rgba(255,255,255,0.10)");
+      grad.addColorStop(0, `rgba(${pal().glowCore},0.10)`);
       grad.addColorStop(0.08, `rgba(${TEAL},0.08)`);
       grad.addColorStop(0.4, `rgba(${CYAN},0.03)`);
       grad.addColorStop(1, "rgba(0,0,0,0)");
@@ -355,7 +363,7 @@ export default function NeuralBackground() {
 
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${a})`;
+        ctx.fillStyle = `rgba(${pal().star},${a})`;
         ctx.fill();
         if (tw > 0.85 || (c.active && Math.hypot(c.x - s.x, c.y - s.y) < 70)) {
           const flare = tw > 0.85 ? (tw - 0.85) * 0.35 : (1 - Math.hypot(c.x - s.x, c.y - s.y) / 70) * 0.2;
@@ -435,7 +443,7 @@ export default function NeuralBackground() {
         const tailX = m.x - m.vx * 14;
         const tailY = m.y - m.vy * 14;
         const grad = ctx.createLinearGradient(m.x, m.y, tailX, tailY);
-        grad.addColorStop(0, `rgba(255,255,255,${0.8 * m.life})`);
+        grad.addColorStop(0, `rgba(${pal().head},${0.8 * m.life})`);
         grad.addColorStop(1, "rgba(0,0,0,0)");
         ctx.strokeStyle = grad;
         ctx.lineWidth = 1.6;
@@ -460,7 +468,7 @@ export default function NeuralBackground() {
           const isHead = i === 0;
           const tailFade = 1 - i / d.chars.length;
           ctx.fillStyle = isHead
-            ? `rgba(255,255,255,0.7)`
+            ? `rgba(${pal().head},0.7)`
             : `rgba(${TEAL},${0.24 * tailFade})`;
           ctx.fillText(d.chars[(d.head + i) % d.chars.length], d.x, cy);
         }
@@ -474,8 +482,8 @@ export default function NeuralBackground() {
 
       // ambient base glow
       const base = ctx.createRadialGradient(w / 2, h * 0.35, 0, w / 2, h * 0.35, Math.max(w, h) * 0.8);
-      base.addColorStop(0, "rgba(16,16,34,1)");
-      base.addColorStop(1, "rgba(5,5,12,1)");
+      base.addColorStop(0, pal().base0);
+      base.addColorStop(1, pal().base1);
       ctx.fillStyle = base;
       ctx.fillRect(0, 0, w, h);
 
@@ -527,7 +535,7 @@ export default function NeuralBackground() {
         ctx.save();
         ctx.translate(s.x, s.y);
         ctx.rotate(s.rotation);
-        ctx.strokeStyle = `rgba(${TEAL},0.07)`;
+        ctx.strokeStyle = `rgba(${TEAL},${pal().shapesA})`;
         ctx.lineWidth = 1;
         if (s.type === "hex") {
           drawHex(0, 0, s.size);
@@ -549,7 +557,7 @@ export default function NeuralBackground() {
       });
 
       // grid
-      ctx.strokeStyle = `rgba(${TEAL},0.018)`;
+      ctx.strokeStyle = `rgba(${TEAL},${pal().gridA})`;
       ctx.lineWidth = 0.5;
       const GRID = 96;
       for (let x = 0; x < w; x += GRID) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
@@ -629,7 +637,7 @@ export default function NeuralBackground() {
 
   return (
     <>
-      <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", opacity: 0.8 }} />
+      <canvas ref={canvasRef} style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", opacity: isDark ? 0.8 : 0.55 }} />
     </>
   );
 }

@@ -205,7 +205,15 @@ export default function App() {
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const [typedTagline, setTypedTagline] = useState("");
   const [taglineIdx, setTaglineIdx] = useState(0);
+  const [, setThemeTick] = useState(0);
   const fullTagline = data.hero.tagline;
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const observer = new MutationObserver(() => setThemeTick(t => t + 1));
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (taglineIdx < fullTagline.length) {
@@ -286,7 +294,12 @@ export default function App() {
   const currentYear = new Date().getFullYear();
   const navLinks: [string, string][] = [["Education", "education"], ["Experience", "experience"], ["Research", "projects"], ["Skills", "skills"]];
   const heroSkills = ["TypeScript", "React", "Node.js", "Python", "NLP", "LLMs"];
-  const isDark = document.documentElement.classList.contains("dark") || (!document.documentElement.classList.contains("light") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const isDark = (() => {
+    const rootClass = document.documentElement.classList;
+    if (rootClass.contains("dark")) return true;
+    if (rootClass.contains("light")) return false;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  })();
   const accent = isDark ? N.teal : L.teal;
   const bgColor = isDark ? N.bg : L.bg;
   const textColor = isDark ? N.text : L.text;
@@ -295,9 +308,9 @@ export default function App() {
   return (
     <div className="min-h-screen antialiased" style={{ background: bgColor, color: textColor, position: "relative" }}>
 
-      <NeuralBackground />
+      <NeuralBackground isDark={isDark} />
       <GlitchOverlay />
-      <HudOverlay />
+      <HudOverlay isDark={isDark} />
       <div className="noise-overlay" />
       <CustomCursor />
 
@@ -499,10 +512,10 @@ export default function App() {
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 2rem", height: 64,
-        background: "rgba(8,8,14,0.85)",
+        background: isDark ? "rgba(8,8,14,0.85)" : "rgba(244,245,251,0.85)",
         backdropFilter: "blur(24px)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-        boxShadow: "0 1px 0 rgba(45,212,191,0.08)",
+        borderBottom: isDark ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(20,20,31,0.08)",
+        boxShadow: isDark ? "0 1px 0 rgba(45,212,191,0.08)" : "0 1px 0 rgba(45,212,191,0.15)",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
@@ -545,23 +558,23 @@ export default function App() {
 
       {/* Mobile nav overlay */}
       <div className={`mobile-overlay ${mobileMenuOpen ? "open" : ""}`}
-        style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(4,4,12,0.9)", backdropFilter: "blur(12px)" }}
+        style={{ position: "fixed", inset: 0, zIndex: 60, background: isDark ? "rgba(4,4,12,0.9)" : "rgba(244,245,251,0.92)", backdropFilter: "blur(12px)" }}
         onClick={() => setMobileMenuOpen(false)}>
         <div className="mobile-nav open" style={{
           position: "fixed", right: 0, top: 0, bottom: 0, width: 280,
-          background: "#0a0a14", borderLeft: "1px solid rgba(45,212,191,0.15)",
+          background: isDark ? "#0a0a14" : "#ffffff", borderLeft: "1px solid rgba(45,212,191,0.15)",
           padding: "80px 24px", display: "flex", flexDirection: "column", gap: 16,
         }}>
-          <button onClick={() => setMobileMenuOpen(false)} style={{ position: "absolute", top: 20, right: 20, background: "none", border: "none", color: N.muted, cursor: "pointer" }}>
+          <button onClick={() => setMobileMenuOpen(false)} style={{ position: "absolute", top: 20, right: 20, background: "none", border: "none", color: isDark ? N.muted : L.muted, cursor: "pointer" }}>
             <X size={20} />
           </button>
           {navLinks.map(([label, id]) => (
             <a key={id} href={`#${id}`} onClick={() => setMobileMenuOpen(false)}
-              style={{ ...MONO, fontSize: 13, color: N.muted, textDecoration: "none", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              style={{ ...MONO, fontSize: 13, color: isDark ? N.muted : L.muted, textDecoration: "none", padding: "8px 0", borderBottom: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(20,20,31,0.08)" }}>
               {label}
             </a>
           ))}
-          <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 16 }}>
+          <div style={{ borderTop: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(20,20,31,0.08)", paddingTop: 16 }}>
             <ThemeToggle />
           </div>
         </div>
@@ -778,7 +791,7 @@ export default function App() {
                 whileInView={{ opacity: 1, x: 0, scale: 1, filter: "blur(0px)" }}
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ delay: i * 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}>
-                <GlassCard style={{ padding: "24px 28px" }}>
+                <GlassCard style={{ padding: "24px 28px" }} isDark={isDark}>
                   <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                     <div>
                       <h3 style={{ ...SANS, fontSize: 17, fontWeight: 600, color: textColor, marginBottom: 4 }}>{edu.degree}</h3>
@@ -831,7 +844,7 @@ export default function App() {
                     background: `linear-gradient(180deg, rgba(45,212,191,0.25), transparent)`,
                   }} />
                 )}
-                <GlassCard style={{ padding: "20px 24px" }}>
+                <GlassCard style={{ padding: "20px 24px" }} isDark={isDark}>
                   {group.roles.length === 1 ? (
                     <>
                       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 12 }}>
@@ -908,7 +921,7 @@ export default function App() {
                   target="_blank" rel="noopener noreferrer" className="proj-card fx-lock"
                   style={{ textDecoration: "none", display: "block" }}
                   onClick={() => setExpandedProject(expandedProject === proj.id ? null : proj.id)}>
-                  <GlassCard style={{ padding: "22px", height: "100%" }}>
+                  <GlassCard style={{ padding: "22px", height: "100%" }} isDark={isDark}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
                       <div style={{
                         width: 36, height: 36, borderRadius: 10,
@@ -967,7 +980,7 @@ export default function App() {
                 whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ delay: i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}>
-                <GlassCard style={{ padding: "22px 28px" }}>
+                <GlassCard style={{ padding: "22px 28px" }} isDark={isDark}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
                   <div style={{
                     width: 34, height: 34, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
@@ -1022,7 +1035,7 @@ export default function App() {
                   whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={{ once: true, amount: 0.2 }}
                   transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
-                  <GlassCard style={{ padding: "16px 24px", display: "flex", alignItems: "center", gap: 14 }}>
+                  <GlassCard style={{ padding: "16px 24px", display: "flex", alignItems: "center", gap: 14 }} isDark={isDark}>
                   <span style={{ ...SANS, fontSize: 17, fontWeight: 500, color: textColor }}>{lang.name}</span>
                   <span style={{
                     ...MONO, fontSize: 13, padding: "4px 12px", borderRadius: 20,

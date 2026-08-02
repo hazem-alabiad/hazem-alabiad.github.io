@@ -7,6 +7,7 @@ export function ThemeToggle() {
     const stored = localStorage.getItem("portfolio-theme");
     return (stored as Theme) || "dark";
   });
+  const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -23,6 +24,17 @@ export function ThemeToggle() {
     localStorage.setItem("portfolio-theme", theme);
   }, [theme]);
 
+  useEffect(() => {
+    const sync = () => {
+      const cls = document.documentElement.classList;
+      setIsDark(cls.contains("dark") || (!cls.contains("light") && window.matchMedia("(prefers-color-scheme: dark)").matches));
+    };
+    sync();
+    const obs = new MutationObserver(sync);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
+
   const cycle: Theme[] = ["dark", "light", "auto"];
   const next = cycle[(cycle.indexOf(theme) + 1) % cycle.length];
 
@@ -36,12 +48,13 @@ export function ThemeToggle() {
         aria-label="Toggle theme"
         style={{
           ...MONO, fontSize: 12, padding: "7px 12px", borderRadius: 8,
-          background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-          color: "#7a7a9a", cursor: "pointer", transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
+          background: isDark ? "rgba(255,255,255,0.04)" : "rgba(20,20,31,0.05)",
+          border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(20,20,31,0.12)"}`,
+          color: isDark ? "#7a7a9a" : "#5d5d75", cursor: "pointer", transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)",
           display: "flex", alignItems: "center", gap: 5, position: "relative", overflow: "hidden",
         }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#2dd4bf"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,212,191,0.3)"; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#7a7a9a"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)"; }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#0d9488"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(13,148,136,0.35)"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isDark ? "#7a7a9a" : "#5d5d75"; (e.currentTarget as HTMLElement).style.borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(20,20,31,0.12)"; }}
       >
         <span className="theme-toggle-spin" style={{ display: "inline-flex" }}>{icons[theme]}</span> {next}
       </button>

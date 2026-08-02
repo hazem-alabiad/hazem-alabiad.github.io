@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 
 export default function GlitchOverlay() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const themeRef = useRef({ scan: "0,0,0", bar: 0.03 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -10,6 +11,15 @@ export default function GlitchOverlay() {
     if (!ctx) return;
     let animId: number;
     let w = 0, h = 0;
+
+    function applyTheme() {
+      const dark = document.documentElement.classList.contains("dark")
+        || (!document.documentElement.classList.contains("light") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      themeRef.current = dark ? { scan: "0,0,0", bar: 0.03 } : { scan: "90,90,120", bar: 0.015 };
+    }
+    applyTheme();
+    const observer = new MutationObserver(applyTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
     function resize() {
       w = canvas.width = window.innerWidth;
@@ -44,7 +54,8 @@ export default function GlitchOverlay() {
       }
 
       // Scanline
-      ctx.fillStyle = "rgba(0,0,0,0.03)";
+      const { scan, bar } = themeRef.current;
+      ctx.fillStyle = `rgba(${scan},0.03)`;
       for (let y = 0; y < h; y += 3) {
         ctx.fillRect(0, y, w, 1);
       }
@@ -67,6 +78,7 @@ export default function GlitchOverlay() {
     return () => {
       window.removeEventListener("resize", resize);
       cancelAnimationFrame(animId);
+      observer.disconnect();
     };
   }, []);
 

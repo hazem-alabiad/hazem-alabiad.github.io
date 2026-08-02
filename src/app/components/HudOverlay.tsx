@@ -1,4 +1,4 @@
-export default function HudOverlay() {
+export default function HudOverlay({ isDark = true }: { isDark?: boolean }) {
   return (
     <>
       <div className="hud-corner hud-corner-tl" />
@@ -10,7 +10,7 @@ export default function HudOverlay() {
       <style>{`
         .hud-corner {
           position: fixed; width: 34px; height: 34px; z-index: 40; pointer-events: none;
-          opacity: 0.8; filter: drop-shadow(0 0 10px rgba(45,212,191,0.9));
+          opacity: ${isDark ? 0.8 : 0.5}; filter: drop-shadow(0 0 10px rgba(45,212,191,0.9));
         }
         .hud-corner-tl { top: 14px; left: 14px; border-top: 2px solid rgba(45,212,191,0.9); border-left: 2px solid rgba(45,212,191,0.9); }
         .hud-corner-tr { top: 14px; right: 14px; border-top: 2px solid rgba(45,212,191,0.9); border-right: 2px solid rgba(45,212,191,0.9); }

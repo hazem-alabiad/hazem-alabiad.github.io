@@ -2,9 +2,9 @@ import { useRef } from "react";
 
 const TEAL = "45,212,191";
 
-export function GlassCard({ children, className = "", style = {}, hover = true, fxStatus = "linked" }: {
+export function GlassCard({ children, className = "", style = {}, hover = true, fxStatus = "linked", isDark = true }: {
   children: React.ReactNode; className?: string; style?: React.CSSProperties; hover?: boolean;
-  fxStatus?: string;
+  fxStatus?: string; isDark?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const glareRef = useRef<HTMLDivElement>(null);
@@ -40,10 +40,11 @@ export function GlassCard({ children, className = "", style = {}, hover = true, 
       onMouseLeave={onLeave}
       style={{
         position: "relative",
-        background: "rgba(255,255,255,0.032)",
-        border: "1px solid rgba(255,255,255,0.07)",
+        background: isDark ? "rgba(255,255,255,0.032)" : "rgba(255,255,255,0.55)",
+        border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(20,20,31,0.08)"}`,
         borderRadius: 16,
         backdropFilter: "blur(16px)",
+        boxShadow: isDark ? "none" : "0 4px 24px rgba(20,20,31,0.06)",
         transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s ease, box-shadow 0.25s ease",
         transformStyle: "preserve-3d",
         willChange: "transform",
