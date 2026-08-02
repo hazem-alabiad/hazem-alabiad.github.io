@@ -138,15 +138,15 @@ export default function NeuralBackground() {
     );
 
     const RAIN_CHARS = "01アカサタナハマヤラワ0123456789ABCDEF";
-    const rainCols = Math.min(14, Math.max(6, Math.floor(w / 130)));
+    const rainCols = Math.min(26, Math.max(10, Math.floor(w / 70)));
     for (let i = 0; i < rainCols; i++) {
       const chars: string[] = [];
-      const len = Math.floor(Math.random() * 12) + 6;
+      const len = Math.floor(Math.random() * 16) + 8;
       for (let j = 0; j < len; j++) chars.push(RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)]);
       rainDrops.push({
-        x: (i / rainCols) * w + Math.random() * 30,
+        x: (i / rainCols) * w + Math.random() * 20,
         y: -Math.random() * h,
-        vy: Math.random() * 1.6 + 0.6,
+        vy: Math.random() * 3.2 + 1.2,
         chars,
         head: 0,
       });
@@ -449,19 +449,19 @@ export default function NeuralBackground() {
 
     function drawRain() {
       const sc = scrollRef.current;
-      ctx.font = "11px 'JetBrains Mono', monospace";
+      ctx.font = "12px 'JetBrains Mono', monospace";
       rainDrops.forEach(d => {
-        d.y += d.vy + sc * 0.4;
-        if (d.y - d.chars.length * 12 > h) { d.y = -Math.random() * h; d.head = 0; }
-        const charH = 12;
+        d.y += d.vy + sc * 0.7;
+        if (d.y - d.chars.length * 13 > h) { d.y = -Math.random() * h; d.head = 0; }
+        const charH = 13;
         for (let i = 0; i < d.chars.length; i++) {
           const cy = d.y - i * charH;
           if (cy < 0 || cy > h) continue;
           const isHead = i === 0;
           const tailFade = 1 - i / d.chars.length;
           ctx.fillStyle = isHead
-            ? `rgba(${TEAL},0.75)`
-            : `rgba(${CYAN},${0.16 * tailFade})`;
+            ? `rgba(255,255,255,0.95)`
+            : `rgba(${TEAL},${0.32 * tailFade})`;
           ctx.fillText(d.chars[(d.head + i) % d.chars.length], d.x, cy);
         }
         d.head = (d.head + 1) % d.chars.length;

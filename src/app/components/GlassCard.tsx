@@ -13,12 +13,12 @@ export function GlassCard({ children, className = "", style = {}, hover = true }
     const r = ref.current.getBoundingClientRect();
     const px = (e.clientX - r.left) / r.width;
     const py = (e.clientY - r.top) / r.height;
-    const rx = (0.5 - py) * 10;
-    const ry = (px - 0.5) * 10;
-    ref.current.style.transform = `perspective(900px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) translateY(-3px)`;
-    ref.current.style.borderColor = `rgba(${TEAL},0.35)`;
-    ref.current.style.boxShadow = `0 0 44px rgba(${TEAL},0.14), inset 0 1px 0 rgba(255,255,255,0.07), 0 18px 50px rgba(0,0,0,0.45)`;
-    glareRef.current.style.background = `radial-gradient(circle at ${(px * 100).toFixed(1)}% ${(py * 100).toFixed(1)}%, rgba(${TEAL},0.16), transparent 55%)`;
+    const rx = (0.5 - py) * 16;
+    const ry = (px - 0.5) * 16;
+    ref.current.style.transform = `perspective(900px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) translateY(-4px)`;
+    ref.current.style.borderColor = `rgba(${TEAL},0.45)`;
+    ref.current.style.boxShadow = `0 0 55px rgba(${TEAL},0.2), inset 0 1px 0 rgba(255,255,255,0.08), 0 22px 60px rgba(0,0,0,0.5)`;
+    glareRef.current.style.background = `radial-gradient(circle at ${(px * 100).toFixed(1)}% ${(py * 100).toFixed(1)}%, rgba(${TEAL},0.22), transparent 55%)`;
     glareRef.current.style.opacity = "1";
   }
 
