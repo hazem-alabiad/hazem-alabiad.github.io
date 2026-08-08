@@ -701,16 +701,26 @@ function QuantumBomb() {
         </div>
       )}
       {rock && (
-        <div style={{ position: "fixed", left: rock.x, top: rock.y, zIndex: 9888, pointerEvents: "none" }}>
-          {[{ d: -0.3, o: 0.25, s: 34 }, { d: -0.18, o: 0.5, s: 26 }, { d: 0, o: 1, s: 20 }].map((g, i) => (
-            <div key={i} className="atomic-rock" style={{
-              position: "absolute", width: g.s, height: g.s, borderRadius: "50%",
-              background: "radial-gradient(circle at 34% 30%, #fff3c4, #ffb03a 30%, #ff5a1f 65%, #7a2410 95%)",
-              boxShadow: "0 0 18px 6px rgba(255,120,30,0.85), 0 0 46px 18px rgba(255,60,20,0.45)",
-              ['--fx' as string]: `${rock.fx}px`, ['--fy' as string]: `${rock.fy}px`,
-              opacity: g.o, animationDelay: `${g.d}s`,
-            }} />
-          ))}
+        <div className="nuke-rocket" style={{
+          position: "fixed", left: rock.x, top: rock.y, zIndex: 9888, pointerEvents: "none",
+          ['--rot' as string]: `${Math.atan2(rock.fy, rock.fx) * 180 / Math.PI}deg`,
+        }}>
+          <div className="nuke-rocket-arc" style={{ ['--fx' as string]: `${rock.fx}px`, ['--fy' as string]: `${rock.fy}px` }}>
+            {/* exhaust plume */}
+            <span className="nuke-rocket-plume" />
+            <span className="nuke-rocket-plume nuke-rocket-plume2" />
+            {/* body with fins */}
+            <div className="nuke-rocket-body">
+              <span className="nuke-rocket-fin nuke-rocket-fin-t" />
+              <span className="nuke-rocket-fin nuke-rocket-fin-b" />
+              <span className="nuke-rocket-fin nuke-rocket-fin-c" />
+            </div>
+            {/* window + cargo rings */}
+            <span className="nuke-rocket-ring" />
+            <span className="nuke-rocket-window" />
+            {/* nose cone */}
+            <span className="nuke-rocket-nose" />
+          </div>
         </div>
       )}
       {sparks.length > 0 && (
@@ -1472,11 +1482,11 @@ function BootScreen({ onDone }: { onDone: () => void }) {
       transformOrigin: "top",
     }}>
       {phase === "boot" ? (
-        <div style={{ padding: "10vh 8vw" }}>
+        <div className="welcome-boot" style={{ padding: "10vh 8vw" }}>
           <div style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: "rgba(var(--c1),0.4)", letterSpacing: "0.3em", marginBottom: 32 }}>
             HAZEM_ALABIAD_OS // BOOT SEQUENCE
           </div>
-          <div className="space-y-2">
+          <div className="welcome-boot-lines space-y-2">
             {lines.map((line, i) => (
               <div key={i} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 13, color: i === lines.length - 1 ? "var(--fg-a)" : "rgba(var(--c1),0.55)", letterSpacing: "0.1em", animation: "boot-row 0.18s ease both" }}>
                 {line}
@@ -1487,7 +1497,7 @@ function BootScreen({ onDone }: { onDone: () => void }) {
           <div style={{ marginTop: 40, height: 1, background: "rgba(var(--c1),0.12)", overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${(lines.length / BOOT_LINES.length) * 100}%`, background: "linear-gradient(90deg,var(--c1h),var(--c2h))", transition: "width 0.22s ease", boxShadow: "0 0 10px rgba(var(--c1),0.5)" }} />
           </div>
-          <div style={{ position: "fixed", bottom: 28, right: 40, fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.25em", color: "rgba(var(--c1),0.45)" }}>
+          <div className="welcome-skip" style={{ position: "fixed", bottom: 28, right: 40, fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.25em", color: "rgba(var(--c1),0.45)" }}>
             TAP OR ENTER ↵ — SKIP BOOT
           </div>
         </div>

@@ -6,8 +6,7 @@
  * RGB triplets (--c1, --c2, ...) feed rgba() inside inline styles.
  */
 
-:root,
-[data-theme="dark-cyan"] {
+:root:is([data-theme="dark-cyan"], [data-theme="violet"], [data-theme="matrix"], [data-theme="ember"], :not([data-theme])) {
   --c1: 0, 240, 255;       /* primary accent (cyan) RGB */
   --c1h: #00f0ff;          /* primary accent hex */
   --c2: 157, 78, 221;      /* secondary accent (violet) RGB */
@@ -62,7 +61,7 @@
 }
 
 /* Light theme — bright, airy, readable; keeps neon accents */
-[data-theme="light"] {
+:root[data-theme="light"] {
   --c1: 12, 108, 255;
   --c1h: #0c6cff;
   --c2: 124, 92, 255;
