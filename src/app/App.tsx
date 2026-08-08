@@ -372,7 +372,7 @@ function SectionLabel({ num, label }: { num: string; label: string }) {
     return () => obs.disconnect();
   }, []);
   return (
-    <div ref={ref} className="flex items-center gap-4 mb-12">
+    <div ref={ref} className="flex items-center gap-4 mb-8">
       <span className={`neon-flicker ${vis ? "glitch-enter" : ""}`} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.28em", color: "rgba(0,240,255,0.7)", textTransform: "uppercase" as const }}>
         MODULE_{num}
       </span>
@@ -1116,7 +1116,24 @@ function Spotlight({ children, className, style }: { children: React.ReactNode; 
 
 // ─── App ─────────────────────────────────────────────────────────────────────
 
-const NAV = ["about", "experience", "projects", "skills", "contact"] as const;
+const NAV = ["experience", "projects", "skills", "contact"] as const;
+
+const VISIT_KEY = "hazem_portfolio_couter_v1";
+const VISIT_URL = "https://countapi.mileshilliard.com/api/v1";
+
+function countVisits() {
+  try {
+    const owner = !!localStorage.getItem(CMS_TOKEN_KEY);
+    const counted = sessionStorage.getItem(VISIT_KEY);
+    if (owner || counted) {
+      return fetch(`${VISIT_URL}/get/hazemalabiad_portfolio_visits`).then((r) => r.json()).then((d) => d.value).catch(() => null);
+    }
+    sessionStorage.setItem(VISIT_KEY, "1");
+    return fetch(`${VISIT_URL}/hit/hazemalabiad_portfolio_visits`).then((r) => r.json()).then((d) => d.value).catch(() => null);
+  } catch {
+    return Promise.resolve(null);
+  }
+}
 
 export default function App() {
   const [booted, setBooted] = useState(false);
@@ -1126,9 +1143,15 @@ export default function App() {
   const [cmsEnabled, setCmsEnabled] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [content, setContent] = useState<CmsContent>(() => loadContent());
+  const [visits, setVisits] = useState<number | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    countVisits().then((v) => { if (alive && typeof v === "number") setVisits(v); });
+    return () => { alive = false; };
+  }, []);
 
   const scrollY = useScrollY();
-  const aboutR = useReveal();
   const expR = useReveal();
   const projectsR = useReveal();
   const skillsR = useReveal();
@@ -1229,97 +1252,62 @@ export default function App() {
             <span style={mono(9, "rgba(157,78,221,0.45)", { letterSpacing: "0.3em" })}>2026.08.01</span>
           </div>
 
-          <h1 className="glitch leading-none tracking-tight mb-4 select-none"
-            style={{ fontFamily: '"Audiowide", cursive', fontSize: "clamp(3.2rem,10vw,8.5rem)", fontWeight: 400, color: "#e2e8f4", transform: `translateY(${scrollY * 0.18}px)`, willChange: "transform" }}>
-            HAZEM<br /><span style={{ color: "#00f0ff" }}>ALABIAD</span>
-          </h1>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+            {/* Left — identity, role, bio, CTAs, stats */}
+            <div className="lg:col-span-7">
+              <h1 className="glitch leading-none tracking-tight mb-4 select-none"
+                style={{ fontFamily: '"Audiowide", cursive', fontSize: "clamp(3.2rem,10vw,8.5rem)", fontWeight: 400, color: "#e2e8f4", transform: `translateY(${scrollY * 0.18}px)`, willChange: "transform" }}>
+                HAZEM<br /><span style={{ color: "#00f0ff" }}>ALABIAD</span>
+              </h1>
 
-          <div className="flex items-center gap-2 mb-8">
-            <div className="blink w-2 h-5 bg-[#00f0ff]" />
-            <p style={mono(14, "#b0cede", { letterSpacing: "0.14em", fontSize: "clamp(12px,1.6vw,15px)" })}>{typeText}</p>
-          </div>
-
-          <p {...ep("heroTagline", DEFAULTS.heroTagline, { ...body(20, "#b0cede"), maxWidth: 720, marginBottom: 48, transform: `translateY(${scrollY * 0.09}px)`, willChange: "transform" })}>
-            {get("heroTagline", DEFAULTS.heroTagline)}
-          </p>
-
-          <div className="flex flex-wrap gap-4 mb-16">
-            <MagneticWrap>
-              <button onClick={() => scrollTo("experience")} className="flex items-center gap-3 transition-all duration-300"
-                style={mono(10, "#00f0ff", { padding: "12px 24px", border: "1px solid #00f0ff", letterSpacing: "0.2em", cursor: "none" })}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#00f0ff"; (e.currentTarget as HTMLElement).style.color = "#050814"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#00f0ff"; }}>
-                VIEW EXPERIENCE <ArrowUpRight size={13} />
-              </button>
-            </MagneticWrap>
-            <MagneticWrap>
-              <button onClick={() => scrollTo("contact")} className="flex items-center gap-3 transition-all duration-300"
-                style={mono(10, "#9d4edd", { padding: "12px 24px", border: "1px solid rgba(157,78,221,0.5)", letterSpacing: "0.2em", cursor: "none" })}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#9d4edd"; (e.currentTarget as HTMLElement).style.color = "#fff"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#9d4edd"; }}>
-                CONTACT <Mail size={13} />
-              </button>
-            </MagneticWrap>
-            <CVDownloadButton cvUrl={content.cvDataUrl} />
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl">
-            {content.stats.map(({ to, suffix, label }) => (
-              <div key={label} className="pl-4" style={{ borderLeft: "2px solid rgba(0,240,255,0.2)" }}>
-                <div style={{ fontFamily: '"Audiowide", cursive', fontSize: "1.6rem", color: "#00f0ff" }}>
-                  {suffix.startsWith("2.2") ? suffix : <CountUp to={to} suffix={suffix} />}
-                </div>
-                <div style={mono(9, "#6b8fab", { letterSpacing: "0.16em", marginTop: 4, textTransform: "uppercase" as const })}>{label}</div>
+              <div className="flex items-center gap-2 mb-8">
+                <div className="blink w-2 h-5 bg-[#00f0ff]" />
+                <p style={mono(14, "#b0cede", { letterSpacing: "0.14em", fontSize: "clamp(12px,1.6vw,15px)" })}>{typeText}</p>
               </div>
-            ))}
-          </div>
-        </div>
-        <div className="float absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2" style={{ color: "rgba(0,240,255,0.35)" }}>
-          <span style={mono(9, "rgba(0,240,255,0.35)", { letterSpacing: "0.3em" })}>SCROLL</span>
-          <ChevronDown size={14} />
-        </div>
-        <div className="absolute top-24 right-8 w-24 h-24 pointer-events-none" style={{ borderTop: "1px solid rgba(0,240,255,0.12)", borderRight: "1px solid rgba(0,240,255,0.12)" }} />
-        <div className="absolute bottom-20 left-8 w-24 h-24 pointer-events-none" style={{ borderBottom: "1px solid rgba(157,78,221,0.12)", borderLeft: "1px solid rgba(157,78,221,0.12)" }} />
-      </section>
 
-      {/* ── About ── */}
-      <section id="about" className="relative py-32 px-6" style={{ zIndex: 10 }}>
-        <div ref={aboutR.ref} className="max-w-7xl mx-auto">
-          <SectionLabel num="01" label="ABOUT_ME" />
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-20 transition-all duration-1000"
-            style={{ opacity: aboutR.visible ? 1 : 0, transform: aboutR.visible ? "translateY(0)" : "translateY(32px)" }}>
+              <p {...ep("heroTagline", DEFAULTS.heroTagline, { ...body(20, "#b0cede"), maxWidth: 720, marginBottom: 20, transform: `translateY(${scrollY * 0.09}px)`, willChange: "transform" })}>
+                {get("heroTagline", DEFAULTS.heroTagline)}
+              </p>
 
-            {/* Bio */}
-            <div className="lg:col-span-3 space-y-6">
-              <h2 style={{ ...raj("clamp(2rem,5vw,3.2rem)" as unknown as number), lineHeight: 1.2, fontSize: "clamp(2rem,5vw,3.2rem)" }}>
-                Engineering intelligence,{" "}
-                <span style={{ color: "#00f0ff" }}>bridging code and language.</span>
-              </h2>
-              <p {...ep("bio1", DEFAULTS.bio1, body(17))}>{get("bio1", DEFAULTS.bio1)}</p>
-              <p {...ep("bio2", DEFAULTS.bio2, body(17))}>{get("bio2", DEFAULTS.bio2)}</p>
+              <p {...ep("bio1", DEFAULTS.bio1, { ...body(16, "#9ab8d0"), maxWidth: 720, marginBottom: 28 })}>
+                {get("bio1", DEFAULTS.bio1)}
+              </p>
 
-              <div className="p-5" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.1)", fontFamily: '"JetBrains Mono", monospace', fontSize: 12 }}>
-                <div className="flex gap-2 mb-4 items-center">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#ff5f57" }} />
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#febc2e" }} />
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#28c840" }} />
-                  <span style={{ color: "#6b8fab", fontSize: 10, letterSpacing: "0.15em", marginLeft: 8 }}>hazem@tübingen:~$</span>
-                </div>
-                <div style={{ lineHeight: 1.9 }}>
-                  <div><span style={{ color: "#9d4edd" }}>focus</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#00f0ff" }}>[</span></div>
-                  <div style={{ paddingLeft: 20, color: "#8ab4c8" }}>"NLP", "LLMs", "Full-Stack Engineering",</div>
-                  <div style={{ paddingLeft: 20, color: "#8ab4c8" }}>"Computational Linguistics", "ML/DL",</div>
-                  <div><span style={{ color: "#00f0ff" }}>]</span></div>
-                  <div style={{ marginTop: 4 }}><span style={{ color: "#9d4edd" }}>location</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#28c840" }}>"Tübingen, Germany"</span></div>
-                  <div><span style={{ color: "#9d4edd" }}>status</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#febc2e" }}>"Open to opportunities"</span></div>
-                </div>
+              <div className="flex flex-wrap gap-4 mb-10">
+                <MagneticWrap>
+                  <button onClick={() => scrollTo("experience")} className="flex items-center gap-3 transition-all duration-300"
+                    style={mono(10, "#00f0ff", { padding: "12px 24px", border: "1px solid #00f0ff", letterSpacing: "0.2em", cursor: "none" })}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#00f0ff"; (e.currentTarget as HTMLElement).style.color = "#050814"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#00f0ff"; }}>
+                    VIEW EXPERIENCE <ArrowUpRight size={13} />
+                  </button>
+                </MagneticWrap>
+                <MagneticWrap>
+                  <button onClick={() => scrollTo("contact")} className="flex items-center gap-3 transition-all duration-300"
+                    style={mono(10, "#9d4edd", { padding: "12px 24px", border: "1px solid rgba(157,78,221,0.5)", letterSpacing: "0.2em", cursor: "none" })}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#9d4edd"; (e.currentTarget as HTMLElement).style.color = "#fff"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#9d4edd"; }}>
+                    CONTACT <Mail size={13} />
+                  </button>
+                </MagneticWrap>
+                <CVDownloadButton cvUrl={content.cvDataUrl} />
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl">
+                {content.stats.map(({ to, suffix, label }) => (
+                  <div key={label} className="pl-4" style={{ borderLeft: "2px solid rgba(0,240,255,0.2)" }}>
+                    <div style={{ fontFamily: '"Audiowide", cursive', fontSize: "1.6rem", color: "#00f0ff" }}>
+                      {suffix.startsWith("2.2") ? suffix : <CountUp to={to} suffix={suffix} />}
+                    </div>
+                    <div style={mono(9, "#6b8fab", { letterSpacing: "0.16em", marginTop: 4, textTransform: "uppercase" as const })}>{label}</div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Side */}
-            <div className="lg:col-span-2 space-y-4">
-{/* Photo */}
-              <div className="flex justify-center lg:justify-start mb-6">
+            {/* Right — Photo + quick facts, merged from About */}
+            <div className="lg:col-span-5">
+              <div className="flex justify-center lg:justify-end mb-6">
                 <div className="group relative inline-block cursor-pointer"
                   style={{ filter: "drop-shadow(0 0 26px rgba(0,240,255,0.16))" }}>
                   <div style={{
@@ -1391,7 +1379,7 @@ export default function App() {
               {[
                 { Icon: MapPin, label: "Location", value: get("factLocation", DEFAULT_CONTENT.factLocation) },
                 { Icon: GraduationCap, label: "Degree", value: get("factDegree", DEFAULT_CONTENT.factDegree) },
-                { Icon: Briefcase, label: "Current", value: get("factCurrent", DEFAULT_CONTENT.factCurrent) },
+                { Icon: Briefcase, label: "Current Role", value: get("factCurrent", DEFAULT_CONTENT.factCurrent) },
                 { Icon: Globe, label: "Available For", value: get("factAvailable", DEFAULT_CONTENT.factAvailable) },
               ].map(({ Icon, label, value }) => (
                 <div key={label} className="flex gap-4 items-start p-4 transition-all duration-300"
@@ -1410,14 +1398,21 @@ export default function App() {
             </div>
           </div>
         </div>
+        <div className="float absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2" style={{ color: "rgba(0,240,255,0.35)" }}>
+          <span style={mono(9, "rgba(0,240,255,0.35)", { letterSpacing: "0.3em" })}>SCROLL</span>
+          <ChevronDown size={14} />
+        </div>
+        <div className="absolute top-24 right-8 w-24 h-24 pointer-events-none" style={{ borderTop: "1px solid rgba(0,240,255,0.12)", borderRight: "1px solid rgba(0,240,255,0.12)" }} />
+        <div className="absolute bottom-20 left-8 w-24 h-24 pointer-events-none" style={{ borderBottom: "1px solid rgba(157,78,221,0.12)", borderLeft: "1px solid rgba(157,78,221,0.12)" }} />
       </section>
 
+
       {/* ── Experience ── */}
-      <section id="experience" className="relative py-32 px-6" style={{ zIndex: 10 }}>
+      <section id="experience" className="relative py-24 px-6" style={{ zIndex: 10 }}>
         <div ref={expR.ref} className="max-w-7xl mx-auto">
-          <SectionLabel num="02" label="EXPERIENCE" />
+          <SectionLabel num="01" label="EXPERIENCE" />
           <div className="transition-all duration-1000" style={{ opacity: expR.visible ? 1 : 0, transform: expR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-12" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
+            <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
               Work <span style={{ color: "#9d4edd" }}>History</span>
             </WipeHeading>
             <div className="space-y-4">
@@ -1462,11 +1457,11 @@ export default function App() {
       <SkillTicker />
 
       {/* ── Projects ── */}
-      <section id="projects" className="relative py-32 px-6" style={{ zIndex: 10 }}>
+      <section id="projects" className="relative py-24 px-6" style={{ zIndex: 10 }}>
         <div ref={projectsR.ref} className="max-w-7xl mx-auto">
-          <SectionLabel num="03" label="PROJECTS" />
+          <SectionLabel num="02" label="PROJECTS" />
           <div className="transition-all duration-1000" style={{ opacity: projectsR.visible ? 1 : 0, transform: projectsR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-12" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
+            <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
               Research <span style={{ color: "#00f0ff" }}>& Projects</span>
             </WipeHeading>
             <Spotlight className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1521,11 +1516,11 @@ export default function App() {
       </section>
 
       {/* ── Skills ── */}
-      <section id="skills" className="relative py-32 px-6" style={{ zIndex: 10 }}>
+      <section id="skills" className="relative py-24 px-6" style={{ zIndex: 10 }}>
         <div ref={skillsR.ref} className="max-w-7xl mx-auto">
-          <SectionLabel num="04" label="PROFICIENCIES" />
+          <SectionLabel num="03" label="PROFICIENCIES" />
           <div className="transition-all duration-1000" style={{ opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-12" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
+            <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
               Technical <span style={{ color: "#9d4edd" }}>Proficiencies</span>
             </WipeHeading>
             <Spotlight className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
@@ -1562,9 +1557,9 @@ export default function App() {
       </section>
 
       {/* ── Contact ── */}
-      <section id="contact" className="relative py-32 px-6" style={{ zIndex: 10 }}>
+      <section id="contact" className="relative py-24 px-6" style={{ zIndex: 10 }}>
         <div ref={contactR.ref} className="max-w-7xl mx-auto">
-          <SectionLabel num="05" label="CONTACT" />
+          <SectionLabel num="04" label="CONTACT" />
           <div className="transition-all duration-1000" style={{ opacity: contactR.visible ? 1 : 0, transform: contactR.visible ? "translateY(0)" : "translateY(32px)" }}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
               <div>
@@ -1608,6 +1603,12 @@ export default function App() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <span style={mono(9, "#6b8fab", { letterSpacing: "0.22em" })}>{get("footerLine", DEFAULT_CONTENT.footerLine)}</span>
           <div className="flex items-center gap-4">
+            {visits !== null && (
+              <span style={{ ...mono(9, "#6b8fab", { letterSpacing: "0.18em" }), display: "flex", alignItems: "center", gap: 6 }}>
+                <span className="pulse-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: "#00f0ff", display: "inline-block" }} />
+                VIEWS:{visits.toLocaleString()}
+              </span>
+            )}
             <a href="https://github.com/hazem-alabiad" target="_blank" rel="noopener noreferrer" style={{ color: "#6b8fab", opacity: 0.6 }} onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")} onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}><Github size={14} /></a>
             <a href="https://linkedin.com/in/hazemalabiad" target="_blank" rel="noopener noreferrer" style={{ color: "#6b8fab", opacity: 0.6 }} onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")} onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}><Linkedin size={14} /></a>
           </div>
