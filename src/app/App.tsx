@@ -372,59 +372,91 @@ function playBombSound() {
   if (!ctx) return;
   const now = ctx.currentTime;
   const master = ctx.createGain();
-  master.gain.setValueAtTime(0.9, now);
-  master.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
+  master.gain.setValueAtTime(1.0, now);
+  master.gain.exponentialRampToValueAtTime(0.0004, now + 2.1);
   master.connect(ctx.destination);
 
-  // low sub rumble
+  const fade = (g: GainNode, a: number, b: number, dur: number) => {
+    g.gain.setValueAtTime(a, now);
+    g.gain.exponentialRampToValueAtTime(b, now + dur);
+  };
+
+  // 1) chest-thumping sub boom — deep, slow fall
   const sub = ctx.createOscillator();
   sub.type = "sine";
-  sub.frequency.setValueAtTime(160, now);
-  sub.frequency.exponentialRampToValueAtTime(32, now + 1.3);
+  sub.frequency.setValueAtTime(150, now);
+  sub.frequency.exponentialRampToValueAtTime(30, now + 1.9);
   const subg = ctx.createGain();
-  subg.gain.setValueAtTime(0.85, now);
-  subg.gain.exponentialRampToValueAtTime(0.001, now + 1.3);
+  fade(subg, 1.0, 0.0005, 1.9);
   sub.connect(subg).connect(master);
-  sub.start(now); sub.stop(now + 1.4);
+  sub.start(now); sub.stop(now + 2.0);
 
-  // white noise burst through a sweeping lowpass = explosion body
-  const dur = 1.15;
+  // 2) dramatic low punch thump on top
+  const thump = ctx.createOscillator();
+  thump.type = "triangle";
+  thump.frequency.setValueAtTime(180, now);
+  thump.frequency.exponentialRampToValueAtTime(48, now + 0.4);
+  const thumpg = ctx.createGain();
+  fade(thumpg, 0.9, 0.0005, 0.5);
+  thump.connect(thumpg).connect(master);
+  thump.start(now); thump.stop(now + 0.55);
+
+  // 3) explosion body — brown noise slammed through a sweeping lowpass
+  const dur = 1.5;
   const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
   const data = buf.getChannelData(0);
-  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 1.7);
+  let last = 0;
+  for (let i = 0; i < data.length; i++) {
+    const w = Math.random() * 2 - 1;
+    last = (last + 0.035 * w) / 1.035;
+    data[i] = last * Math.pow(1 - i / data.length, 2.2);
+  }
   const noise = ctx.createBufferSource();
   noise.buffer = buf;
   const nf = ctx.createBiquadFilter();
   nf.type = "lowpass";
-  nf.frequency.setValueAtTime(5200, now);
-  nf.frequency.exponentialRampToValueAtTime(180, now + dur);
+  nf.frequency.setValueAtTime(6000, now);
+  nf.frequency.exponentialRampToValueAtTime(140, now + dur);
+  nf.Q.value = 0.9;
   const ng = ctx.createGain();
-  ng.gain.setValueAtTime(0.6, now);
-  ng.gain.exponentialRampToValueAtTime(0.001, now + dur);
+  fade(ng, 0.85, 0.0005, dur);
   noise.connect(nf).connect(ng).connect(master);
   noise.start(now); noise.stop(now + dur + 0.05);
 
-  // bright initial crack
+  // 4) crisp snap — bright highpass noise crack right at the onset
+  const snapDur = 0.16;
+  const snapBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * snapDur), ctx.sampleRate);
+  const sd = snapBuf.getChannelData(0);
+  for (let i = 0; i < sd.length; i++) sd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / sd.length, 3);
+  const snap = ctx.createBufferSource();
+  snap.buffer = snapBuf;
+  const hpf = ctx.createBiquadFilter();
+  hpf.type = "highpass";
+  hpf.frequency.value = 2600;
+  const sg = ctx.createGain();
+  fade(sg, 0.9, 0.0005, snapDur);
+  snap.connect(hpf).connect(sg).connect(master);
+  snap.start(now); snap.stop(now + snapDur + 0.05);
+
+  // 5) whistle-down crack
   const crack = ctx.createOscillator();
   crack.type = "square";
-  crack.frequency.setValueAtTime(980, now);
-  crack.frequency.exponentialRampToValueAtTime(70, now + 0.32);
+  crack.frequency.setValueAtTime(900, now);
+  crack.frequency.exponentialRampToValueAtTime(60, now + 0.3);
   const cg = ctx.createGain();
-  cg.gain.setValueAtTime(0.14, now);
-  cg.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+  fade(cg, 0.35, 0.0005, 0.32);
   crack.connect(cg).connect(master);
-  crack.start(now); crack.stop(now + 0.36);
+  crack.start(now); crack.stop(now + 0.34);
 
-  // thin hissy tail (shrapnel whistle)
+  // 6) thin shrapnel whistle tail
   const tail = ctx.createOscillator();
   tail.type = "sawtooth";
-  tail.frequency.setValueAtTime(1900, now + 0.05);
-  tail.frequency.exponentialRampToValueAtTime(220, now + 0.6);
+  tail.frequency.setValueAtTime(2400, now + 0.06);
+  tail.frequency.exponentialRampToValueAtTime(200, now + 0.75);
   const tg = ctx.createGain();
-  tg.gain.setValueAtTime(0.05, now + 0.05);
-  tg.gain.exponentialRampToValueAtTime(0.001, now + 0.62);
+  fade(tg, 0.12, 0.0005, 0.78);
   tail.connect(tg).connect(master);
-  tail.start(now + 0.05); tail.stop(now + 0.64);
+  tail.start(now + 0.06); tail.stop(now + 0.82);
 }
 
 function QuantumBomb() {
@@ -487,6 +519,7 @@ function QuantumBomb() {
           ))}
         </div>
       )}
+      <div className="quantum-bomb-float" style={{ position: "fixed", left: 18, bottom: 18, zIndex: 8500 }}>
       <button onClick={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         detonate(r.left + r.width / 2, r.top + r.height / 2);
@@ -494,7 +527,7 @@ function QuantumBomb() {
         setTimeout(() => setArmed(true), 2600);
       }}
         style={{
-          position: "fixed", left: 18, bottom: 18, zIndex: 8500, cursor: "pointer", padding: "10px 14px",
+          cursor: "pointer", padding: "10px 14px",
           background: "rgba(var(--bg-rgb),0.82)", border: "1px solid rgba(var(--c1),0.35)",
           display: "flex", alignItems: "center", gap: 8, backdropFilter: "blur(6px)",
           transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s, opacity 0.25s",
@@ -506,6 +539,7 @@ function QuantumBomb() {
         <span className="pulse-breathe" style={{ width: 8, height: 8, borderRadius: "50%", background: armed ? "var(--c4h)" : "var(--fg-d)", display: "inline-block", boxShadow: armed ? "0 0 8px var(--c4h)" : "none" }} />
         <span style={mono(9, armed ? "var(--c4h)" : "var(--fg-d)", { letterSpacing: "0.22em" })}>{armed ? "☢ QUANTUM_BOMB//ARMED" : "RELOADING…"}</span>
       </button>
+      </div>
     </>
   );
 }
