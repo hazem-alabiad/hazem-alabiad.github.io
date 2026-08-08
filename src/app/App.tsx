@@ -542,6 +542,8 @@ function QuantumBomb() {
   const [shocking, setShocking] = useState(false);
   const [blast, setBlast] = useState<{ x: number; y: number } | null>(null);
   const [afterglow, setAfterglow] = useState(false);
+  const [flash, setFlash] = useState(false);
+  const [embers, setEmbers] = useState<{ x: number; y: number; dx: number; dur: number; s: number }[]>([]);
   const idRef = useRef(0);
 
   const detonate = (cx: number, cy: number) => {
@@ -566,20 +568,47 @@ function QuantumBomb() {
     setShocking(true);
     setBlast({ x: cx, y: cy });
     setAfterglow(true);
+    setFlash(true);
+    setEmbers(Array.from({ length: 24 }, () => ({
+      x: cx + (Math.random() - 0.5) * 220,
+      y: cy + (Math.random() - 0.5) * 40,
+      dx: (Math.random() - 0.5) * 180,
+      dur: 0.9 + Math.random() * 1.3,
+      s: 3 + Math.random() * 6,
+    })));
     setTimeout(() => setShocking(false), 900);
     setTimeout(() => setAfterglow(false), 1400);
+    setTimeout(() => setFlash(false), 700);
     setTimeout(() => setSparks([]), 1800);
+    setTimeout(() => setEmbers([]), 2400);
     setTimeout(() => setBlast(null), 1600);
   };
 
   return (
     <>
       {shocking && <div style={{ position: "fixed", inset: 0, zIndex: 9890, pointerEvents: "none", animation: "bomb-shake 0.45s linear" }} />}
+      {flash && <div className="nuke-flash" style={{ position: "fixed", inset: 0, zIndex: 9855, pointerEvents: "none", background: "radial-gradient(circle at 50% 60%, rgba(255,255,235,1), rgba(255,220,160,0.9) 45%, rgba(255,255,255,0) 70%)", animation: "nuke-flash 0.65s ease-out forwards" }} />}
       {afterglow && <div style={{ position: "fixed", inset: 0, zIndex: 9870, pointerEvents: "none", background: "radial-gradient(circle, rgba(255,255,255,0.28), transparent 60%)", mixBlendMode: "screen", animation: "bomb-afterglow 0.9s ease-out forwards" }} />}
       {blast && (
-        <div style={{ position: "fixed", left: blast.x, top: blast.y, zIndex: 9885, pointerEvents: "none" }}>
-          <div style={{ position: "absolute", translate: "-50% -50%", borderRadius: "50%", /* flash core */ width: 40, height: 40, background: "var(--c4h)", boxShadow: "0 0 60px 30px rgba(255,200,60,0.8), 0 0 160px 80px rgba(0,240,255,0.5)", animation: "bomb-flash 0.6s ease-out forwards" }} />
-          <div style={{ position: "absolute", translate: "-50% -50%", width: 20, height: 20, borderRadius: "50%", border: "3px solid rgba(var(--c1),0.9)", opacity: 0.9, animation: "bomb-ring 0.7s cubic-bezier(0.16,1,0.3,1) forwards" }} />
+        <div style={{ position: "fixed", left: blast.x, top: blast.y, zIndex: 9882, pointerEvents: "none" }}>
+          {/* heat bloom */}
+          <div style={{ position: "absolute", translate: "-50% -50%", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, rgba(255,190,80,0.9), rgba(255,120,50,0.4) 45%, rgba(255,80,40,0.12) 68%, transparent 72%)", animation: "nuke-bloom 1.3s cubic-bezier(0.22,1,0.36,1) forwards" }} />
+          {/* mushroom stem */}
+          <div style={{ position: "absolute", translate: "-50% 0", width: 78, height: 210, borderRadius: "45% 45% 12% 12% / 55% 55% 25% 25%", background: "linear-gradient(to top, rgba(255,170,90,0.95), rgba(255,200,140,0.55) 45%, rgba(255,220,180,0.2) 75%, transparent)", filter: "blur(1.5px)", animation: "nuke-stem 1.5s cubic-bezier(0.22,1,0.36,1) forwards" }} />
+          {/* mushroom cap */}
+          <div style={{ position: "absolute", top: 0, left: 0, translate: "-50% -50%", width: 340, height: 230, borderRadius: "50%", background: "radial-gradient(ellipse at 50% 62%, rgba(255,120,50,0.85), rgba(220,80,70,0.55) 42%, rgba(150,70,80,0.3) 68%, transparent 75%)", filter: "blur(2px)", animation: "nuke-head 1.6s cubic-bezier(0.22,1,0.36,1) forwards" }} />
+        </div>
+      )}
+      {embers.length > 0 && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9875, pointerEvents: "none", overflow: "hidden" }}>
+          {embers.map((e, i) => (
+            <div key={i} style={{
+              position: "absolute", left: e.x, top: e.y, width: e.s, height: e.s, borderRadius: "50%",
+              background: "linear-gradient(180deg, #fff3c4, var(--c4h))", boxShadow: "0 0 12px rgba(255,160,60,0.9)",
+              ['--ex' as string]: `${e.dx}px`, ['--ey' as string]: `${-260 - Math.random() * 120}px`,
+              ['--ed' as string]: `${e.dur}s`,
+            }} className="ember-rise" />
+          ))}
         </div>
       )}
       {sparks.length > 0 && (
@@ -743,12 +772,12 @@ function FocusStrip() {
           style={{
             fontFamily: '"JetBrains Mono", monospace', fontWeight: 500, fontSize: 10,
             letterSpacing: "0.18em", textTransform: "uppercase", padding: "6px 12px",
-            border: `1px solid rgba(${bg[i % bg.length]},${visible ? "0.2" : "0.13"})`, color: hexs[i % hexs.length],
-            background: `rgba(${bg[i % bg.length]},0.05)`, animationDelay: `${i * 120}ms`,
-            cursor: "default", transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s, background 0.25s, border-color 0.25s",
+            color: hexs[i % hexs.length],
+            background: `rgba(${bg[i % bg.length]},0.05)`, animationDelay: `${i * 120}ms`, opacity: visible ? 1 : 0,
+            cursor: "default", transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s, background 0.25s, opacity 0.5s",
           }}
-          onMouseEnter={(e) => { const el = e.currentTarget; el.style.transform = "translateY(-3px)"; el.style.boxShadow = `0 8px 20px rgba(${bg[i % bg.length]},0.16)`; el.style.background = `rgba(${bg[i % bg.length]},0.1)`; el.style.borderColor = `rgba(${bg[i % bg.length]},0.53)`; }}
-          onMouseLeave={(e) => { const el = e.currentTarget; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; el.style.background = `rgba(${bg[i % bg.length]},0.05)`; el.style.borderColor = `rgba(${bg[i % bg.length]},0.2)`; }}>
+          onMouseEnter={(e) => { const el = e.currentTarget; el.style.transform = "translateY(-3px)"; el.style.background = `rgba(${bg[i % bg.length]},0.12)`; }}
+          onMouseLeave={(e) => { const el = e.currentTarget; el.style.transform = "translateY(0)"; el.style.background = `rgba(${bg[i % bg.length]},0.05)`; }}>
           {t}
         </span>
       ))}

@@ -297,6 +297,35 @@
   0%   { opacity: 1; }
   100% { opacity: 0; }
 }
+@keyframes nuke-flash {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes nuke-bloom {
+  0%   { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+  45%  { transform: translate(-50%, -50%) scale(1.4); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(2.1); opacity: 0; }
+}
+@keyframes nuke-stem {
+  0%   { transform: translate(-50%, 0) scaleY(0.15); opacity: 0.9; }
+  40%  { transform: translate(-50%, -70px) scaleY(0.95); opacity: 0.9; }
+  100% { transform: translate(-50%, -190px) scaleY(1.25) scaleX(1.5); opacity: 0; }
+}
+@keyframes nuke-head {
+  0%   { transform: translate(-50%, 0) scale(0.25); opacity: 0.95; }
+  45%  { transform: translate(-50%, -120px) scale(1); opacity: 0.85; }
+  100% { transform: translate(-50%, -210px) scale(1.9); opacity: 0; }
+}
+@keyframes ember-rise {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--ex, 0px), var(--ey, -260px)) scale(0.25); opacity: 0; }
+}
+.ember-rise {
+  animation-name: ember-rise;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+  animation-duration: var(--ed, 1.2s);
+}
 @keyframes pulse-breathing {
   0%, 100% { transform: scale(1); opacity: 1; }
   50%      { transform: scale(1.4); opacity: 0.55; }
