@@ -24,6 +24,7 @@ import {
   Linkedin,
   FileDown,
   Loader,
+  Copy,
   CheckCheck,
 } from "lucide-react";
 
@@ -1144,6 +1145,7 @@ export default function App() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [content, setContent] = useState<CmsContent>(() => loadContent());
   const [visits, setVisits] = useState<number | null>(null);
+  const [copiedEmail, setCopiedEmail] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -1559,14 +1561,26 @@ export default function App() {
               </div>
             </Spotlight>
             <div className="mt-8 pt-5" style={{ borderTop: "1px solid rgba(0,240,255,0.08)" }}>
-              <div style={mono(9, "rgba(0,240,255,0.45)", { marginBottom: 16, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>SPOKEN_LANGUAGES</div>
-              <div className="flex flex-wrap gap-3">
-                {content.languages.map((lang) => (
-                  <div key={lang.id} className="flex items-center gap-2 px-4 py-2" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.1)" }}>
-                    <span style={body(16, "#e2e8f4")}>{lang.name}</span>
-                    <span style={mono(9, "#6b8fab")}>// {lang.level.toUpperCase()}</span>
-                  </div>
-                ))}
+              <div style={mono(9, "rgba(0,240,255,0.45)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>SPOKEN_LANGUAGES</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {content.languages.map((lang, i) => {
+                  const L = lang.level.toLowerCase();
+                  const pct = L.includes("native") ? 100 : L.includes("profic") ? 75 : L.includes("fluent") ? 85 : L.includes("beginner") ? 40 : 60;
+                  const filled = Math.round((pct / 100) * 8);
+                  return (
+                    <div key={lang.id} className="px-4 py-3" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.1)" }}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span style={body(16, "#e2e8f4")}>{lang.name}</span>
+                        <span style={mono(8.5, pct >= 75 ? "#00f0ff" : "#6b8fab", { letterSpacing: "0.14em" })}>{lang.level.toUpperCase()}</span>
+                      </div>
+                      <div className="flex gap-1" style={{ opacity: skillsR.visible ? 1 : 0, transition: "opacity 0.5s ease", transitionDelay: `${i * 90}ms` }}>
+                        {Array.from({ length: 8 }).map((_, k) => (
+                          <span key={k} style={{ flex: 1, height: 3, background: k < filled ? "linear-gradient(90deg, #00f0ff, #9d4edd)" : "#0f1624", transition: "background 0.5s ease", transitionDelay: `${i * 90 + k * 50}ms`, boxShadow: k < filled ? "0 0 5px rgba(0,240,255,0.3)" : "none" }} />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -1587,22 +1601,45 @@ export default function App() {
                 <div className="space-y-3">
                   {content.links.map((link) => {
                     const iconKey = (link.label || "").toUpperCase();
+                    const isMail = iconKey.includes("EMAIL") || iconKey.includes("MAIL");
                     const Icon = iconKey.includes("GIT") ? Github : iconKey.includes("LINK") ? Linkedin : iconKey.includes("SCHOLAR") ? Globe : Mail;
+                    const inner = (
+                      <>
+                        <div className="flex items-center justify-center flex-shrink-0" style={{ width: 32, height: 32, border: "1px solid rgba(0,240,255,0.2)", color: "#00f0ff" }}>
+                          <Icon size={13} />
+                        </div>
+                        <div className="flex-1">
+                          <div style={mono(9, "#6b8fab", { marginBottom: 3, textTransform: "uppercase" as const, letterSpacing: "0.2em" })}>{link.label}</div>
+                          <div style={body(16, "#e2e8f4")}>{link.value}</div>
+                        </div>
+                        <span className="flex items-center gap-1.5 flex-shrink-0">
+                          {isMail ? <Copy size={13} color="#00f0ff" style={{ opacity: 0.6 }} /> : <ArrowUpRight size={13} color="#00f0ff" style={{ opacity: 0.4 }} />}
+                          {isMail && copiedEmail && (
+                            <span style={mono(9, "#28c840", { letterSpacing: "0.15em" })}>COPIED</span>
+                          )}
+                        </span>
+                      </>
+                    );
+                    const base = "flex items-center gap-4 p-4 transition-all duration-300";
+                    const box = { background: "#080f1c", border: "1px solid rgba(0,240,255,0.07)" };
+                    if (isMail) {
+                      return (
+                        <button key={link.id} onClick={() => { navigator.clipboard.writeText(link.value).catch(() => {}); setCopiedEmail(true); setTimeout(() => setCopiedEmail(false), 2000); }}
+                          className={`${base} w-full text-left`} style={{ ...box, borderColor: copiedEmail ? "rgba(40,200,64,0.4)" : "rgba(0,240,255,0.07)", cursor: "pointer" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.borderColor = copiedEmail ? "rgba(40,200,64,0.5)" : "rgba(0,240,255,0.28)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.borderColor = copiedEmail ? "rgba(40,200,64,0.4)" : "rgba(0,240,255,0.07)")}>
+                          {inner}
+                        </button>
+                      );
+                    }
                     return (
-                    <a key={link.id} href={link.href || "#"} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-4 p-4 transition-all duration-300"
-                      style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.07)", textDecoration: "none" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.28)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.07)")}>
-                      <div className="flex items-center justify-center flex-shrink-0" style={{ width: 32, height: 32, border: "1px solid rgba(0,240,255,0.2)", color: "#00f0ff" }}>
-                        <Icon size={13} />
-                      </div>
-                      <div className="flex-1">
-                        <div style={mono(9, "#6b8fab", { marginBottom: 3, textTransform: "uppercase" as const, letterSpacing: "0.2em" })}>{link.label}</div>
-                        <div style={body(16, "#e2e8f4")}>{link.value}</div>
-                      </div>
-                      <ArrowUpRight size={13} color="#00f0ff" style={{ opacity: 0.4 }} />
-                    </a>
+                      <a key={link.id} href={link.href || "#"} target="_blank" rel="noopener noreferrer"
+                        className={base}
+                        style={{ ...box, textDecoration: "none" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.28)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.07)")}>
+                        {inner}
+                      </a>
                     );
                   })}
                 </div>
