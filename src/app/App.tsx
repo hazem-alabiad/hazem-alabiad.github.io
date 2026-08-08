@@ -372,7 +372,7 @@ function SectionLabel({ num, label }: { num: string; label: string }) {
     return () => obs.disconnect();
   }, []);
   return (
-    <div ref={ref} className="flex items-center gap-4 mb-8">
+    <div ref={ref} className="flex items-center gap-4 mb-6">
       <span className={`neon-flicker ${vis ? "glitch-enter" : ""}`} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.28em", color: "rgba(0,240,255,0.7)", textTransform: "uppercase" as const }}>
         MODULE_{num}
       </span>
@@ -1246,7 +1246,7 @@ export default function App() {
         <div className="absolute top-1/4 right-1/4 w-80 h-80 pointer-events-none" style={{ borderRadius: "50%", background: "radial-gradient(circle, rgba(0,240,255,0.07) 0%, transparent 70%)", filter: "blur(40px)", animation: "orb-drift-1 14s ease-in-out infinite" }} />
         <div className="absolute bottom-1/3 left-1/5 w-64 h-64 pointer-events-none" style={{ borderRadius: "50%", background: "radial-gradient(circle, rgba(157,78,221,0.07) 0%, transparent 70%)", filter: "blur(40px)", animation: "orb-drift-2 18s ease-in-out infinite" }} />
         <div className="max-w-7xl mx-auto w-full">
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3 mb-6">
             <span style={mono(9, "rgba(0,240,255,0.45)", { letterSpacing: "0.35em" })}>NEURAL_ID::HAZ-2026-ALA-TBN</span>
             <div className="w-16 h-px" style={{ background: "rgba(0,240,255,0.18)" }} />
             <span style={mono(9, "rgba(157,78,221,0.45)", { letterSpacing: "0.3em" })}>2026.08.01</span>
@@ -1260,7 +1260,7 @@ export default function App() {
                 HAZEM<br /><span style={{ color: "#00f0ff" }}>ALABIAD</span>
               </h1>
 
-              <div className="flex items-center gap-2 mb-8">
+              <div className="flex items-center gap-2 mb-6">
                 <div className="blink w-2 h-5 bg-[#00f0ff]" />
                 <p style={mono(14, "#b0cede", { letterSpacing: "0.14em", fontSize: "clamp(12px,1.6vw,15px)" })}>{typeText}</p>
               </div>
@@ -1273,7 +1273,7 @@ export default function App() {
                 {get("bio1", DEFAULTS.bio1)}
               </p>
 
-              <div className="flex flex-wrap gap-4 mb-10">
+              <div className="flex flex-wrap gap-4 mb-8">
                 <MagneticWrap>
                   <button onClick={() => scrollTo("experience")} className="flex items-center gap-3 transition-all duration-300"
                     style={mono(10, "#00f0ff", { padding: "12px 24px", border: "1px solid #00f0ff", letterSpacing: "0.2em", cursor: "none" })}
@@ -1306,8 +1306,8 @@ export default function App() {
             </div>
 
             {/* Right — Photo + quick facts, merged from About */}
-            <div className="lg:col-span-5">
-              <div className="flex justify-center lg:justify-end mb-6">
+            <div className="lg:col-span-5 space-y-4">
+              <div className="flex justify-center lg:justify-end">
                 <div className="group relative inline-block cursor-pointer"
                   style={{ filter: "drop-shadow(0 0 26px rgba(0,240,255,0.16))" }}>
                   <div style={{
@@ -1397,14 +1397,14 @@ export default function App() {
               ))}
 
               {/* ── Terminal / quick-facts card ── */}
-              <div className="p-4" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.1)", fontFamily: '"JetBrains Mono", monospace', fontSize: 11 }}>
+              <div className="p-5" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.12)", fontFamily: '"JetBrains Mono", monospace', fontSize: 11, marginTop: 10, boxShadow: "0 0 0 rgba(0,240,255,0)" }}>
                 <div className="flex gap-2 mb-3 items-center">
                   <div className="w-2 h-2 rounded-full" style={{ background: "#ff5f57" }} />
                   <div className="w-2 h-2 rounded-full" style={{ background: "#febc2e" }} />
                   <div className="w-2 h-2 rounded-full" style={{ background: "#28c840" }} />
                   <span className="blink" style={{ color: "#6b8fab", fontSize: 9, letterSpacing: "0.15em", marginLeft: 8 }}>hazem@tübingen:~$</span>
                 </div>
-                <div style={{ lineHeight: 1.8 }}>
+                <div style={{ lineHeight: 1.9 }}>
                   <div><span style={{ color: "#9d4edd" }}>focus</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#00f0ff" }}>[</span></div>
                   <div style={{ paddingLeft: 18, color: "#8ab4c8" }}>"NLP", "LLMs", "Full-Stack", "Comp. Linguistics", "ML/DL"</div>
                   <div><span style={{ color: "#00f0ff" }}>]</span></div>
@@ -1425,16 +1425,16 @@ export default function App() {
 
 
       {/* ── Experience ── */}
-      <section id="experience" className="relative py-24 px-6" style={{ zIndex: 10 }}>
+      <section id="experience" className="relative py-14 px-6" style={{ zIndex: 10 }}>
         <div ref={expR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="01" label="EXPERIENCE" />
           <div className="transition-all duration-1000" style={{ opacity: expR.visible ? 1 : 0, transform: expR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
+            <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
               Work <span style={{ color: "#9d4edd" }}>History</span>
             </WipeHeading>
             <div className="space-y-4">
               {content.experience.map((exp, idx) => (
-                <div key={exp.id || idx} className={`relative p-6 transition-colors duration-300 ${expR.visible ? "depth-rise" : "opacity-0"} ${exp.current ? "glow-border" : ""}`}
+                <div key={exp.id || idx} className={`relative p-5 transition-colors duration-300 ${expR.visible ? "depth-rise" : "opacity-0"} ${exp.current ? "glow-border" : ""}`}
                   style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.07)", animationDelay: `${idx * 110}ms` }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,240,255,0.35)"; (e.currentTarget as HTMLElement).style.background = "#0b1220"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = exp.current ? "" : "rgba(0,240,255,0.07)"; (e.currentTarget as HTMLElement).style.background = "#080f1c"; }}>
@@ -1474,11 +1474,11 @@ export default function App() {
       <SkillTicker />
 
       {/* ── Projects ── */}
-      <section id="projects" className="relative py-24 px-6" style={{ zIndex: 10 }}>
+      <section id="projects" className="relative py-14 px-6" style={{ zIndex: 10 }}>
         <div ref={projectsR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="02" label="PROJECTS" />
           <div className="transition-all duration-1000" style={{ opacity: projectsR.visible ? 1 : 0, transform: projectsR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
+            <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
               Research <span style={{ color: "#00f0ff" }}>& Projects</span>
             </WipeHeading>
             <Spotlight className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1533,11 +1533,11 @@ export default function App() {
       </section>
 
       {/* ── Skills ── */}
-      <section id="skills" className="relative py-24 px-6" style={{ zIndex: 10 }}>
+      <section id="skills" className="relative py-14 px-6" style={{ zIndex: 10 }}>
         <div ref={skillsR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="03" label="PROFICIENCIES" />
           <div className="transition-all duration-1000" style={{ opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
+            <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
               Technical <span style={{ color: "#9d4edd" }}>Proficiencies</span>
             </WipeHeading>
             <Spotlight className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
@@ -1558,7 +1558,7 @@ export default function App() {
                 </div>
               </div>
             </Spotlight>
-            <div className="mt-16 pt-8" style={{ borderTop: "1px solid rgba(0,240,255,0.08)" }}>
+            <div className="mt-8 pt-5" style={{ borderTop: "1px solid rgba(0,240,255,0.08)" }}>
               <div style={mono(9, "rgba(0,240,255,0.45)", { marginBottom: 16, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>SPOKEN_LANGUAGES</div>
               <div className="flex flex-wrap gap-3">
                 {content.languages.map((lang) => (
@@ -1574,16 +1574,16 @@ export default function App() {
       </section>
 
       {/* ── Contact ── */}
-      <section id="contact" className="relative py-24 px-6" style={{ zIndex: 10 }}>
+      <section id="contact" className="relative py-14 px-6" style={{ zIndex: 10 }}>
         <div ref={contactR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="04" label="CONTACT" />
           <div className="transition-all duration-1000" style={{ opacity: contactR.visible ? 1 : 0, transform: contactR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
               <div>
                 <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
                   Get in <span style={{ color: "#00f0ff" }}>Touch</span>
                 </WipeHeading>
-                <p className="mb-8" style={body(17)}>{get("contactIntro", DEFAULT_CONTENT.contactIntro)}</p>
+                <p className="mb-6" style={body(17)}>{get("contactIntro", DEFAULT_CONTENT.contactIntro)}</p>
                 <div className="space-y-3">
                   {content.links.map((link) => {
                     const iconKey = (link.label || "").toUpperCase();
