@@ -234,18 +234,18 @@ function ParticleField() {
     }
     function tick() {
       const W = canvas!.width, H = canvas!.height;
-      ctx!.fillStyle = "rgba(var(--bg-rgb),0.18)";
+      ctx!.fillStyle = "rgba(5,8,20,0.18)";
       ctx!.fillRect(0, 0, W, H);
       ctx!.lineWidth = 0.5;
-      ctx!.strokeStyle = "rgba(var(--c1),0.04)";
+      ctx!.strokeStyle = "rgba(0,240,255,0.04)";
       const GS = 65;
       for (let x = 0; x < W; x += GS) { ctx!.beginPath(); ctx!.moveTo(x, 0); ctx!.lineTo(x, H); ctx!.stroke(); }
       for (let y = 0; y < H; y += GS) { ctx!.beginPath(); ctx!.moveTo(0, y); ctx!.lineTo(W, y); ctx!.stroke(); }
       state.scanY = (state.scanY + 0.55) % H;
       const sg = ctx!.createLinearGradient(0, state.scanY - 80, 0, state.scanY + 80);
-      sg.addColorStop(0, "rgba(var(--c1),0)");
-      sg.addColorStop(0.5, "rgba(var(--c1),0.032)");
-      sg.addColorStop(1, "rgba(var(--c1),0)");
+      sg.addColorStop(0, "rgba(0,240,255,0)");
+      sg.addColorStop(0.5, "rgba(0,240,255,0.032)");
+      sg.addColorStop(1, "rgba(0,240,255,0)");
       ctx!.fillStyle = sg;
       ctx!.fillRect(0, state.scanY - 80, W, 160);
       const { particles, mouse } = state;
