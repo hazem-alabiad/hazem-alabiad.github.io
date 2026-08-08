@@ -1,29 +1,29 @@
 import { useState, useEffect } from "react";
 import {
-  Github, Linkedin, Mail, MapPin, Edit3, X, Plus, Trash2,
-  ArrowUpRight, Download, RotateCcw,
+  Github, Linkedin, Mail, MapPin,
+  ArrowUpRight, Download, Settings,
 } from "lucide-react";
 import profilePhoto from "@/imports/IMG_0323.jpeg";
 import cvAsset from "@/imports/Hazem-Alabiad-CV.pdf?url";
+import { resolveCvHref, resolveCvName } from "./cv";
+import CmsPage from "./components/CmsPage";
+
+const OWNER = "hazem-alabiad";
+const REPO = "hazem-alabiad.github.io";
+const CONTENT_PATH = "src/app/content.json";
+const TOKEN_KEY = "cms_gh_token";
 
 /* ─── Types ─────────────────────────────────────────────── */
 interface HeroContent {
   name: string; tagline: string; location: string; bio: string;
   researchFocus: string; email: string; phone: string;
   github: string; linkedin: string; cvUrl: string;
+  cvFileData?: string; cvFileName?: string;
 }
-interface ExpItem {
-  id: string; role: string; company: string; location: string;
-  period: string; bullets: string[];
-}
-interface ProjItem {
-  id: string; title: string; year: string; description: string; link: string;
-}
+interface ExpItem { id: string; role: string; company: string; location: string; period: string; bullets: string[]; }
+interface ProjItem { id: string; title: string; year: string; description: string; link: string; }
 interface SkillGroup { id: string; label: string; skills: string; }
-interface EduItem {
-  id: string; degree: string; school: string; location: string;
-  period: string; notes: string;
-}
+interface EduItem { id: string; degree: string; school: string; location: string; period: string; notes: string; }
 interface LangItem { id: string; name: string; level: string; }
 interface SiteContent {
   hero: HeroContent;
@@ -34,7 +34,7 @@ interface SiteContent {
   languages: LangItem[];
 }
 
-/* ─── Seed Data ──────────────────────────────────────────── */
+/* ─── Seed (fallback) ────────────────────────────────────── */
 const seed: SiteContent = {
   hero: {
     name: "Hazem Alabiad",
@@ -82,293 +82,95 @@ const seed: SiteContent = {
 };
 
 /* ─── Helpers ────────────────────────────────────────────── */
-function uid() { return Math.random().toString(36).slice(2, 9); }
-
 function groupByCompany(items: ExpItem[]) {
   const groups: { company: string; location: string; roles: ExpItem[] }[] = [];
   for (const item of items) {
     const last = groups[groups.length - 1];
-    if (last && last.company === item.company) {
-      last.roles.push(item);
-    } else {
-      groups.push({ company: item.company, location: item.location, roles: [item] });
-    }
+    if (last && last.company === item.company) { last.roles.push(item); }
+    else { groups.push({ company: item.company, location: item.location, roles: [item] }); }
   }
   return groups;
 }
 const MONO: React.CSSProperties = { fontFamily: "'JetBrains Mono', monospace" };
 const DISPLAY: React.CSSProperties = { fontFamily: "'DM Serif Display', serif" };
 
-/* ─── Section Header ─────────────────────────────────────── */
 function SectionHeader({ label, id }: { label: string; id: string }) {
   return (
     <div id={id} className="flex items-center gap-5 mb-12 scroll-mt-24">
-      <span className="text-[11px] tracking-[0.25em] uppercase shrink-0" style={{ ...MONO, color: "#5eead4" }}>
-        {label}
-      </span>
+      <span className="text-[11px] tracking-[0.25em] uppercase shrink-0" style={{ ...MONO, color: "#5eead4" }}>{label}</span>
       <div className="flex-1 h-px" style={{ background: "oklch(1 0 0 / 0.07)" }} />
     </div>
   );
 }
 
-/* ─── Social Link ────────────────────────────────────────── */
 function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
   return (
-    <a
-      href={href}
-      target={href.startsWith("mailto") ? undefined : "_blank"}
-      rel="noopener noreferrer"
-      className="flex items-center gap-1.5 text-sm transition-colors hover:text-[#5eead4]"
-      style={{ color: "#6b6b82" }}
-    >
+    <a href={href} target={href.startsWith("mailto") ? undefined : "_blank"} rel="noopener noreferrer"
+      className="flex items-center gap-1.5 text-sm transition-colors hover:text-[#5eead4]" style={{ color: "#6b6b82" }}>
       {icon} {label}
     </a>
   );
 }
 
-/* ─── CMS Field ──────────────────────────────────────────── */
-function Field({ label, value, onChange, multiline = false }: {
-  label: string; value: string; onChange: (v: string) => void; multiline?: boolean;
-}) {
-  const cls = "w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-[#d4d4e0] focus:outline-none focus:border-[#5eead4]/50 transition-colors";
-  return (
-    <div className="space-y-1.5">
-      <label className="text-[10px] uppercase tracking-[0.2em] text-[#6b6b82]" style={MONO}>
-        {label}
-      </label>
-      {multiline
-        ? <textarea className={`${cls} resize-none min-h-[72px]`} value={value} onChange={e => onChange(e.target.value)} />
-        : <input className={cls} value={value} onChange={e => onChange(e.target.value)} />
-      }
-    </div>
-  );
-}
-
-function AddButton({ onClick, label }: { onClick: () => void; label: string }) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full py-2.5 rounded border border-dashed flex items-center justify-center gap-2 text-xs transition-colors hover:text-[#5eead4]"
-      style={{ ...MONO, borderColor: "oklch(1 0 0 / 0.15)", color: "#6b6b82" }}
-    >
-      <Plus size={13} /> {label}
-    </button>
-  );
-}
-
-/* ─── Content Manager ────────────────────────────────────── */
-type CmsTab = "hero" | "experience" | "projects" | "skills" | "education" | "languages";
-
-function ContentManager({ content, onChange, onClose, onReset }: {
-  content: SiteContent; onChange: (c: SiteContent) => void;
-  onClose: () => void; onReset: () => void;
-}) {
-  const [tab, setTab] = useState<CmsTab>("hero");
-
-  const upHero = (k: keyof HeroContent, v: string) =>
-    onChange({ ...content, hero: { ...content.hero, [k]: v } });
-
-  const upExp = (id: string, k: keyof Omit<ExpItem, "id" | "bullets">, v: string) =>
-    onChange({ ...content, experience: content.experience.map(e => e.id === id ? { ...e, [k]: v } : e) });
-  const upExpBullets = (id: string, v: string) =>
-    onChange({ ...content, experience: content.experience.map(e => e.id === id ? { ...e, bullets: v.split("\n") } : e) });
-  const addExp = () => onChange({ ...content, experience: [...content.experience, { id: uid(), role: "New Role", company: "Company", location: "", period: "", bullets: [] }] });
-  const delExp = (id: string) => onChange({ ...content, experience: content.experience.filter(e => e.id !== id) });
-
-  const upProj = (id: string, k: keyof Omit<ProjItem, "id">, v: string) =>
-    onChange({ ...content, projects: content.projects.map(p => p.id === id ? { ...p, [k]: v } : p) });
-  const addProj = () => onChange({ ...content, projects: [...content.projects, { id: uid(), title: "New Project", year: new Date().getFullYear().toString(), description: "", link: "" }] });
-  const delProj = (id: string) => onChange({ ...content, projects: content.projects.filter(p => p.id !== id) });
-
-  const upSkill = (id: string, k: keyof Omit<SkillGroup, "id">, v: string) =>
-    onChange({ ...content, skills: content.skills.map(s => s.id === id ? { ...s, [k]: v } : s) });
-  const addSkill = () => onChange({ ...content, skills: [...content.skills, { id: uid(), label: "Category", skills: "" }] });
-  const delSkill = (id: string) => onChange({ ...content, skills: content.skills.filter(s => s.id !== id) });
-
-  const upEdu = (id: string, k: keyof Omit<EduItem, "id">, v: string) =>
-    onChange({ ...content, education: content.education.map(e => e.id === id ? { ...e, [k]: v } : e) });
-  const addEdu = () => onChange({ ...content, education: [...content.education, { id: uid(), degree: "Degree", school: "School", location: "", period: "", notes: "" }] });
-  const delEdu = (id: string) => onChange({ ...content, education: content.education.filter(e => e.id !== id) });
-
-  const upLang = (id: string, k: keyof Omit<LangItem, "id">, v: string) =>
-    onChange({ ...content, languages: content.languages.map(l => l.id === id ? { ...l, [k]: v } : l) });
-  const addLang = () => onChange({ ...content, languages: [...content.languages, { id: uid(), name: "Language", level: "Beginner" }] });
-  const delLang = (id: string) => onChange({ ...content, languages: content.languages.filter(l => l.id !== id) });
-
-  const tabs: Array<{ key: CmsTab; label: string }> = [
-    { key: "hero", label: "Profile" },
-    { key: "experience", label: "Work" },
-    { key: "projects", label: "Research" },
-    { key: "skills", label: "Skills" },
-    { key: "education", label: "Education" },
-    { key: "languages", label: "Languages" },
-  ];
-
-  const cardStyle: React.CSSProperties = { background: "#111119", borderColor: "oklch(1 0 0 / 0.08)" };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-stretch">
-      <div className="flex-1 cursor-pointer" style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }} onClick={onClose} />
-      <div className="w-[460px] flex flex-col border-l overflow-hidden" style={{ background: "#0c0c13", borderColor: "oklch(1 0 0 / 0.09)" }}>
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 shrink-0 border-b" style={{ borderColor: "oklch(1 0 0 / 0.07)" }}>
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.25em] mb-0.5" style={{ ...MONO, color: "#5eead4" }}>Content Manager</p>
-            <p className="text-[#d4d4e0] text-sm font-medium">Edit · saves automatically</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={onReset} title="Reset to defaults" className="w-8 h-8 flex items-center justify-center rounded transition-colors hover:bg-white/5 hover:text-red-400" style={{ color: "#6b6b82" }}>
-              <RotateCcw size={13} />
-            </button>
-            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded transition-colors hover:bg-white/5 hover:text-[#d4d4e0]" style={{ color: "#6b6b82" }}>
-              <X size={15} />
-            </button>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex shrink-0 border-b px-1 overflow-x-auto" style={{ borderColor: "oklch(1 0 0 / 0.07)" }}>
-          {tabs.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)} className="relative px-3 py-3 text-[11px] tracking-wide transition-colors whitespace-nowrap" style={{ ...MONO, color: tab === t.key ? "#5eead4" : "#6b6b82" }}>
-              {t.label}
-              {tab === t.key && <span className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "#5eead4" }} />}
-            </button>
-          ))}
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-
-          {tab === "hero" && <>
-            <Field label="Name" value={content.hero.name} onChange={v => upHero("name", v)} />
-            <Field label="Tagline" value={content.hero.tagline} onChange={v => upHero("tagline", v)} />
-            <Field label="Location" value={content.hero.location} onChange={v => upHero("location", v)} />
-            <Field label="Bio" value={content.hero.bio} onChange={v => upHero("bio", v)} multiline />
-            <Field label="Research Focus" value={content.hero.researchFocus} onChange={v => upHero("researchFocus", v)} />
-            <Field label="Email" value={content.hero.email} onChange={v => upHero("email", v)} />
-            <Field label="Phone" value={content.hero.phone} onChange={v => upHero("phone", v)} />
-            <Field label="GitHub" value={content.hero.github} onChange={v => upHero("github", v)} />
-            <Field label="LinkedIn" value={content.hero.linkedin} onChange={v => upHero("linkedin", v)} />
-            <Field label="CV / Resume URL" value={content.hero.cvUrl} onChange={v => upHero("cvUrl", v)} />
-          </>}
-
-          {tab === "experience" && <div className="space-y-5">
-            {content.experience.map((e, i) => (
-              <div key={e.id} className="rounded-lg p-4 space-y-3 border" style={cardStyle}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-widest" style={{ ...MONO, color: "#5eead4" }}>#{i + 1}</span>
-                  <button onClick={() => delExp(e.id)} className="transition-colors hover:text-red-400" style={{ color: "#6b6b82" }}><Trash2 size={13} /></button>
-                </div>
-                <Field label="Role" value={e.role} onChange={v => upExp(e.id, "role", v)} />
-                <Field label="Company" value={e.company} onChange={v => upExp(e.id, "company", v)} />
-                <Field label="Location" value={e.location} onChange={v => upExp(e.id, "location", v)} />
-                <Field label="Period" value={e.period} onChange={v => upExp(e.id, "period", v)} />
-                <Field label="Bullets (one per line)" value={e.bullets.join("\n")} onChange={v => upExpBullets(e.id, v)} multiline />
-              </div>
-            ))}
-            <AddButton onClick={addExp} label="Add Experience" />
-          </div>}
-
-          {tab === "projects" && <div className="space-y-5">
-            {content.projects.map((p, i) => (
-              <div key={p.id} className="rounded-lg p-4 space-y-3 border" style={cardStyle}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-widest" style={{ ...MONO, color: "#5eead4" }}>#{i + 1}</span>
-                  <button onClick={() => delProj(p.id)} className="transition-colors hover:text-red-400" style={{ color: "#6b6b82" }}><Trash2 size={13} /></button>
-                </div>
-                <Field label="Title" value={p.title} onChange={v => upProj(p.id, "title", v)} />
-                <Field label="Year" value={p.year} onChange={v => upProj(p.id, "year", v)} />
-                <Field label="Description" value={p.description} onChange={v => upProj(p.id, "description", v)} multiline />
-                <Field label="GitHub / Link" value={p.link} onChange={v => upProj(p.id, "link", v)} />
-              </div>
-            ))}
-            <AddButton onClick={addProj} label="Add Project" />
-          </div>}
-
-          {tab === "skills" && <div className="space-y-5">
-            {content.skills.map((s, i) => (
-              <div key={s.id} className="rounded-lg p-4 space-y-3 border" style={cardStyle}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-widest" style={{ ...MONO, color: "#5eead4" }}>#{i + 1}</span>
-                  <button onClick={() => delSkill(s.id)} className="transition-colors hover:text-red-400" style={{ color: "#6b6b82" }}><Trash2 size={13} /></button>
-                </div>
-                <Field label="Category Name" value={s.label} onChange={v => upSkill(s.id, "label", v)} />
-                <Field label="Skills (comma-separated)" value={s.skills} onChange={v => upSkill(s.id, "skills", v)} multiline />
-              </div>
-            ))}
-            <AddButton onClick={addSkill} label="Add Category" />
-          </div>}
-
-          {tab === "education" && <div className="space-y-5">
-            {content.education.map((e, i) => (
-              <div key={e.id} className="rounded-lg p-4 space-y-3 border" style={cardStyle}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-widest" style={{ ...MONO, color: "#5eead4" }}>#{i + 1}</span>
-                  <button onClick={() => delEdu(e.id)} className="transition-colors hover:text-red-400" style={{ color: "#6b6b82" }}><Trash2 size={13} /></button>
-                </div>
-                <Field label="Degree" value={e.degree} onChange={v => upEdu(e.id, "degree", v)} />
-                <Field label="School" value={e.school} onChange={v => upEdu(e.id, "school", v)} />
-                <Field label="Location" value={e.location} onChange={v => upEdu(e.id, "location", v)} />
-                <Field label="Period" value={e.period} onChange={v => upEdu(e.id, "period", v)} />
-                <Field label="Notes" value={e.notes} onChange={v => upEdu(e.id, "notes", v)} multiline />
-              </div>
-            ))}
-            <AddButton onClick={addEdu} label="Add Education" />
-          </div>}
-
-          {tab === "languages" && <div className="space-y-5">
-            {content.languages.map((l, i) => (
-              <div key={l.id} className="rounded-lg p-4 space-y-3 border" style={cardStyle}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-widest" style={{ ...MONO, color: "#5eead4" }}>#{i + 1}</span>
-                  <button onClick={() => delLang(l.id)} className="transition-colors hover:text-red-400" style={{ color: "#6b6b82" }}><Trash2 size={13} /></button>
-                </div>
-                <Field label="Language" value={l.name} onChange={v => upLang(l.id, "name", v)} />
-                <Field label="Level" value={l.level} onChange={v => upLang(l.id, "level", v)} />
-              </div>
-            ))}
-            <AddButton onClick={addLang} label="Add Language" />
-          </div>}
-
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ─── Main App ───────────────────────────────────────────── */
 export default function App() {
-  const [content, setContent] = useState<SiteContent>(() => {
-    try {
-      const saved = localStorage.getItem("hazem-portfolio");
-      return saved ? JSON.parse(saved) : seed;
-    } catch {
-      return seed;
-    }
-  });
-  const [cmsOpen, setCmsOpen] = useState(false);
+  const [hash, setHash] = useState(() => window.location.hash);
   const [visitCount, setVisitCount] = useState<number | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
+  const [ownerChecked, setOwnerChecked] = useState(false);
+  const [data, setData] = useState<SiteContent>(seed);
 
   useEffect(() => {
-    try { localStorage.setItem("hazem-portfolio", JSON.stringify(content)); } catch {}
-  }, [content]);
+    const onHashChange = () => setHash(window.location.hash);
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
 
   useEffect(() => {
-    fetch("https://api.counterapi.dev/v1/hazem-alabiad/portfolio/up")
+    const stored = localStorage.getItem(TOKEN_KEY);
+    if (!stored) { setOwnerChecked(true); return; }
+    fetch("https://api.github.com/user", {
+      headers: { Authorization: `Bearer ${stored}`, Accept: "application/vnd.github+json" },
+    })
       .then(r => r.json())
-      .then(d => setVisitCount(d.count))
+      .then(u => { if (u.login === OWNER) setIsOwner(true); })
+      .catch(() => {})
+      .finally(() => setOwnerChecked(true));
+  }, []);
+
+  useEffect(() => {
+    fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/main/${CONTENT_PATH}`)
+      .then(r => r.json())
+      .then(d => setData(d))
       .catch(() => {});
   }, []);
 
-  const handleReset = () => {
-    if (confirm("Reset all content to defaults?")) {
-      setContent(seed);
-      localStorage.removeItem("hazem-portfolio");
-    }
-  };
+  // Key must be a flat string — no slashes (slashes break the API router)
+  useEffect(() => {
+    if (!ownerChecked) return;
+    const base = "https://countapi.mileshilliard.com";
+    const key = "hazem-alabiad_portfolio";
+    const endpoint = isOwner ? `${base}/api/v1/get/${key}` : `${base}/api/v1/hit/${key}`;
+    fetch(endpoint)
+      .then(r => r.json())
+      .then(d => { if (d.value !== undefined) setVisitCount(Number(d.value)); })
+      .catch(() => {});
+  }, [ownerChecked, isOwner]);
 
-  const { hero, experience, projects, skills, education, languages } = content;
+  useEffect(() => {
+    const title = `${data.hero.name} • Portfolio`;
+    document.title = title;
+    const desc = data.hero.bio.slice(0, 155) + (data.hero.bio.length > 155 ? "…" : "");
+    document.querySelector('meta[name="description"]')?.setAttribute("content", desc);
+    document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
+    document.querySelector('meta[property="og:description"]')?.setAttribute("content", desc);
+  }, [data.hero]);
+
+  if (hash === "#/cms") return <CmsPage onExit={() => { window.location.hash = ""; setHash(""); }} />;
+
+  const { hero, experience, projects, skills, education, languages } = data;
+
+  const currentYear = new Date().getFullYear();
 
   return (
     <div className="min-h-screen antialiased" style={{ background: "#09090f", color: "#d4d4e0" }}>
@@ -378,7 +180,7 @@ export default function App() {
         style={{ background: "rgba(9,9,15,0.88)", backdropFilter: "blur(16px)", borderColor: "oklch(1 0 0 / 0.06)" }}>
         <span className="text-sm" style={{ ...DISPLAY, color: "#5eead4" }}>{hero.name}</span>
         <div className="hidden md:flex items-center gap-8">
-          {[["Education", "education"], ["Experience", "experience"], ["Research", "projects"], ["Skills", "skills"]].map(([label, id]) => (
+          {([["Education", "education"], ["Experience", "experience"], ["Research", "projects"], ["Skills", "skills"]] as [string, string][]).map(([label, id]) => (
             <a key={id} href={`#${id}`} className="text-[11px] uppercase tracking-[0.2em] transition-colors hover:text-[#5eead4]"
               style={{ ...MONO, color: "#6b6b82" }}>{label}</a>
           ))}
@@ -389,23 +191,15 @@ export default function App() {
 
       <main className="max-w-4xl mx-auto px-6 md:px-12 pt-36 pb-28">
 
-        {/* ── Hero ─────────────────────────────────────────── */}
+        {/* Hero */}
         <section className="mb-32">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10">
-
-            {/* Text */}
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.3em] mb-5" style={{ ...MONO, color: "#5eead4" }}>
-                Available for opportunities
-              </p>
-              <h1 className="leading-[0.92] tracking-tight mb-5" style={{ ...DISPLAY, color: "#eeeef5", fontSize: "clamp(2.8rem,7vw,5rem)" }}>
-                {hero.name}
-              </h1>
+              <p className="text-[11px] uppercase tracking-[0.3em] mb-5" style={{ ...MONO, color: "#5eead4" }}>Available for opportunities</p>
+              <h1 className="leading-[0.92] tracking-tight mb-5" style={{ ...DISPLAY, color: "#eeeef5", fontSize: "clamp(2.8rem,7vw,5rem)" }}>{hero.name}</h1>
               <div className="flex flex-wrap gap-2 mb-6">
                 {["TypeScript", "React", "Node.js", "Python", "NLP", "LLMs"].map(skill => (
-                  <span key={skill} className="text-[12px] px-2.5 py-1 rounded-md border" style={{ ...MONO, background: "rgba(94,234,212,0.05)", borderColor: "rgba(94,234,212,0.18)", color: "#5eead4" }}>
-                    {skill}
-                  </span>
+                  <span key={skill} className="text-[12px] px-2.5 py-1 rounded-md border" style={{ ...MONO, background: "rgba(94,234,212,0.05)", borderColor: "rgba(94,234,212,0.18)", color: "#5eead4" }}>{skill}</span>
                 ))}
               </div>
               <div className="mb-5 max-w-[52ch] space-y-3">
@@ -413,49 +207,30 @@ export default function App() {
                   <p key={i} className="text-[17px] leading-[1.9] tracking-[0.015em]" style={{ color: "#d8d8ea", fontWeight: 400, fontFamily: "'DM Sans', sans-serif" }}>{para}</p>
                 ))}
               </div>
-
-
-              {/* CTAs */}
               <div className="flex flex-wrap items-center gap-3 mb-8">
-                <a href={`mailto:${hero.email}`}
-                  className="flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium transition-all hover:scale-[1.02]"
-                  style={{ background: "#5eead4", color: "#09090f", border: "none" }}>
+                <a href={`mailto:${hero.email}`} className="flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium transition-all hover:scale-[1.02]" style={{ background: "#5eead4", color: "#09090f", border: "none" }}>
                   <Mail size={14} /> Get in touch
                 </a>
-                <a href={cvAsset} download="Hazem-Alabiad-CV.pdf"
-                  className="flex items-center gap-2 px-4 py-2 rounded border text-sm transition-all hover:border-white/25 hover:text-[#d4d4e0]"
-                  style={{ borderColor: "oklch(1 0 0 / 0.12)", color: "#9494a8" }}>
+                <a href={resolveCvHref(hero, cvAsset)} download={resolveCvName(hero, "Hazem-Alabiad-CV.pdf")} className="flex items-center gap-2 px-4 py-2 rounded border text-sm transition-all hover:border-white/25 hover:text-[#d4d4e0]" style={{ borderColor: "oklch(1 0 0 / 0.12)", color: "#9494a8" }}>
                   <Download size={14} /> Download CV
                 </a>
               </div>
-
-              {/* Social links */}
               <div className="flex flex-wrap items-center gap-6">
                 <SocialLink href={`https://${hero.github}`} icon={<Github size={14} />} label="GitHub" />
                 <SocialLink href={`https://${hero.linkedin}`} icon={<Linkedin size={14} />} label="LinkedIn" />
-                <span className="flex items-center gap-1.5 text-sm" style={{ color: "#6b6b82" }}>
-                  <MapPin size={14} /> {hero.location}
-                </span>
+                <span className="flex items-center gap-1.5 text-sm" style={{ color: "#6b6b82" }}><MapPin size={14} /> {hero.location}</span>
               </div>
             </div>
-
-            {/* Photo */}
             <div className="flex-shrink-0 self-start md:mt-8">
-              <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden"
-                style={{ boxShadow: "0 0 0 1.5px rgba(94,234,212,0.35), 0 0 32px rgba(94,234,212,0.08)" }}>
-                <img
-                  src={profilePhoto}
-                  alt="Hazem Alabiad"
-                  className="w-full h-full object-cover"
-                  style={{ objectPosition: "center 4%", filter: "brightness(0.92) contrast(1.04) saturate(0.88)" }}
-                />
+              <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden" style={{ boxShadow: "0 0 0 1.5px rgba(94,234,212,0.35), 0 0 32px rgba(94,234,212,0.08)" }}>
+                <img src={profilePhoto} alt={hero.name} className="w-full h-full object-cover" style={{ objectPosition: "center 4%", filter: "brightness(0.92) contrast(1.04) saturate(0.88)" }} />
                 <div className="absolute inset-0 rounded-full" style={{ background: "radial-gradient(circle at center, transparent 55%, rgba(9,9,15,0.5) 100%)" }} />
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── Education ────────────────────────────────────── */}
+        {/* Education */}
         <section className="mb-28">
           <SectionHeader label="Education" id="education" />
           <div className="space-y-10">
@@ -463,10 +238,7 @@ export default function App() {
               <div key={edu.id} className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
                 <div>
                   <h3 className="font-medium" style={{ color: "#eeeef5" }}>{edu.degree}</h3>
-                  <p className="text-sm mt-0.5">
-                    <span style={{ color: "#5eead4", opacity: 0.8 }}>{edu.school}</span>
-                    <span style={{ color: "#6b6b82" }}> · {edu.location}</span>
-                  </p>
+                  <p className="text-sm mt-0.5"><span style={{ color: "#5eead4", opacity: 0.8 }}>{edu.school}</span><span style={{ color: "#6b6b82" }}> · {edu.location}</span></p>
                   {edu.notes && <p className="text-[14px] mt-2 leading-relaxed" style={{ color: "#8f8fa8" }}>{edu.notes}</p>}
                 </div>
                 <span className="text-[11px] whitespace-nowrap shrink-0 mt-1" style={{ ...MONO, color: "#6b6b82" }}>{edu.period}</span>
@@ -475,28 +247,20 @@ export default function App() {
           </div>
         </section>
 
-        {/* ── Experience ───────────────────────────────────── */}
+        {/* Experience */}
         <section className="mb-28">
           <SectionHeader label="Experience" id="experience" />
           <div>
             {groupByCompany(experience).map((group, gi, arr) => (
               <div key={group.company + gi} className="relative pl-7 pb-12 last:pb-0">
-                {/* Timeline dot */}
                 <div className="absolute left-0 top-[8px] w-2 h-2 rounded-full" style={{ background: "#5eead4", opacity: 0.35 }} />
-                {gi < arr.length - 1 && (
-                  <div className="absolute left-[3px] top-5 bottom-0 w-px" style={{ background: "oklch(1 0 0 / 0.07)" }} />
-                )}
-
+                {gi < arr.length - 1 && <div className="absolute left-[3px] top-5 bottom-0 w-px" style={{ background: "oklch(1 0 0 / 0.07)" }} />}
                 {group.roles.length === 1 ? (
-                  /* ── Single role: existing flat layout ── */
                   <>
                     <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-1 mb-3">
                       <div>
                         <h3 className="font-medium text-[15px]" style={{ color: "#eeeef5" }}>{group.roles[0].role}</h3>
-                        <p className="text-[13.5px] mt-0.5">
-                          <span style={{ color: "#5eead4", opacity: 0.9 }}>{group.company}</span>
-                          <span style={{ color: "#707088" }}> · {group.location}</span>
-                        </p>
+                        <p className="text-[13.5px] mt-0.5"><span style={{ color: "#5eead4", opacity: 0.9 }}>{group.company}</span><span style={{ color: "#707088" }}> · {group.location}</span></p>
                       </div>
                       <span className="text-[11px] whitespace-nowrap shrink-0" style={{ ...MONO, color: "#6b6b82" }}>{group.roles[0].period}</span>
                     </div>
@@ -504,22 +268,20 @@ export default function App() {
                       <ul className="space-y-1.5">
                         {group.roles[0].bullets.filter(Boolean).map((b, bi) => (
                           <li key={bi} className="text-[14px] leading-relaxed flex gap-2.5" style={{ color: "#ababc0" }}>
-                            <span className="mt-[3px] shrink-0" style={{ color: "#5eead4", opacity: 0.3 }}>—</span>
-                            <span>{b}</span>
+                            <span className="mt-[3px] shrink-0" style={{ color: "#5eead4", opacity: 0.3 }}>—</span><span>{b}</span>
                           </li>
                         ))}
                       </ul>
                     )}
                   </>
                 ) : (
-                  /* ── Multiple roles: company header + nested roles ── */
                   <>
                     <div className="mb-4">
                       <h3 className="font-medium text-[15px]" style={{ color: "#5eead4" }}>{group.company}</h3>
                       <p className="text-[13px] mt-0.5" style={{ color: "#707088" }}>{group.location}</p>
                     </div>
                     <div className="space-y-6 border-l pl-5" style={{ borderColor: "oklch(1 0 0 / 0.07)" }}>
-                      {group.roles.map((role) => (
+                      {group.roles.map(role => (
                         <div key={role.id}>
                           <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-1 mb-2">
                             <span className="font-medium text-[14px]" style={{ color: "#d8d8ec" }}>{role.role}</span>
@@ -529,8 +291,7 @@ export default function App() {
                             <ul className="space-y-1.5">
                               {role.bullets.filter(Boolean).map((b, bi) => (
                                 <li key={bi} className="text-[14px] leading-relaxed flex gap-2.5" style={{ color: "#ababc0" }}>
-                                  <span className="mt-[3px] shrink-0" style={{ color: "#5eead4", opacity: 0.3 }}>—</span>
-                                  <span>{b}</span>
+                                  <span className="mt-[3px] shrink-0" style={{ color: "#5eead4", opacity: 0.3 }}>—</span><span>{b}</span>
                                 </li>
                               ))}
                             </ul>
@@ -545,13 +306,12 @@ export default function App() {
           </div>
         </section>
 
-        {/* ── Research & Projects ───────────────────────────── */}
+        {/* Projects */}
         <section className="mb-28">
           <SectionHeader label="Research &amp; Projects" id="projects" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {projects.map(proj => (
-              <a key={proj.id}
-                href={proj.link.startsWith("http") ? proj.link : `https://${proj.link}`}
+              <a key={proj.id} href={proj.link.startsWith("http") ? proj.link : `https://${proj.link}`}
                 target="_blank" rel="noopener noreferrer"
                 className="group block rounded-xl p-5 border transition-all"
                 style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.08)" }}
@@ -569,21 +329,17 @@ export default function App() {
           </div>
         </section>
 
-        {/* ── Skills ───────────────────────────────────────── */}
+        {/* Skills */}
         <section className="mb-28">
           <SectionHeader label="Skills" id="skills" />
           <div className="space-y-7">
             {skills.map(sg => (
               <div key={sg.id} className="flex flex-col md:flex-row gap-3 md:gap-6">
-                <span className="text-[11px] uppercase tracking-[0.2em] shrink-0 pt-1 w-28" style={{ ...MONO, color: "#5eead4", opacity: 0.65 }}>
-                  {sg.label}
-                </span>
+                <span className="text-[11px] uppercase tracking-[0.2em] shrink-0 pt-1 w-28" style={{ ...MONO, color: "#5eead4", opacity: 0.65 }}>{sg.label}</span>
                 <div className="flex flex-wrap gap-2">
                   {sg.skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
                     <span key={skill} className="text-[13px] px-3 py-1.5 rounded border cursor-default"
-                      style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.09)", color: "#a0a0b8" }}>
-                      {skill}
-                    </span>
+                      style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.09)", color: "#a0a0b8" }}>{skill}</span>
                   ))}
                 </div>
               </div>
@@ -591,7 +347,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* ── Languages ────────────────────────────────────── */}
+        {/* Languages */}
         {languages.length > 0 && (
           <section className="mb-28">
             <SectionHeader label="Languages" id="languages" />
@@ -600,47 +356,43 @@ export default function App() {
                 <div key={lang.id} className="flex items-center gap-3 px-4 py-3 rounded-lg border"
                   style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.08)" }}>
                   <span className="font-medium text-sm" style={{ color: "#eeeef5" }}>{lang.name}</span>
-                  <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ ...MONO, background: "rgba(94,234,212,0.08)", color: "#5eead4" }}>
-                    {lang.level}
-                  </span>
+                  <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ ...MONO, background: "rgba(94,234,212,0.08)", color: "#5eead4" }}>{lang.level}</span>
                 </div>
               ))}
             </div>
           </section>
         )}
-
       </main>
 
       {/* Footer */}
       <footer className="border-t px-6 md:px-12 py-8" style={{ borderColor: "oklch(1 0 0 / 0.06)" }}>
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <p className="text-xs" style={{ ...MONO, color: "#6b6b82" }}>© 2026 {hero.name}</p>
-            {visitCount !== null && (
-              <span className="flex items-center gap-1.5 text-xs" style={{ ...MONO, color: "#4a4a60" }}>
-                <span className="w-1 h-1 rounded-full inline-block" style={{ background: "#5eead4", opacity: 0.5 }} />
-                {visitCount.toLocaleString()} visits
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-6">
-            <SocialLink href={`https://${hero.github}`} icon={<Github size={13} />} label="GitHub" />
-            <SocialLink href={`https://${hero.linkedin}`} icon={<Linkedin size={13} />} label="LinkedIn" />
-            <SocialLink href={`mailto:${hero.email}`} icon={<Mail size={13} />} label="Email" />
-          </div>
+        <div className="max-w-4xl mx-auto flex items-center justify-center gap-4">
+          <p className="text-xs" style={{ ...MONO, color: "#6b6b82" }}>© {currentYear} {hero.name}</p>
+          {visitCount !== null && (
+            <span className="flex items-center gap-1.5 text-xs" style={{ ...MONO, color: "#4a4a60" }}>
+              <span className="w-1 h-1 rounded-full inline-block" style={{ background: "#5eead4", opacity: 0.5 }} />
+              {visitCount.toLocaleString()} visits
+            </span>
+          )}
         </div>
       </footer>
 
-      {/* CMS */}
-      {cmsOpen && (
-        <ContentManager content={content} onChange={setContent} onClose={() => setCmsOpen(false)} onReset={handleReset} />
-      )}
-
-      {/* Floating Edit Button */}
-      <button onClick={() => setCmsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-2.5 rounded-full text-[12px] font-medium transition-all hover:scale-105 active:scale-95"
-        style={{ ...MONO, background: "#5eead4", color: "#09090f", boxShadow: "0 0 24px rgba(94,234,212,0.2)" }}>
-        <Edit3 size={13} /> Edit Content
+      {/* CMS button */}
+      <button
+        onClick={() => { window.location.hash = "#/cms"; setHash("#/cms"); }}
+        title="Open CMS"
+        style={{
+          position: "fixed", bottom: 24, right: 24, zIndex: 9998,
+          width: 44, height: 44, borderRadius: "50%",
+          background: "#111119", border: "1px solid rgba(94,234,212,0.35)",
+          color: "#5eead4", cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.5)", transition: "all 0.2s ease",
+        }}
+        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#1a1a2e"}
+        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#111119"}
+      >
+        <Settings size={18} />
       </button>
     </div>
   );
