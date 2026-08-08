@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState, type FC } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import hazemPhoto from "@/imports/ADB3B9AC-C855-4126-A54C-3D6BF8705288.jpeg";
 // @ts-ignore
 import cvPdf from "@/imports/Hazem-Alabiad-CV.pdf";
+import CmsEditor from "@/CmsEditor";
+import { loadContent, saveContent, resetContent, type CmsContent } from "@/cms";
 import {
-  ExternalLink,
   Github,
   Mail,
   ArrowUpRight,
@@ -291,165 +292,6 @@ const DEFAULTS = {
     "Currently serving as Research Assistant at both the University of Tübingen and the Leibniz-Institut für Wissensmedien (IWM), while seeking opportunities in NLP, AI, LLM, and Software Engineering.",
 };
 
-const experiences = [
-  {
-    role: "Research Assistant",
-    company: "University of Tübingen",
-    location: "Tübingen",
-    period: "Jul 2026 – Present",
-    bullets: ["LLM-based AI tutor for lectures — conversational agent for student support and adaptive learning."],
-    tags: ["LLMs", "NLP", "Research"],
-    current: true,
-  },
-  {
-    role: "Research Assistant",
-    company: "Leibniz-Institut für Wissensmedien (IWM)",
-    location: "Tübingen",
-    period: "Jul 2026 – Present",
-    bullets: ["Social media (TikTok) impact research — studying algorithmic influence on cognition and learning."],
-    tags: ["Research", "Social Media", "Data Science"],
-    current: true,
-  },
-  {
-    role: "Software Engineer (Working Student)",
-    company: "IBM",
-    location: "Böblingen",
-    period: "Jun 2024 – Apr 2026",
-    bullets: [
-      "Built production React UI for IBM's Data Quality platform (1M+ enterprise users) using IBM Carbon and TypeScript; maintained 300+ regression and E2E tests with Puppeteer and Cypress.",
-      "Drove a11y improvements (ARIA, screen reader, keyboard nav); enforced code style via global ESLint/Prettier.",
-    ],
-    tags: ["React", "TypeScript", "IBM Carbon", "Cypress", "Puppeteer"],
-    current: false,
-  },
-  {
-    role: "Frontend Developer",
-    company: "Getir",
-    location: "Ankara",
-    period: "Dec 2022 – Mar 2024",
-    bullets: [
-      "Maintained GetirJobs (2.2M+ users); led two greenfield React/TypeScript projects from scratch.",
-      "Boosted dev server speed 3× via Vite migration; raised test coverage to 70% with Playwright and Jest.",
-    ],
-    tags: ["React", "TypeScript", "Vite", "Playwright", "Agile"],
-    current: false,
-  },
-  {
-    role: "Engineering Lead",
-    company: "Arianna Suisse Sa",
-    location: "Remote (Switzerland)",
-    period: "Jun 2022 – Nov 2022",
-    bullets: [
-      "Led 4 developers + 1 designer; architected scalable GraphQL API with Apollo Federation and MySQL.",
-      "Managed technical hiring for 50+ candidates; onboarded 4 team members.",
-    ],
-    tags: ["GraphQL", "Apollo Federation", "MySQL", "Team Lead"],
-    current: false,
-  },
-  {
-    role: "Full-Stack Developer",
-    company: "Arianna Suisse Sa",
-    location: "Remote (Switzerland)",
-    period: "May 2021 – Jun 2022",
-    bullets: [
-      "Built custom Elasticsearch search engine; enabled real-time multi-user editing via WebSocket.",
-      "~90% Jest test coverage across React components and GraphQL server.",
-    ],
-    tags: ["React", "GraphQL", "Elasticsearch", "WebSocket", "Node.js"],
-    current: false,
-  },
-  {
-    role: "Freelance Software Developer",
-    company: "Remote (US)",
-    location: "",
-    period: "Feb 2020 – Feb 2021",
-    bullets: [
-      "Built pixel-perfect React UIs and integrated third-party APIs for 3 international clients.",
-      "Developed Python web crawlers publishing to RabbitMQ queues for backend AI pipelines.",
-    ],
-    tags: ["React", "Python", "RabbitMQ", "API Integration"],
-    current: false,
-  },
-  {
-    role: "QA Automation Engineer",
-    company: "Bayzat",
-    location: "Remote (UAE)",
-    period: "Jan 2019 – Nov 2019",
-    bullets: ["Built Cypress regression and E2E suites from scratch for Bayzat's Time-off feature, covering core HR workflows."],
-    tags: ["Cypress", "QA Automation", "E2E Testing"],
-    current: false,
-  },
-];
-
-interface Project {
-  name: string;
-  desc: string;
-  tags: string[];
-  status: string;
-  year: string;
-  Icon: FC<{ size?: number }>;
-  color: string;
-  github: string;
-}
-
-const projects: Project[] = [
-  {
-    name: "Multiword Expressions in Arabic",
-    desc: "LLM extraction of Arabic verbal multiword expressions for computational linguistics research. Exploring cross-lingual transfer for low-resource MWE detection.",
-    tags: ["LLMs", "NLP", "Arabic", "Python"],
-    status: "RESEARCH",
-    year: "2026",
-    Icon: Brain,
-    color: "#00f0ff",
-    github: "https://github.com/hazem-alabiad",
-  },
-  {
-    name: "Content Rating System",
-    desc: "NLP/DL age-appropriateness classifier for books. Deep learning pipeline with multi-label text classification and custom preprocessing.",
-    tags: ["NLP", "Deep Learning", "Python", "TensorFlow"],
-    status: "COMPLETE",
-    year: "2022",
-    Icon: Code2,
-    color: "#9d4edd",
-    github: "https://github.com/hazem-alabiad",
-  },
-  {
-    name: "Taxi Tip Estimator",
-    desc: "ML/DL taxi tip predictor trained on NYC trip data. Feature engineering pipeline with regression models and neural network ensemble.",
-    tags: ["ML", "Deep Learning", "Python", "Pandas"],
-    status: "COMPLETE",
-    year: "2021",
-    Icon: Database,
-    color: "#00f0ff",
-    github: "https://github.com/hazem-alabiad",
-  },
-  {
-    name: "Automated Essay Grading",
-    desc: "LSTM-based automated essay grading pipeline with multi-trait scoring, NLP preprocessing, and attention mechanisms for feature extraction.",
-    tags: ["LSTM", "NLP", "Python", "TensorFlow"],
-    status: "COMPLETE",
-    year: "2019",
-    Icon: GraduationCap,
-    color: "#9d4edd",
-    github: "https://github.com/hazem-alabiad",
-  },
-];
-
-const skills = [
-  { label: "React.js / Next.js / TypeScript", level: 97, cat: "stack" },
-  { label: "GraphQL / Apollo Federation", level: 88, cat: "stack" },
-  { label: "Node.js / REST APIs / WebSocket", level: 85, cat: "stack" },
-  { label: "Testing (Jest / Cypress / Playwright)", level: 90, cat: "stack" },
-  { label: "Docker / DevOps / Linux", level: 76, cat: "stack" },
-  { label: "Elasticsearch / MySQL", level: 80, cat: "stack" },
-  { label: "Python / LLMs / NLP", level: 88, cat: "ai" },
-  { label: "TensorFlow / Deep Learning", level: 80, cat: "ai" },
-  { label: "Transfer Learning / Fine-tuning", level: 82, cat: "ai" },
-  { label: "Corpus Linguistics", level: 83, cat: "ai" },
-  { label: "Data Engineering / Pandas / R", level: 78, cat: "ai" },
-  { label: "Machine Learning Pipelines", level: 85, cat: "ai" },
-];
-
 // ─── Style helpers (module-level so all components can use them) ──────────────
 
 const mono = (sz: number, color = "#9ab8d0", extra: React.CSSProperties = {}): React.CSSProperties => ({
@@ -623,7 +465,7 @@ function CountUp({ to, suffix = "", duration = 1400 }: { to: number; suffix?: st
 
 const MATRIX_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$#@%&!?><";
 
-function CVDownloadButton() {
+function CVDownloadButton({ cvUrl }: { cvUrl?: string | null }) {
   type Phase = "idle" | "init" | "transfer" | "done";
   const [phase, setPhase]     = useState<Phase>("idle");
   const [pct, setPct]         = useState(0);
@@ -696,7 +538,7 @@ function CVDownloadButton() {
           pushLog("> STATUS: 200 OK ✓");
           spawnParticles();
           const a = document.createElement("a");
-          a.href = cvPdf as string;
+          a.href = (cvUrl as string) || (cvPdf as string);
           a.download = "Hazem-Alabiad-CV.pdf";
           document.body.appendChild(a);
           a.click();
@@ -913,11 +755,12 @@ function ContactForm() {
 
 // ─── CMS Button ───────────────────────────────────────────────────────────────
 
-function CMSButton({ onUnlock, enabled, onDisable, onReset }: {
+function CMSButton({ onUnlock, enabled, onDisable, onReset, onOpenEditor }: {
   onUnlock: () => void;
   enabled: boolean;
   onDisable: () => void;
   onReset: () => void;
+  onOpenEditor: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [pat, setPat] = useState("");
@@ -960,6 +803,10 @@ function CMSButton({ onUnlock, enabled, onDisable, onReset }: {
             CMS_ACTIVE — CLICK TEXT TO EDIT
           </div>
           <div className="flex gap-2">
+            <button onClick={onOpenEditor} title="Open full CV editor"
+              style={{ ...monoStyle, color: "#00f0ff", background: "rgba(5,8,20,0.9)", border: "1px solid rgba(0,240,255,0.3)", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+              <PencilLine size={10} /> FULL EDITOR
+            </button>
             <button onClick={onReset} title="Reset all CMS edits"
               style={{ ...monoStyle, color: "#9d4edd", background: "rgba(5,8,20,0.9)", border: "1px solid rgba(157,78,221,0.3)", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
               <RotateCcw size={10} /> RESET
@@ -1244,10 +1091,8 @@ export default function App() {
   const [typeText, setTypeText] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [cmsEnabled, setCmsEnabled] = useState(false);
-  const [cmsData, setCmsData] = useState<Record<string, string>>(() => {
-    try { return JSON.parse(localStorage.getItem("hazem-portfolio-cms") || "{}"); }
-    catch { return {}; }
-  });
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [content, setContent] = useState<CmsContent>(() => loadContent());
 
   const scrollY = useScrollY();
   const aboutR = useReveal();
@@ -1258,18 +1103,20 @@ export default function App() {
 
   const FULL = "FULL-STACK ENGINEER // AI & NLP // M.A. COMP. LINGUISTICS";
 
-  const get = (key: string, fallback: string) =>
-    cmsData[key] !== undefined ? cmsData[key] : fallback;
+  const get = (key: keyof CmsContent, fallback: string) =>
+    typeof content[key] === "string" && (content[key] as string).trim() !== ""
+      ? (content[key] as string)
+      : fallback;
 
-  const save = (key: string, value: string) => {
-    setCmsData((prev) => {
+  const save = (key: keyof CmsContent, value: string) => {
+    setContent((prev) => {
       const next = { ...prev, [key]: value };
-      localStorage.setItem("hazem-portfolio-cms", JSON.stringify(next));
+      saveContent(next);
       return next;
     });
   };
 
-  const ep = (key: string, fallback: string, base: React.CSSProperties = {}) =>
+  const ep = (key: keyof CmsContent, fallback: string, base: React.CSSProperties = {}) =>
     cmsEnabled
       ? {
           contentEditable: true as const,
@@ -1380,14 +1227,14 @@ export default function App() {
                 CONTACT <Mail size={13} />
               </button>
             </MagneticWrap>
-            <CVDownloadButton />
+            <CVDownloadButton cvUrl={content.cvDataUrl} />
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl">
-            {[{ to: 6, suffix: "+", label: "Years Experience" }, { to: 0, suffix: "2.2M+", label: "Users Served" }, { to: 8, suffix: "", label: "Companies" }, { to: 4, suffix: "", label: "Languages Spoken" }].map(({ to, suffix, label }) => (
+            {content.stats.map(({ to, suffix, label }) => (
               <div key={label} className="pl-4" style={{ borderLeft: "2px solid rgba(0,240,255,0.2)" }}>
                 <div style={{ fontFamily: '"Audiowide", cursive', fontSize: "1.6rem", color: "#00f0ff" }}>
-                  {to === 0 ? "2.2M+" : <CountUp to={to} suffix={suffix} />}
+                  {suffix.startsWith("2.2") ? suffix : <CountUp to={to} suffix={suffix} />}
                 </div>
                 <div style={mono(9, "#6b8fab", { letterSpacing: "0.16em", marginTop: 4, textTransform: "uppercase" as const })}>{label}</div>
               </div>
@@ -1438,29 +1285,49 @@ export default function App() {
 
             {/* Side */}
             <div className="lg:col-span-2 space-y-4">
-              {/* Photo */}
+{/* Photo */}
               <div className="flex justify-center lg:justify-start mb-6">
-                <div style={{ position: "relative", display: "inline-block" }}>
+                <div className="group relative inline-block cursor-pointer"
+                  style={{ filter: "drop-shadow(0 0 18px rgba(0,240,255,0.12))" }}>
                   <div style={{
-                    position: "absolute", inset: -3, borderRadius: "50%",
+                    position: "absolute", inset: -4, borderRadius: "50%",
                     background: "conic-gradient(from 0deg, #00f0ff, #9d4edd, #28c840, #00f0ff)",
-                    zIndex: 0, animation: "spin-slow 5s linear infinite",
+                    zIndex: 0, animation: "spin-slow 4s linear infinite",
+                    transition: "filter 0.4s ease",
                   }} />
-                  <div style={{ width: 96, height: 96, borderRadius: "50%", overflow: "hidden", border: "3px solid #050814", position: "relative", zIndex: 1, background: "#0b1020" }}>
+                  <div className="group-hover:opacity-100" style={{
+                    position: "absolute", inset: -10, borderRadius: "50%",
+                    background: "radial-gradient(circle, rgba(0,240,255,0.28) 0%, rgba(157,78,221,0.18) 45%, transparent 70%)",
+                    zIndex: 0, opacity: 0.55, transition: "opacity 0.4s ease", filter: "blur(2px)",
+                  }} />
+                  <div style={{
+                    width: 108, height: 108, borderRadius: "50%", overflow: "hidden",
+                    border: "3px solid #050814", position: "relative", zIndex: 1,
+                    background: "#0b1020", transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)",
+                  }} className="group-hover:scale-105">
                     <img
-                      src={hazemPhoto}
+                      src={content.photo || hazemPhoto}
                       alt="Hazem Alabiad"
-                      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "60% 20%", transform: "rotate(90deg) scale(1.35)", transformOrigin: "center center", display: "block" }}
+                      loading="eager"
+                      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 12%", display: "block" }}
                     />
                   </div>
+                  <span style={{
+                    position: "absolute", bottom: 4, right: 4, zIndex: 2, width: 14, height: 14,
+                    borderRadius: "50%", background: "#28c840", border: "3px solid #050814",
+                    boxShadow: "0 0 10px rgba(40,200,64,0.9)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <span style={{ position: "absolute", inset: -3, borderRadius: "50%", background: "rgba(40,200,64,0.5)" }} />
+                  </span>
                 </div>
               </div>
 
               {[
-                { Icon: MapPin, label: "Location", value: "Tübingen, Germany" },
-                { Icon: GraduationCap, label: "Degree", value: "M.A. Computational Linguistics" },
-                { Icon: Briefcase, label: "Current", value: "Research Asst. · Tübingen Uni & IWM" },
-                { Icon: Globe, label: "Available For", value: "NLP / AI / Full-Stack" },
+                { Icon: MapPin, label: "Location", value: get("factLocation", DEFAULT_CONTENT.factLocation) },
+                { Icon: GraduationCap, label: "Degree", value: get("factDegree", DEFAULT_CONTENT.factDegree) },
+                { Icon: Briefcase, label: "Current", value: get("factCurrent", DEFAULT_CONTENT.factCurrent) },
+                { Icon: Globe, label: "Available For", value: get("factAvailable", DEFAULT_CONTENT.factAvailable) },
               ].map(({ Icon, label, value }) => (
                 <div key={label} className="flex gap-4 items-start p-4 transition-all duration-300"
                   style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.07)" }}
@@ -1489,8 +1356,8 @@ export default function App() {
               Work <span style={{ color: "#9d4edd" }}>History</span>
             </WipeHeading>
             <div className="space-y-4">
-              {experiences.map((exp, idx) => (
-                <div key={idx} className={`relative p-6 transition-colors duration-300 ${expR.visible ? "depth-rise" : "opacity-0"} ${exp.current ? "glow-border" : ""}`}
+              {content.experience.map((exp, idx) => (
+                <div key={exp.id || idx} className={`relative p-6 transition-colors duration-300 ${expR.visible ? "depth-rise" : "opacity-0"} ${exp.current ? "glow-border" : ""}`}
                   style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.07)", animationDelay: `${idx * 110}ms` }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,240,255,0.35)"; (e.currentTarget as HTMLElement).style.background = "#0b1220"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = exp.current ? "" : "rgba(0,240,255,0.07)"; (e.currentTarget as HTMLElement).style.background = "#080f1c"; }}>
@@ -1538,11 +1405,12 @@ export default function App() {
               Research <span style={{ color: "#00f0ff" }}>& Projects</span>
             </WipeHeading>
             <Spotlight className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {projects.map((proj, pidx) => {
-                const ProjIcon = proj.Icon;
+{content.projects.map((proj, pidx) => {
+                const ProjIcon = [Brain, Code2, Database, GraduationCap, Globe, Briefcase][pidx % 6];
+                const projColor = ["#00f0ff", "#9d4edd", "#28c840", "#febc2e"][pidx % 4];
                 const sc: Record<string, string> = { RESEARCH: "#9d4edd", COMPLETE: "#28c840", ACTIVE: "#00f0ff", BETA: "#febc2e" };
                 return (
-                  <TiltCard key={proj.name} className={projectsR.visible ? "slide-up-item" : ""} style={{ animationDelay: `${pidx * 120}ms` }}>
+                  <TiltCard key={proj.id || proj.name} className={projectsR.visible ? "slide-up-item" : ""} style={{ animationDelay: `${pidx * 120}ms` }}>
                   <div className="relative p-6 overflow-hidden transition-all duration-300 group"
                     style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.07)", height: "100%" }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,240,255,0.35)"; (e.currentTarget as HTMLElement).style.background = "#0b1220"; }}
@@ -1552,11 +1420,11 @@ export default function App() {
                       <div style={{ position: "absolute", top: 0, bottom: 0, width: "50%", background: "linear-gradient(90deg, transparent, rgba(0,240,255,0.04), transparent)", animation: "shimmer-sweep 1.2s ease infinite" }} />
                     </div>
                     <div className="flex items-start justify-between mb-5">
-                      <div className="flex items-center justify-center" style={{ width: 40, height: 40, border: `1px solid ${proj.color}30`, color: proj.color }}>
+                      <div className="flex items-center justify-center" style={{ width: 40, height: 40, border: `1px solid ${projColor}30`, color: projColor }}>
                         <ProjIcon size={17} />
                       </div>
                       <div className="flex items-center gap-2">
-                        <span style={mono(9, sc[proj.status], { padding: "2px 8px", border: `1px solid ${sc[proj.status]}30`, letterSpacing: "0.2em" })}>{proj.status}</span>
+                        <span style={mono(9, sc[proj.status] || "#febc2e", { padding: "2px 8px", border: `1px solid ${sc[proj.status] || "#febc2e"}30`, letterSpacing: "0.2em" })}>{proj.status}</span>
                         <span style={mono(9, "#6b8fab")}>{proj.year}</span>
                       </div>
                     </div>
@@ -1571,7 +1439,7 @@ export default function App() {
                         <span key={tag} style={mono(9, "#6b8fab", { padding: "2px 7px", background: "#0f1624" })}>{tag}</span>
                       ))}
                     </div>
-                    <a href={proj.github} target="_blank" rel="noopener noreferrer"
+                    <a href={proj.link} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-1.5 transition-opacity hover:opacity-100"
                       style={mono(9, "#00f0ff", { opacity: 0.45, textDecoration: "none", letterSpacing: "0.15em" })}>
                       <Github size={11} /> VIEW ON GITHUB
@@ -1599,16 +1467,16 @@ export default function App() {
               <div>
                 <div style={mono(9, "rgba(0,240,255,0.45)", { marginBottom: 24, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>FULL_STACK_ENGINEERING</div>
                 <div className="space-y-6">
-                  {skills.filter((s) => s.cat === "stack").map((s, i) => (
-                    <SkillBar key={s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} />
+                  {content.skills.filter((s) => s.cat === "stack").map((s, i) => (
+                    <SkillBar key={s.id || s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} />
                   ))}
                 </div>
               </div>
               <div>
                 <div style={mono(9, "rgba(157,78,221,0.45)", { marginBottom: 24, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>AI_NLP_RESEARCH</div>
                 <div className="space-y-6">
-                  {skills.filter((s) => s.cat === "ai").map((s, i) => (
-                    <SkillBar key={s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} />
+                  {content.skills.filter((s) => s.cat === "ai").map((s, i) => (
+                    <SkillBar key={s.id || s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} />
                   ))}
                 </div>
               </div>
@@ -1616,10 +1484,10 @@ export default function App() {
             <div className="mt-16 pt-8" style={{ borderTop: "1px solid rgba(0,240,255,0.08)" }}>
               <div style={mono(9, "rgba(0,240,255,0.45)", { marginBottom: 16, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>SPOKEN_LANGUAGES</div>
               <div className="flex flex-wrap gap-3">
-                {[{ lang: "Arabic", level: "Native" }, { lang: "English", level: "Proficient" }, { lang: "Turkish", level: "Proficient" }, { lang: "German", level: "Beginner" }].map(({ lang, level }) => (
-                  <div key={lang} className="flex items-center gap-2 px-4 py-2" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.1)" }}>
-                    <span style={body(16, "#e2e8f4")}>{lang}</span>
-                    <span style={mono(9, "#6b8fab")}>// {level.toUpperCase()}</span>
+                {content.languages.map((lang) => (
+                  <div key={lang.id} className="flex items-center gap-2 px-4 py-2" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.1)" }}>
+                    <span style={body(16, "#e2e8f4")}>{lang.name}</span>
+                    <span style={mono(9, "#6b8fab")}>// {lang.level.toUpperCase()}</span>
                   </div>
                 ))}
               </div>
@@ -1638,17 +1506,13 @@ export default function App() {
                 <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
                   Get in <span style={{ color: "#00f0ff" }}>Touch</span>
                 </WipeHeading>
-                <p className="mb-8" style={body(17)}>
-                  Open to NLP/AI research roles, full-stack engineering positions, and research collaborations. Based in Tübingen, open to remote worldwide.
-                </p>
+                <p className="mb-8" style={body(17)}>{get("contactIntro", DEFAULT_CONTENT.contactIntro)}</p>
                 <div className="space-y-3">
-                  {[
-                    { Icon: Mail, label: "EMAIL", value: "hazem.alabiad@icloud.com", href: "mailto:hazem.alabiad@icloud.com" },
-                    { Icon: Github, label: "GITHUB", value: "github.com/hazem-alabiad", href: "https://github.com/hazem-alabiad" },
-                    { Icon: Linkedin, label: "LINKEDIN", value: "linkedin.com/in/hazemalabiad", href: "https://linkedin.com/in/hazemalabiad" },
-                    { Icon: Globe, label: "SCHOLAR", value: "scholar.google.com/hazem", href: "https://scholar.google.com/hazem" },
-                  ].map(({ Icon, label, value, href }) => (
-                    <a key={label} href={href} target="_blank" rel="noopener noreferrer"
+                  {content.links.map((link) => {
+                    const iconKey = (link.label || "").toUpperCase();
+                    const Icon = iconKey.includes("GIT") ? Github : iconKey.includes("LINK") ? Linkedin : iconKey.includes("SCHOLAR") ? Globe : Mail;
+                    return (
+                    <a key={link.id} href={link.href || "#"} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-4 p-4 transition-all duration-300"
                       style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.07)", textDecoration: "none" }}
                       onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.28)")}
@@ -1657,12 +1521,13 @@ export default function App() {
                         <Icon size={13} />
                       </div>
                       <div className="flex-1">
-                        <div style={mono(9, "#6b8fab", { marginBottom: 3, textTransform: "uppercase" as const, letterSpacing: "0.2em" })}>{label}</div>
-                        <div style={body(16, "#e2e8f4")}>{value}</div>
+                        <div style={mono(9, "#6b8fab", { marginBottom: 3, textTransform: "uppercase" as const, letterSpacing: "0.2em" })}>{link.label}</div>
+                        <div style={body(16, "#e2e8f4")}>{link.value}</div>
                       </div>
                       <ArrowUpRight size={13} color="#00f0ff" style={{ opacity: 0.4 }} />
                     </a>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -1676,7 +1541,7 @@ export default function App() {
       {/* Footer */}
       <footer className="relative py-8 px-6" style={{ zIndex: 10, borderTop: "1px solid rgba(0,240,255,0.07)" }}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span style={mono(9, "#6b8fab", { letterSpacing: "0.22em" })}>© 2026 HAZEM ALABIAD. TÜBINGEN, GERMANY.</span>
+          <span style={mono(9, "#6b8fab", { letterSpacing: "0.22em" })}>{get("footerLine", DEFAULT_CONTENT.footerLine)}</span>
           <div className="flex items-center gap-4">
             <a href="https://github.com/hazem-alabiad" target="_blank" rel="noopener noreferrer" style={{ color: "#6b8fab", opacity: 0.6 }} onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")} onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}><Github size={14} /></a>
             <a href="https://linkedin.com/in/hazemalabiad" target="_blank" rel="noopener noreferrer" style={{ color: "#6b8fab", opacity: 0.6 }} onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")} onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}><Linkedin size={14} /></a>
@@ -1687,10 +1552,20 @@ export default function App() {
       {/* CMS */}
       <CMSButton
         enabled={cmsEnabled}
-        onUnlock={() => setCmsEnabled(true)}
+        onUnlock={() => { setCmsEnabled(true); setEditorOpen(true); }}
         onDisable={() => setCmsEnabled(false)}
-        onReset={() => { setCmsData({}); localStorage.removeItem("hazem-portfolio-cms"); }}
+        onOpenEditor={() => setEditorOpen(true)}
+        onReset={() => { setContent(loadContent()); resetContent(); }}
       />
+
+      {cmsEnabled && editorOpen && (
+        <CmsEditor
+          initial={content}
+          onSave={(c) => { setContent(c); saveContent(c); }}
+          onReset={() => { resetContent(); setContent(loadContent()); }}
+          onClose={() => setEditorOpen(false)}
+        />
+      )}
     </div>
   );
 }
