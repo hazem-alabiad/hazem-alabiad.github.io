@@ -374,8 +374,8 @@ function playBombSound() {
   if (!ctx) return;
   const now = ctx.currentTime;
   const master = ctx.createGain();
-  master.gain.setValueAtTime(1.0, now);
-  master.gain.exponentialRampToValueAtTime(0.0005, now + 6.5);
+  master.gain.setValueAtTime(1.2, now);
+  master.gain.exponentialRampToValueAtTime(0.0005, now + 7.2);
   master.connect(ctx.destination);
   const env = (g: GainNode, t: number, a: number, t2: number, d: number) => {
     g.gain.setValueAtTime(a, t);
@@ -392,109 +392,148 @@ function playBombSound() {
     }
     return b;
   };
+  // aggressive random micro-jitter → gritty, chaotic noise instead of clean tones
+  const jitter = (g: GainNode, from: number, dur: number, base: number, amp: number, step = 0.025, seed = Math.random) => {
+    let t = from;
+    while (t < from + dur) {
+      g.gain.setValueAtTime(Math.max(0.0005, base + (seed() * 2 - 1) * amp), t);
+      t += step;
+    }
+  };
 
-  // saturated waveshaper → gives the blast that crushing, clipped destructive edge
+  // hard-clipped distortion for that scarred, crushed nuclear edge
   const clip = ctx.createWaveShaper();
-  const curve = new Float32Array(1024);
-  for (let i = 0; i < 1024; i++) { const x = (i / 1024) * 2 - 1; curve[i] = Math.tanh(Math.tanh(x * 3)); }
+  const curve = new Float32Array(2048);
+  for (let i = 0; i < 2048; i++) {
+    const x = (i / 2048) * 2 - 1;
+    curve[i] = (Math.tanh(x * 5.5) / Math.tanh(5.5)) * 1.18;
+  }
   clip.curve = curve;
 
-  // 1) THE KABOOM — giant distorted pressure front
+  // 1) THE KABOOM — massive clipped pressure front
   const kaboom = ctx.createBufferSource();
-  kaboom.buffer = noiseBuffer(0.9, false);
+  kaboom.buffer = noiseBuffer(1.0, false);
   const kf = ctx.createBiquadFilter();
   kf.type = "lowpass";
-  kf.frequency.setValueAtTime(6500, now);
-  kf.frequency.exponentialRampToValueAtTime(220, now + 0.9);
+  kf.frequency.setValueAtTime(7500, now);
+  kf.frequency.exponentialRampToValueAtTime(200, now + 1.0);
   const kg = ctx.createGain();
-  env(kg, now, 0.0005, now + 0.045, 1.45);
-  env(kg, now + 0.045, 1.45, now + 0.9, 0.0005);
+  env(kg, now, 0.0005, now + 0.05, 1.9);
+  env(kg, now + 0.05, 1.9, now + 1.0, 0.0005);
   kaboom.connect(kf).connect(kg).connect(clip).connect(master);
-  kaboom.start(now); kaboom.stop(now + 0.95);
+  kaboom.start(now); kaboom.stop(now + 1.05);
 
-  // 2) deep foundation sub — shakes your chair
+  // 2) foundation sub — violent low end
   const sub = ctx.createOscillator();
   sub.type = "sine";
-  sub.frequency.setValueAtTime(165, now);
-  sub.frequency.exponentialRampToValueAtTime(22, now + 5.5);
+  sub.frequency.setValueAtTime(110, now);
+  sub.frequency.exponentialRampToValueAtTime(20, now + 6.0);
   const subg = ctx.createGain();
-  env(subg, now, 0.002, now + 0.08, 1.0);
-  env(subg, now + 0.08, 1.0, now + 5.6, 0.0005);
+  env(subg, now, 0.002, now + 0.09, 1.1);
+  env(subg, now + 0.09, 1.1, now + 6.1, 0.0005);
+  jitter(subg, now + 0.09, 6.0, 1.0, 0.25, 0.12);
   sub.connect(subg).connect(master);
-  sub.start(now); sub.stop(now + 5.7);
+  sub.start(now); sub.stop(now + 6.2);
 
-  // 3) heavy body roar — sustained pressure-wave rumble
+  // 3) heavy body roar — walls of air pushed about
   const roar = ctx.createBufferSource();
-  roar.buffer = noiseBuffer(4.4, true);
+  roar.buffer = noiseBuffer(5.0, true);
   const rf = ctx.createBiquadFilter();
   rf.type = "lowpass";
-  rf.frequency.setValueAtTime(3400, now);
-  rf.frequency.exponentialRampToValueAtTime(90, now + 4.4);
+  rf.frequency.setValueAtTime(4800, now);
+  rf.frequency.exponentialRampToValueAtTime(80, now + 5.0);
   rf.Q.value = 1.4;
   const rg = ctx.createGain();
-  env(rg, now, 0.0005, now + 0.2, 0.85);
-  env(rg, now + 0.2, 0.85, now + 4.4, 0.0005);
+  env(rg, now, 0.0005, now + 0.22, 1.15);
+  env(rg, now + 0.22, 1.15, now + 5.0, 0.0005);
+  jitter(rg, now + 0.22, 4.9, 1.0, 0.4, 0.05);
   roar.connect(rf).connect(rg).connect(clip).connect(master);
-  roar.start(now); roar.stop(now + 4.45);
+  roar.start(now); roar.stop(now + 5.05);
 
-  // 4) rolling distant explosions — staggered sub thumps through the long decay
+  // 4) sizzling static — thick hissy air, chaotic crackle-swirl
+  const sizzle = ctx.createBufferSource();
+  sizzle.buffer = noiseBuffer(4.2, false);
+  const sf = ctx.createBiquadFilter();
+  sf.type = "highpass"; sf.frequency.value = 2600;
+  const sf2 = ctx.createBiquadFilter();
+  sf2.type = "bandpass"; sf2.frequency.value = 5200; sf2.Q.value = 0.7;
+  const sg = ctx.createGain();
+  env(sg, now, 0.0005, now + 0.3, 0.4);
+  jitter(sg, now + 0.3, 3.7, 0.4, 0.38, 0.018);
+  env(sg, now + 3.7, sg.gain.value, now + 4.2, 0.0005);
+  sizzle.connect(sf).connect(sf2).connect(sg).connect(master);
+  sizzle.start(now); sizzle.stop(now + 4.25);
+
+  // 5) rolling distant explosions — staggered thunder through the decay
   const roll = ctx.createBufferSource();
-  roll.buffer = noiseBuffer(5.5, true);
+  roll.buffer = noiseBuffer(6.0, true);
   const rollf = ctx.createBiquadFilter();
-  rollf.type = "lowpass"; rollf.frequency.value = 420;
+  rollf.type = "lowpass"; rollf.frequency.value = 380;
   const rollg = ctx.createGain();
   rollg.gain.setValueAtTime(0.001, now);
   let tRoll = now + 0.6;
-  let rPrev = 0.001;
-  while (tRoll < now + 5.4) {
-    const vol = 0.05 + Math.random() * 0.28;
-    rollg.gain.setValueAtTime(rPrev, tRoll);
-    rollg.gain.linearRampToValueAtTime(vol, tRoll + 0.04);
-    rollg.gain.exponentialRampToValueAtTime(0.001, tRoll + 0.35 + Math.random() * 0.7);
-    rPrev = 0.001;
-    tRoll += 0.3 + Math.random() * 0.55;
+  while (tRoll < now + 5.8) {
+    const vol = 0.06 + Math.random() * 0.34;
+    rollg.gain.setValueAtTime(0.001, tRoll);
+    rollg.gain.linearRampToValueAtTime(vol, tRoll + 0.05);
+    rollg.gain.exponentialRampToValueAtTime(0.001, tRoll + 0.4 + Math.random() * 0.8);
+    tRoll += 0.28 + Math.random() * 0.6;
   }
   roll.connect(rollf).connect(rollg).connect(master);
-  roll.start(now); roll.stop(now + 5.55);
+  roll.start(now); roll.stop(now + 5.9);
 
-  // 5) granular fire crackle — hundreds of tiny debris pops raining down
+  // 6) chaotic aftershock pulses — irregular low drops still hitting minutes later
+  for (let k = 0; k < 5; k++) {
+    const t = now + 2.2 + Math.random() * 3.6;
+    const pulse = ctx.createOscillator();
+    pulse.type = "sine";
+    pulse.frequency.setValueAtTime(60 + Math.random() * 40, t);
+    pulse.frequency.exponentialRampToValueAtTime(26 + Math.random() * 10, t + 0.7);
+    const pgg = ctx.createGain();
+    env(pgg, t, 0.001, t + 0.06, 0.5);
+    env(pgg, t + 0.06, 0.5, t + 0.75, 0.001);
+    pulse.connect(pgg).connect(master);
+    pulse.start(t); pulse.stop(t + 0.8);
+  }
+
+  // 7) granular fire crackle — hundreds of debris pops raining down
   const popBuf = noiseBuffer(0.035, false);
-  for (let k = 0; k < 90; k++) {
-    const t = now + 0.2 + Math.random() * 3.6;
+  for (let k = 0; k < 170; k++) {
+    const t = now + 0.6 + Math.random() * 4.0;
     const pop = ctx.createBufferSource();
     pop.buffer = popBuf;
     const pf = ctx.createBiquadFilter();
     pf.type = "bandpass";
-    pf.frequency.value = 1200 + Math.random() * 3200;
+    pf.frequency.value = 800 + Math.random() * 5200;
     pf.Q.value = 9;
     const pg = ctx.createGain();
     pg.gain.setValueAtTime(0.001, t);
-    pg.gain.exponentialRampToValueAtTime(0.03 + Math.random() * 0.1, t + 0.006);
-    pg.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+    pg.gain.exponentialRampToValueAtTime(0.05 + Math.random() * 0.16, t + 0.007);
+    pg.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
     pop.connect(pf).connect(pg).connect(master);
-    pop.start(t); pop.stop(t + 0.05);
+    pop.start(t); pop.stop(t + 0.06);
   }
 
-  // 6) ear-shattering sharp `crack` right at ignition
+  // 8) ear-shattering sharp crack at ignition
   const snap = ctx.createBufferSource();
-  snap.buffer = noiseBuffer(0.13, false);
+  snap.buffer = noiseBuffer(0.15, false);
   const hpf = ctx.createBiquadFilter();
-  hpf.type = "highpass"; hpf.frequency.value = 3400;
-  const sg = ctx.createGain();
-  env(sg, now, 0.9, now + 0.15, 0.0005);
-  snap.connect(hpf).connect(sg).connect(master);
-  snap.start(now); snap.stop(now + 0.16);
+  hpf.type = "highpass"; hpf.frequency.value = 4200;
+  const snG = ctx.createGain();
+  env(snG, now, 1.0, now + 0.16, 0.0005);
+  snap.connect(hpf).connect(snG).connect(master);
+  snap.start(now); snap.stop(now + 0.17);
 
-  // 7) fireball column — sonic wavefront sweeping down then whistling off
+  // 9) shockwave sweep pierces through the wall of noise
   const boom = ctx.createOscillator();
   boom.type = "sine";
-  boom.frequency.setValueAtTime(2400, now);
-  boom.frequency.exponentialRampToValueAtTime(160, now + 1.15);
+  boom.frequency.setValueAtTime(2800, now);
+  boom.frequency.exponentialRampToValueAtTime(140, now + 1.3);
   const bg = ctx.createGain();
-  env(bg, now, 0.0005, now + 0.1, 0.28);
-  env(bg, now + 0.1, 0.28, now + 1.2, 0.0005);
-  boom.connect(bg).connect(master);
-  boom.start(now); boom.stop(now + 1.25);
+  env(bg, now, 0.0005, now + 0.12, 0.95);
+  env(bg, now + 0.12, 0.95, now + 1.35, 0.0005);
+  boom.connect(bg).connect(clip).connect(master);
+  boom.start(now); boom.stop(now + 1.4);
 }
 
 function QuantumBomb() {
