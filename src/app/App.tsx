@@ -536,6 +536,27 @@ function playBombSound() {
   boom.start(now); boom.stop(now + 1.4);
 }
 
+function playWhooshSound() {
+  const ctx = getBombCtx();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 1.0), ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2.5);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const f = ctx.createBiquadFilter();
+  f.type = "lowpass";
+  f.frequency.setValueAtTime(3400, now);
+  f.frequency.exponentialRampToValueAtTime(380, now + 1.0);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0005, now);
+  g.gain.linearRampToValueAtTime(0.5, now + 0.14);
+  g.gain.exponentialRampToValueAtTime(0.0005, now + 1.0);
+  src.connect(f).connect(g).connect(ctx.destination);
+  src.start(now); src.stop(now + 1.02);
+}
+
 function QuantumBomb() {
   const [armed, setArmed] = useState(true);
   const [sparks, setSparks] = useState<Spark[]>([]);
@@ -544,7 +565,21 @@ function QuantumBomb() {
   const [afterglow, setAfterglow] = useState(false);
   const [flash, setFlash] = useState(false);
   const [embers, setEmbers] = useState<{ x: number; y: number; dx: number; dur: number; s: number }[]>([]);
+  const [rock, setRock] = useState<{ x: number; y: number; fx: number; fy: number } | null>(null);
   const idRef = useRef(0);
+
+  const launchRock = (sx: number, sy: number) => {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    setArmed(false);
+    playWhooshSound();
+    setRock({ x: sx, y: sy, fx: cx - sx, fy: cy - sy });
+    setTimeout(() => {
+      setRock(null);
+      detonate(cx, cy);
+      setTimeout(() => setArmed(true), 2600);
+    }, 1000);
+  };
 
   const detonate = (cx: number, cy: number) => {
     playBombSound();
@@ -611,6 +646,19 @@ function QuantumBomb() {
           ))}
         </div>
       )}
+      {rock && (
+        <div style={{ position: "fixed", left: rock.x, top: rock.y, zIndex: 9888, pointerEvents: "none" }}>
+          {[{ d: -0.3, o: 0.25, s: 34 }, { d: -0.18, o: 0.5, s: 26 }, { d: 0, o: 1, s: 20 }].map((g, i) => (
+            <div key={i} className="atomic-rock" style={{
+              position: "absolute", width: g.s, height: g.s, borderRadius: "50%",
+              background: "radial-gradient(circle at 34% 30%, #fff3c4, #ffb03a 30%, #ff5a1f 65%, #7a2410 95%)",
+              boxShadow: "0 0 18px 6px rgba(255,120,30,0.85), 0 0 46px 18px rgba(255,60,20,0.45)",
+              ['--fx' as string]: `${rock.fx}px`, ['--fy' as string]: `${rock.fy}px`,
+              opacity: g.o, animationDelay: `${g.d}s`,
+            }} />
+          ))}
+        </div>
+      )}
       {sparks.length > 0 && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9880, pointerEvents: "none", overflow: "hidden" }}>
           {sparks.map((s) => (
@@ -627,10 +675,9 @@ function QuantumBomb() {
       )}
       <div className="quantum-bomb-float" style={{ position: "fixed", left: 18, bottom: 18, zIndex: 8500 }}>
       <button onClick={(e) => {
+        if (!armed) return;
         const r = e.currentTarget.getBoundingClientRect();
-        detonate(r.left + r.width / 2, r.top + r.height / 2);
-        setArmed(false);
-        setTimeout(() => setArmed(true), 2600);
+        launchRock(r.left + r.width / 2, r.top + r.height / 2);
       }}
         style={{
           cursor: "pointer", position: "relative", padding: "8px 18px 8px 8px",
@@ -661,7 +708,7 @@ function QuantumBomb() {
             {armed ? "QUANTUM_BOMB" : "RELOADING…"}
           </span>
           <span style={mono(7, armed ? "var(--fg-c)" : "var(--fg-d)", { letterSpacing: "0.3em", opacity: armed ? 0.9 : 0.5 })}>
-            {armed ? "ARMED — CLICK TO DETONATE" : "CHARGING CORE"}
+            {armed ? "ARMED — CLICK TO LAUNCH" : "ROCK INBOUND"}
           </span>
         </span>
       </button>
