@@ -33,7 +33,6 @@ import {
   Sparkles,
   Terminal,
   Atom,
-  Biohazard,
 } from "lucide-react";
 
 // ─── Scroll hooks ─────────────────────────────────────────────────────────────
@@ -690,19 +689,20 @@ function QuantumBomb() {
         launchRock(r.left + r.width / 2, r.top + r.height / 2);
       }}
         style={{
-          cursor: "pointer", position: "relative", padding: "8px 18px 8px 8px",
-          background: "linear-gradient(135deg, rgba(var(--c1),0.22), rgba(var(--c3),0.12))",
-          border: "1px solid rgba(var(--c1),0.5)", borderRadius: 999,
-          display: "flex", alignItems: "center", gap: 10, backdropFilter: "blur(10px)",
-          transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s, box-shadow 0.25s, opacity 0.25s",
+          cursor: "pointer", position: "relative", width: 52, height: 52,
+          background: "linear-gradient(135deg, rgba(var(--c1),0.28), rgba(var(--c3),0.16))",
+          border: "1px solid rgba(var(--c1),0.5)", borderRadius: "50%",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          backdropFilter: "blur(10px)",
+          transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s, box-shadow 0.25s",
           boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 28px rgba(var(--c1),0.3), 0 0 0 4px rgba(var(--c1),0.07)",
         }}
         onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = "rgba(var(--c4),0.85)"; e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.18), 0 12px 34px rgba(var(--c1),0.42), 0 0 0 4px rgba(var(--c4),0.14)"; }}
         onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(var(--c1),0.5)"; e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 28px rgba(var(--c1),0.3), 0 0 0 4px rgba(var(--c1),0.07)"; }}
-        aria-label="Detonate a quantum bomb">
-        <span className="bomb-ping" style={{ position: "absolute", inset: -3, borderRadius: 999, pointerEvents: "none" }} />
+        aria-label="Launch the atomic rocket">
+        <span className="bomb-ping" style={{ position: "absolute", inset: -3, borderRadius: "50%", pointerEvents: "none" }} />
         <span style={{
-          width: 32, height: 32, borderRadius: "50%",
+          width: 34, height: 34, borderRadius: "50%",
           background: armed
             ? "radial-gradient(circle at 32% 30%, var(--c4h), var(--c1h))"
             : "radial-gradient(circle at 32% 30%, rgba(var(--c2),0.5), rgba(var(--fg-d),0.3))",
@@ -710,16 +710,9 @@ function QuantumBomb() {
           display: "flex", alignItems: "center", justifyContent: "center",
           boxShadow: armed ? "0 0 14px rgba(var(--c4),0.7), inset 0 -2px 5px rgba(0,0,0,0.28)" : "none",
           transition: "background 0.4s, box-shadow 0.4s",
+          animation: armed ? "" : "reload-blink 1.1s ease-in-out infinite",
         }}>
-          <Atom size={16} strokeWidth={2} />
-        </span>
-        <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
-          <span style={mono(9, armed ? "var(--c4h)" : "var(--fg-d)", { letterSpacing: "0.24em", fontWeight: 800 })}>
-            {armed ? "QUANTUM_BOMB" : "RELOADING…"}
-          </span>
-          <span style={mono(7, armed ? "var(--fg-c)" : "var(--fg-d)", { letterSpacing: "0.3em", opacity: armed ? 0.9 : 0.5 })}>
-            {armed ? "ARMED — CLICK TO LAUNCH" : "ROCK INBOUND"}
-          </span>
+          <Atom size={19} strokeWidth={2} className={armed ? "atom-spin" : ""} />
         </span>
       </button>
       </div>

@@ -451,3 +451,6 @@
     letter-spacing: 0.04em;
   }
 }
+@keyframes atom-spin { to { transform: rotate(360deg); } }
+.atom-spin { animation: atom-spin 8s linear infinite; }
+@keyframes reload-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
