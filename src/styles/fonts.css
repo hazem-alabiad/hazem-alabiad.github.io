@@ -275,7 +275,15 @@
 }
 .quantum-bomb-float {
   animation: bomb-float 3.2s ease-in-out infinite;
-  filter: drop-shadow(0 6px 14px rgba(var(--c1),0.25));
+  filter: drop-shadow(0 8px 18px rgba(var(--c1),0.28));
+}
+@keyframes bomb-ping {
+  0%   { transform: scale(0.9); opacity: 0.9; border-color: rgba(var(--c4),0.9); }
+  100% { transform: scale(1.7); opacity: 0; border-color: rgba(var(--c4),0); }
+}
+.bomb-ping {
+  border: 1px solid rgba(var(--c4),0.8);
+  animation: bomb-ping 1.6s cubic-bezier(0.16,1,0.3,1) infinite;
 }
 @keyframes bomb-flash {
   0%   { transform: translate(-50%,-50%) scale(0.3); opacity: 1; }

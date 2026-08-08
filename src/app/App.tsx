@@ -32,6 +32,8 @@ import {
   Cpu,
   Sparkles,
   Terminal,
+  Atom,
+  Biohazard,
 } from "lucide-react";
 
 // ─── Scroll hooks ─────────────────────────────────────────────────────────────
@@ -373,90 +375,115 @@ function playBombSound() {
   const now = ctx.currentTime;
   const master = ctx.createGain();
   master.gain.setValueAtTime(1.0, now);
-  master.gain.exponentialRampToValueAtTime(0.0004, now + 2.1);
+  master.gain.exponentialRampToValueAtTime(0.0004, now + 3.1);
   master.connect(ctx.destination);
 
-  const fade = (g: GainNode, a: number, b: number, dur: number) => {
-    g.gain.setValueAtTime(a, now);
-    g.gain.exponentialRampToValueAtTime(b, now + dur);
+  const env = (g: GainNode, t: number, a: number, t2: number, d: number) => {
+    g.gain.setValueAtTime(a, t);
+    g.gain.exponentialRampToValueAtTime(d, t2);
   };
 
-  // 1) chest-thumping sub boom — deep, slow fall
-  const sub = ctx.createOscillator();
-  sub.type = "sine";
-  sub.frequency.setValueAtTime(150, now);
-  sub.frequency.exponentialRampToValueAtTime(30, now + 1.9);
-  const subg = ctx.createGain();
-  fade(subg, 1.0, 0.0005, 1.9);
-  sub.connect(subg).connect(master);
-  sub.start(now); sub.stop(now + 2.0);
-
-  // 2) dramatic low punch thump on top
-  const thump = ctx.createOscillator();
-  thump.type = "triangle";
-  thump.frequency.setValueAtTime(180, now);
-  thump.frequency.exponentialRampToValueAtTime(48, now + 0.4);
-  const thumpg = ctx.createGain();
-  fade(thumpg, 0.9, 0.0005, 0.5);
-  thump.connect(thumpg).connect(master);
-  thump.start(now); thump.stop(now + 0.55);
-
-  // 3) explosion body — brown noise slammed through a sweeping lowpass
-  const dur = 1.5;
+  // shared brown-noise body (reused by the roar and the glancing echo boom)
+  const dur = 2.6;
   const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
   const data = buf.getChannelData(0);
   let last = 0;
   for (let i = 0; i < data.length; i++) {
     const w = Math.random() * 2 - 1;
-    last = (last + 0.035 * w) / 1.035;
-    data[i] = last * Math.pow(1 - i / data.length, 2.2);
+    last = (last + 0.02 * w) / 1.02;
+    data[i] = last * 6 * Math.pow(1 - i / data.length, 1.4);
   }
-  const noise = ctx.createBufferSource();
-  noise.buffer = buf;
-  const nf = ctx.createBiquadFilter();
-  nf.type = "lowpass";
-  nf.frequency.setValueAtTime(6000, now);
-  nf.frequency.exponentialRampToValueAtTime(140, now + dur);
-  nf.Q.value = 0.9;
-  const ng = ctx.createGain();
-  fade(ng, 0.85, 0.0005, dur);
-  noise.connect(nf).connect(ng).connect(master);
-  noise.start(now); noise.stop(now + dur + 0.05);
 
-  // 4) crisp snap — bright highpass noise crack right at the onset
-  const snapDur = 0.16;
-  const snapBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * snapDur), ctx.sampleRate);
-  const sd = snapBuf.getChannelData(0);
+  // 1) foundation sub — the deep shaking of a nuclear detonation
+  const sub = ctx.createOscillator();
+  sub.type = "sine";
+  sub.frequency.setValueAtTime(150, now);
+  sub.frequency.exponentialRampToValueAtTime(24, now + 2.7);
+  const subg = ctx.createGain();
+  env(subg, now, 0.001, now + 0.06, 1.0);
+  env(subg, now + 0.06, 1.0, now + 2.7, 0.0005);
+  sub.connect(subg).connect(master);
+  sub.start(now); sub.stop(now + 2.8);
+
+  // 2) body roar — swells up then rolls off as the pressure wave
+  const roar = ctx.createBufferSource();
+  roar.buffer = buf;
+  const rf = ctx.createBiquadFilter();
+  rf.type = "lowpass";
+  rf.frequency.setValueAtTime(6000, now);
+  rf.frequency.exponentialRampToValueAtTime(60, now + dur);
+  rf.Q.value = 1.1;
+  const rg = ctx.createGain();
+  env(rg, now, 0.0005, now + 0.28, 0.9);
+  env(rg, now + 0.28, 0.9, now + dur, 0.0005);
+  roar.connect(rf).connect(rg).connect(master);
+  roar.start(now); roar.stop(now + dur);
+
+  // 3) glancing echo boom — the second concussion bouncing back
+  const echo = ctx.createBufferSource();
+  echo.buffer = buf;
+  echo.loop = false;
+  const ef = ctx.createBiquadFilter();
+  ef.type = "lowpass";
+  ef.frequency.setValueAtTime(2400, now + 0.85);
+  ef.frequency.exponentialRampToValueAtTime(120, now + 1.9);
+  const eg = ctx.createGain();
+  env(eg, now + 0.85, 0.001, now + 0.95, 0.55);
+  env(eg, now + 0.95, 0.55, now + 1.9, 0.0005);
+  echo.connect(ef).connect(eg).connect(master);
+  echo.start(now + 0.85); echo.stop(now + 1.95);
+
+  // 4) sustained crackle — debris and electrical static raining down
+  const cdur = 2.4;
+  const cbuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * cdur), ctx.sampleRate);
+  const cd = cbuf.getChannelData(0);
+  for (let i = 0; i < cd.length; i++) cd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / cd.length, 2);
+  const crack = ctx.createBufferSource();
+  crack.buffer = cbuf;
+  const cf = ctx.createBiquadFilter();
+  cf.type = "highpass";
+  cf.frequency.setValueAtTime(1800, now);
+  cf.frequency.exponentialRampToValueAtTime(500, now + cdur);
+  const cg = ctx.createGain();
+  env(cg, now, 0.001, now + 0.3, 0.32);
+  env(cg, now + 0.3, 0.32, now + cdur, 0.0005);
+  crack.connect(cf).connect(cg).connect(master);
+  crack.start(now); crack.stop(now + cdur + 0.05);
+
+  // 5) eardrum-snapping initial crack — highpass slap
+  const snapDur = 0.15;
+  const sbuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * snapDur), ctx.sampleRate);
+  const sd = sbuf.getChannelData(0);
   for (let i = 0; i < sd.length; i++) sd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / sd.length, 3);
   const snap = ctx.createBufferSource();
-  snap.buffer = snapBuf;
+  snap.buffer = sbuf;
   const hpf = ctx.createBiquadFilter();
-  hpf.type = "highpass";
-  hpf.frequency.value = 2600;
+  hpf.type = "highpass"; hpf.frequency.value = 3200;
   const sg = ctx.createGain();
-  fade(sg, 0.9, 0.0005, snapDur);
+  env(sg, now, 0.9, now + snapDur, 0.0005);
   snap.connect(hpf).connect(sg).connect(master);
   snap.start(now); snap.stop(now + snapDur + 0.05);
 
-  // 5) whistle-down crack
-  const crack = ctx.createOscillator();
-  crack.type = "square";
-  crack.frequency.setValueAtTime(900, now);
-  crack.frequency.exponentialRampToValueAtTime(60, now + 0.3);
-  const cg = ctx.createGain();
-  fade(cg, 0.35, 0.0005, 0.32);
-  crack.connect(cg).connect(master);
-  crack.start(now); crack.stop(now + 0.34);
+  // 6) heavy low thump underneath the snap
+  const thump = ctx.createOscillator();
+  thump.type = "sine";
+  thump.frequency.setValueAtTime(170, now);
+  thump.frequency.exponentialRampToValueAtTime(42, now + 0.45);
+  const tg = ctx.createGain();
+  env(tg, now, 0.9, now + 0.5, 0.0005);
+  thump.connect(tg).connect(master);
+  thump.start(now); thump.stop(now + 0.52);
 
-  // 6) thin shrapnel whistle tail
+  // 7) thin whistle-down from the fireball column
   const tail = ctx.createOscillator();
   tail.type = "sawtooth";
-  tail.frequency.setValueAtTime(2400, now + 0.06);
-  tail.frequency.exponentialRampToValueAtTime(200, now + 0.75);
-  const tg = ctx.createGain();
-  fade(tg, 0.12, 0.0005, 0.78);
-  tail.connect(tg).connect(master);
-  tail.start(now + 0.06); tail.stop(now + 0.82);
+  tail.frequency.setValueAtTime(2200, now + 0.1);
+  tail.frequency.exponentialRampToValueAtTime(180, now + 1.0);
+  const tlg = ctx.createGain();
+  env(tlg, now + 0.1, 0.0005, now + 0.16, 0.10);
+  env(tlg, now + 0.16, 0.10, now + 1.05, 0.0005);
+  tail.connect(tlg).connect(master);
+  tail.start(now + 0.1); tail.stop(now + 1.1);
 }
 
 function QuantumBomb() {
@@ -527,17 +554,37 @@ function QuantumBomb() {
         setTimeout(() => setArmed(true), 2600);
       }}
         style={{
-          cursor: "pointer", padding: "10px 14px",
-          background: "rgba(var(--bg-rgb),0.82)", border: "1px solid rgba(var(--c1),0.35)",
-          display: "flex", alignItems: "center", gap: 8, backdropFilter: "blur(6px)",
-          transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s, opacity 0.25s",
-          boxShadow: "0 0 18px rgba(var(--c1),0.15)",
+          cursor: "pointer", position: "relative", padding: "8px 18px 8px 8px",
+          background: "linear-gradient(135deg, rgba(var(--c1),0.22), rgba(var(--c3),0.12))",
+          border: "1px solid rgba(var(--c1),0.5)", borderRadius: 999,
+          display: "flex", alignItems: "center", gap: 10, backdropFilter: "blur(10px)",
+          transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s, box-shadow 0.25s, opacity 0.25s",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 28px rgba(var(--c1),0.3), 0 0 0 4px rgba(var(--c1),0.07)",
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.borderColor = "rgba(var(--c4),0.7)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(var(--c1),0.35)"; }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = "rgba(var(--c4),0.85)"; e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.18), 0 12px 34px rgba(var(--c1),0.42), 0 0 0 4px rgba(var(--c4),0.14)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(var(--c1),0.5)"; e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 28px rgba(var(--c1),0.3), 0 0 0 4px rgba(var(--c1),0.07)"; }}
         aria-label="Detonate a quantum bomb">
-        <span className="pulse-breathe" style={{ width: 8, height: 8, borderRadius: "50%", background: armed ? "var(--c4h)" : "var(--fg-d)", display: "inline-block", boxShadow: armed ? "0 0 8px var(--c4h)" : "none" }} />
-        <span style={mono(9, armed ? "var(--c4h)" : "var(--fg-d)", { letterSpacing: "0.22em" })}>{armed ? "☢ QUANTUM_BOMB//ARMED" : "RELOADING…"}</span>
+        <span className="bomb-ping" style={{ position: "absolute", inset: -3, borderRadius: 999, pointerEvents: "none" }} />
+        <span style={{
+          width: 32, height: 32, borderRadius: "50%",
+          background: armed
+            ? "radial-gradient(circle at 32% 30%, var(--c4h), var(--c1h))"
+            : "radial-gradient(circle at 32% 30%, rgba(var(--c2),0.5), rgba(var(--fg-d),0.3))",
+          color: "var(--bg-deep)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: armed ? "0 0 14px rgba(var(--c4),0.7), inset 0 -2px 5px rgba(0,0,0,0.28)" : "none",
+          transition: "background 0.4s, box-shadow 0.4s",
+        }}>
+          <Atom size={16} strokeWidth={2} />
+        </span>
+        <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
+          <span style={mono(9, armed ? "var(--c4h)" : "var(--fg-d)", { letterSpacing: "0.24em", fontWeight: 800 })}>
+            {armed ? "QUANTUM_BOMB" : "RELOADING…"}
+          </span>
+          <span style={mono(7, armed ? "var(--fg-c)" : "var(--fg-d)", { letterSpacing: "0.3em", opacity: armed ? 0.9 : 0.5 })}>
+            {armed ? "ARMED — CLICK TO DETONATE" : "CHARGING CORE"}
+          </span>
+        </span>
       </button>
       </div>
     </>
