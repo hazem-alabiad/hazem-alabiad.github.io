@@ -385,17 +385,30 @@ function SectionLabel({ num, label }: { num: string; label: string }) {
 }
 
 function SkillBar({ label, level, visible, delay }: { label: string; level: number; visible: boolean; delay: number }) {
+  const segments = 8;
+  const filled = Math.round((level / 100) * segments);
+  const tier = level >= 90 ? "EXPERT" : level >= 78 ? "ADVANCED" : level >= 65 ? "PROFICIENT" : "COMPETENT";
   return (
-    <div className="space-y-1.5">
-      <div className="flex justify-between items-center">
-        <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 13, color: "#b0cede" }}>{label}</span>
-        <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 13, color: "#00f0ff" }}>{level}%</span>
-      </div>
-      <div className="h-px bg-[#0f1624] overflow-hidden">
-        <div
-          className="h-full transition-all ease-out"
-          style={{ width: visible ? `${level}%` : "0%", transitionDuration: "1.4s", transitionDelay: `${delay}ms`, background: "linear-gradient(90deg, #00f0ff, #9d4edd)" }}
-        />
+    <div>
+      <div className="flex justify-between items-baseline">
+        <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, color: "#b0cede" }}>{label}</span>
+        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ display: "flex", gap: 2.5 }}>
+            {Array.from({ length: segments }).map((_, i) => (
+              <span key={i}
+                style={{
+                  width: 6, height: 10,
+                  background: i < filled && visible ? "linear-gradient(180deg, #00f0ff, #9d4edd)" : "#0f1624",
+                  transition: "background 0.5s ease, box-shadow 0.5s ease",
+                  transitionDelay: `${delay + i * 70}ms`,
+                  boxShadow: i < filled && visible ? "0 0 6px rgba(0,240,255,0.35)" : "none",
+                  opacity: visible ? 1 : 0,
+                }}
+              />
+            ))}
+          </span>
+          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 8.5, letterSpacing: "0.16em", color: level >= 78 ? "#00f0ff" : "#6b8fab" }}>{tier}</span>
+        </span>
       </div>
     </div>
   );
@@ -1331,14 +1344,46 @@ export default function App() {
                       loading="eager"
                       style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 40%", display: "block" }}
                     />
+                    {/* RGB-split glitch fringes */}
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(105deg, rgba(0,240,255,0.16), transparent 45%, transparent 55%, rgba(157,78,221,0.20))", mixBlendMode: "screen" }} />
+                    {/* CRT halftone scanlines */}
+                    <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(0,0,0,0.22) 2px, rgba(0,0,0,0.22) 3px)", mixBlendMode: "multiply" }} />
+                    {/* moving scan sweep */}
+                    <div style={{ position: "absolute", left: 0, right: 0, height: "55%", top: "-60%", background: "linear-gradient(to bottom, transparent, rgba(0,240,255,0.14) 50%, transparent)", animation: "scan-cv 5.5s linear infinite" }} />
+                    {/* targeting reticle */}
+                    <div style={{ position: "absolute", left: "50%", top: "50%", width: 44, height: 44, transform: "translate(-50%,-50%)", opacity: 0.5, pointerEvents: "none" }}>
+                      <span style={{ position: "absolute", left: 0, top: "50%", width: 8, height: 1, background: "#00f0ff", boxShadow: "0 0 6px #00f0ff" }} />
+                      <span style={{ position: "absolute", right: 0, top: "50%", width: 8, height: 1, background: "#00f0ff", boxShadow: "0 0 6px #00f0ff" }} />
+                      <span style={{ position: "absolute", top: 6, left: "50%", width: 1, height: 8, background: "#00f0ff", boxShadow: "0 0 6px #00f0ff" }} />
+                      <span style={{ position: "absolute", bottom: 6, left: "50%", width: 1, height: 8, background: "#00f0ff", boxShadow: "0 0 6px #00f0ff" }} />
+                    </div>
+                    {/* corner HUD brackets */}
+                    {[{ t: 6, l: 6, w: 16, h: 16, br: "4px 0 0 0", bd: "2px solid rgba(0,240,255,0.85)" },
+                      { t: 6, l: "auto", r: 6, w: 16, h: 16, br: "0 6px 0 0", bd: "2px solid rgba(157,78,221,0.85)" },
+                      { t: "auto", b: 6, l: 6, w: 16, h: 16, br: "0 0 0 4px", bd: "2px solid rgba(157,78,221,0.85)" },
+                      { t: "auto", b: 6, r: 6, w: 16, h: 16, br: "0 0 4px 0", bd: "2px solid rgba(0,240,255,0.85)" }].map((c, i) => (
+                      <span key={i} style={{ position: "absolute", top: c.t, bottom: c.b, left: c.l, right: c.r, width: c.w, height: c.h, borderTopLeftRadius: i === 0 ? 4 : 0, borderTopRightRadius: i === 1 ? 4 : 0, borderBottomLeftRadius: i === 2 ? 4 : 0, borderBottomRightRadius: i === 3 ? 4 : 0, borderTop: /top/.test(Object.keys(c).join("")) ? "none" : undefined, ...{} }} />
+                  ))}
+                  </div>
+                  {/* readout strip */}
+                  <div style={{
+                    position: "absolute", left: 8, right: 8, bottom: 8, zIndex: 2, padding: "3px 7px",
+                    background: "rgba(5,8,20,0.72)", borderLeft: "1px solid rgba(0,240,255,0.5)",
+                    backdropFilter: "blur(6px)", pointerEvents: "none",
+                  }}>
+                    <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 7.5, letterSpacing: "0.18em", color: "#9ab8d0" }}>
+                      ID:<span style={{ color: "#00f0ff" }}>HAZ-2026</span>
+                      <span className="blink" style={{ color: "#28c840", margin: "0 4px" }}>█</span>
+                      <span style={{ color: "rgba(0,240,255,0.6)" }}>SIG_OK</span>
+                    </span>
                   </div>
                   <span style={{
-                    position: "absolute", bottom: 10, right: 10, zIndex: 2, width: 16, height: 16,
+                    position: "absolute", bottom: 34, right: 6, zIndex: 2, width: 14, height: 14,
                     borderRadius: "50%", background: "#28c840", border: "3px solid #050814",
                     boxShadow: "0 0 10px rgba(40,200,64,0.9)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}>
-                    <span style={{ position: "absolute", inset: -3, borderRadius: "50%", background: "rgba(40,200,64,0.5)" }} />
+                    <span style={{ position: "absolute", inset: -3, borderRadius: "50%", background: "rgba(40,200,64,0.5)", animation: "pulse-dot 2s ease-out infinite" }} />
                   </span>
                 </div>
               </div>
@@ -1483,18 +1528,18 @@ export default function App() {
             <WipeHeading className="mb-12" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
               Technical <span style={{ color: "#9d4edd" }}>Proficiencies</span>
             </WipeHeading>
-            <Spotlight className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+            <Spotlight className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
               <div>
-                <div style={mono(9, "rgba(0,240,255,0.45)", { marginBottom: 24, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>FULL_STACK_ENGINEERING</div>
-                <div className="space-y-6">
+                <div style={mono(9, "rgba(0,240,255,0.45)", { marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>FULL_STACK_ENGINEERING</div>
+                <div className="space-y-2.5">
                   {content.skills.filter((s) => s.cat === "stack").map((s, i) => (
                     <SkillBar key={s.id || s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} />
                   ))}
                 </div>
               </div>
               <div>
-                <div style={mono(9, "rgba(157,78,221,0.45)", { marginBottom: 24, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>AI_NLP_RESEARCH</div>
-                <div className="space-y-6">
+                <div style={mono(9, "rgba(157,78,221,0.45)", { marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>AI_NLP_RESEARCH</div>
+                <div className="space-y-2.5">
                   {content.skills.filter((s) => s.cat === "ai").map((s, i) => (
                     <SkillBar key={s.id || s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} />
                   ))}
