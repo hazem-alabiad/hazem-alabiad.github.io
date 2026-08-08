@@ -138,8 +138,8 @@ function CustomCursor() {
 
   return (
     <>
-      <div ref={dotRef} style={{ position: "fixed", top: 0, left: 0, width: 6, height: 6, borderRadius: "50%", background: "var(--c1h)", pointerEvents: "none", zIndex: 9999, mixBlendMode: "screen", transition: "transform 0.05s linear" }} />
-      <div ref={ringRef} style={{ position: "fixed", top: 0, left: 0, width: 36, height: 36, borderRadius: "50%", border: "1px solid rgba(var(--c1),0.5)", pointerEvents: "none", zIndex: 9998, transition: "border-color 0.2s" }} />
+      <div ref={dotRef} style={{ position: "fixed", top: 0, left: 0, width: 6, height: 6, borderRadius: "50%", background: "var(--c1h)", pointerEvents: "none", zIndex: 100000, mixBlendMode: "screen", transition: "transform 0.05s linear" }} />
+      <div ref={ringRef} style={{ position: "fixed", top: 0, left: 0, width: 36, height: 36, borderRadius: "50%", border: "1px solid rgba(var(--c1),0.5)", pointerEvents: "none", zIndex: 100000, transition: "border-color 0.2s" }} />
     </>
   );
 }
@@ -1187,6 +1187,21 @@ function BootScreen({ onDone }: { onDone: () => void }) {
     setTimeout(() => onDone(), 750);
   };
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.repeat) return;
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        launch();
+      } else if (e.key === "Escape" && phase === "boot") {
+        setPhase("desktop");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const APPS = [
     { Icon: Brain, label: "NLP_TERM", color: "var(--c1h)" },
     { Icon: Code2, label: "DEV_STUDIO", color: "var(--c2h)" },
@@ -1219,6 +1234,9 @@ function BootScreen({ onDone }: { onDone: () => void }) {
           <div style={{ marginTop: 40, height: 1, background: "rgba(var(--c1),0.12)", overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${(lines.length / BOOT_LINES.length) * 100}%`, background: "linear-gradient(90deg,var(--c1h),var(--c2h))", transition: "width 0.22s ease", boxShadow: "0 0 10px rgba(var(--c1),0.5)" }} />
           </div>
+          <div style={{ position: "fixed", bottom: 28, right: 40, fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.25em", color: "rgba(var(--c1),0.45)" }}>
+            ENTER ↵ SKIP BOOT
+          </div>
         </div>
       ) : (
         <div className="welcome-desktop">
@@ -1244,6 +1262,9 @@ function BootScreen({ onDone }: { onDone: () => void }) {
             </p>
             <div style={{ fontFamily: '"Outfit", sans-serif', fontSize: 15, color: "var(--fg-b)", marginTop: 18, maxWidth: 460, marginLeft: "auto", marginRight: "auto", lineHeight: 1.7 }}>
               Neural interface online · NLP / LLMs / Computational Linguistics · Full-stack engineering
+            </div>
+            <div className="blink" style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.35em", color: "rgba(var(--c1),0.6)", marginTop: 26, cursor: "none" }}>
+              [ ENTER ↵ ] LAUNCH PORTFOLIO
             </div>
           </div>
 
