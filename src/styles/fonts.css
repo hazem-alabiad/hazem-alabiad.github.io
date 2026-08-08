@@ -454,3 +454,18 @@
 @keyframes atom-spin { to { transform: rotate(360deg); } }
 .atom-spin { animation: atom-spin 8s linear infinite; }
 @keyframes reload-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@keyframes smoke-rise {
+  0%   { transform: translate(0, 0) scale(0.55); opacity: 0.6; }
+  30%  { transform: translate(calc(var(--sx, 0px) * 0.5), calc(var(--sy, 0px) * 0.4 - 40px)) scale(1.2); opacity: 0.75; }
+  60%  { transform: translate(calc(var(--sx, 0px) * 0.8), calc(var(--sy, 0px) * 0.75)) scale(1.7); opacity: 0.55; }
+  100% { transform: translate(var(--sx, 0px), var(--sy, 0px)) scale(2.6); opacity: 0; }
+}
+.nuke-smoke {
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(196,194,210,0.8), rgba(140,138,168,0.5) 42%, rgba(96,96,124,0.28) 66%, transparent 74%);
+  filter: blur(6px);
+  animation-name: smoke-rise;
+  animation-timing-function: cubic-bezier(0.16, 0.8, 0.35, 1);
+  animation-fill-mode: both;
+  animation-duration: var(--sd, 2.4s);
+}

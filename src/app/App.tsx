@@ -573,6 +573,7 @@ function QuantumBomb() {
   const [afterglow, setAfterglow] = useState(false);
   const [flash, setFlash] = useState(false);
   const [embers, setEmbers] = useState<{ x: number; y: number; dx: number; dur: number; s: number }[]>([]);
+  const [smoke, setSmoke] = useState<{ x: number; y: number; sx: number; sy: number; s: number; d: number }[]>([]);
   const [rock, setRock] = useState<{ x: number; y: number; fx: number; fy: number } | null>(null);
   const idRef = useRef(0);
 
@@ -593,10 +594,13 @@ function QuantumBomb() {
     playBombSound();
     const small = window.innerWidth < 640;
     const colors = ["var(--c1h)", "var(--c2h)", "var(--c3h)", "var(--c4h)", "#ffffff"];
-    const parts: Spark[] = Array.from({ length: small ? 64 : 150 }, () => {
+    const dg = ["#caa06a", "#b7aca6", "#9a8b83", "var(--c4h)", "#6b5f58"];
+    const parts: Spark[] = [];
+    const nSmall = small ? 56 : 140;
+    for (let i = 0; i < nSmall; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 2 + Math.random() * 14;
-      return {
+      parts.push({
         id: ++idRef.current,
         x: cx, y: cy,
         dx: Math.cos(angle) * speed,
@@ -606,8 +610,24 @@ function QuantumBomb() {
         color: colors[Math.floor(Math.random() * colors.length)],
         life: 0.55 + Math.random() * 0.95,
         rot: Math.random() * 360,
-      };
-    });
+      });
+    }
+    const nBig = small ? 4 : 10;
+    for (let i = 0; i < nBig; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1.5 + Math.random() * 4;
+      parts.push({
+        id: ++idRef.current,
+        x: cx, y: cy,
+        dx: Math.cos(angle) * speed,
+        dy: Math.sin(angle) * speed - 3.5,
+        size: 14 + Math.random() * 20,
+        shape: "square",
+        color: dg[Math.floor(Math.random() * dg.length)],
+        life: 1.6 + Math.random() * 1.1,
+        rot: Math.random() * 360,
+      });
+    }
     setSparks(parts);
     setShocking(true);
     setBlast({ x: cx, y: cy });
@@ -620,11 +640,20 @@ function QuantumBomb() {
       dur: 0.9 + Math.random() * 1.3,
       s: 3 + Math.random() * 6,
     })));
-    setTimeout(() => setShocking(false), 900);
+    setSmoke(Array.from({ length: small ? 5 : 9 }, () => ({
+      x: cx + (Math.random() - 0.5) * 120,
+      y: cy + (Math.random() - 0.5) * 40,
+      sx: (Math.random() - 0.5) * 460,
+      sy: -(60 + Math.random() * 260),
+      s: 90 + Math.random() * 130,
+      d: 2.2 + Math.random() * 1.2,
+    })));
+    setTimeout(() => setShocking(false), 1200);
     setTimeout(() => setAfterglow(false), 1400);
     setTimeout(() => setFlash(false), 700);
-    setTimeout(() => setSparks([]), 1800);
+    setTimeout(() => setSparks([]), 2700);
     setTimeout(() => setEmbers([]), 2400);
+    setTimeout(() => setSmoke([]), 3600);
     setTimeout(() => setBlast(null), 1600);
   };
 
@@ -632,15 +661,26 @@ function QuantumBomb() {
     <>
       {shocking && <div style={{ position: "fixed", inset: 0, zIndex: 9890, pointerEvents: "none", animation: "bomb-shake 0.45s linear" }} />}
       {flash && <div className="nuke-flash" style={{ position: "fixed", inset: 0, zIndex: 9855, pointerEvents: "none", background: "radial-gradient(circle at 50% 60%, rgba(255,255,235,1), rgba(255,220,160,0.9) 45%, rgba(255,255,255,0) 70%)", animation: "nuke-flash 0.65s ease-out forwards" }} />}
+      {smoke.length > 0 && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9864, pointerEvents: "none", overflow: "hidden", mixBlendMode: "normal" }}>
+          {smoke.map((p, i) => (
+            <div key={i} className="nuke-smoke" style={{
+              position: "absolute", left: p.x, top: p.y, width: p.s, height: p.s,
+              ['--sx' as string]: `${p.sx}px`, ['--sy' as string]: `${p.sy}px`,
+              ['--sd' as string]: `${p.d}s`,
+            }} />
+          ))}
+        </div>
+      )}
       {afterglow && <div style={{ position: "fixed", inset: 0, zIndex: 9870, pointerEvents: "none", background: "radial-gradient(circle, rgba(255,255,255,0.28), transparent 60%)", mixBlendMode: "screen", animation: "bomb-afterglow 0.9s ease-out forwards" }} />}
       {blast && (
         <div style={{ position: "fixed", left: blast.x, top: blast.y, zIndex: 9882, pointerEvents: "none" }}>
           {/* heat bloom */}
-          <div style={{ position: "absolute", translate: "-50% -50%", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, rgba(255,190,80,0.9), rgba(255,120,50,0.4) 45%, rgba(255,80,40,0.12) 68%, transparent 72%)", animation: "nuke-bloom 1.3s cubic-bezier(0.22,1,0.36,1) forwards" }} />
+          <div style={{ position: "absolute", translate: "-50% -50%", width: 480, height: 480, borderRadius: "50%", background: "radial-gradient(circle, rgba(255,190,80,0.9), rgba(255,120,50,0.4) 45%, rgba(255,80,40,0.12) 68%, transparent 72%)", animation: "nuke-bloom 1.5s cubic-bezier(0.22,1,0.36,1) forwards" }} />
           {/* mushroom stem */}
-          <div style={{ position: "absolute", translate: "-50% 0", width: 78, height: 210, borderRadius: "45% 45% 12% 12% / 55% 55% 25% 25%", background: "linear-gradient(to top, rgba(255,170,90,0.95), rgba(255,200,140,0.55) 45%, rgba(255,220,180,0.2) 75%, transparent)", filter: "blur(1.5px)", animation: "nuke-stem 1.5s cubic-bezier(0.22,1,0.36,1) forwards" }} />
+          <div style={{ position: "absolute", translate: "-50% 0", width: 110, height: 250, borderRadius: "45% 45% 12% 12% / 55% 55% 25% 25%", background: "linear-gradient(to top, rgba(255,170,90,0.95), rgba(255,200,140,0.55) 45%, rgba(255,220,180,0.2) 75%, transparent)", filter: "blur(1.5px)", animation: "nuke-stem 1.8s cubic-bezier(0.22,1,0.36,1) forwards" }} />
           {/* mushroom cap */}
-          <div style={{ position: "absolute", top: 0, left: 0, translate: "-50% -50%", width: 340, height: 230, borderRadius: "50%", background: "radial-gradient(ellipse at 50% 62%, rgba(255,120,50,0.85), rgba(220,80,70,0.55) 42%, rgba(150,70,80,0.3) 68%, transparent 75%)", filter: "blur(2px)", animation: "nuke-head 1.6s cubic-bezier(0.22,1,0.36,1) forwards" }} />
+          <div style={{ position: "absolute", top: 0, left: 0, translate: "-50% -50%", width: 460, height: 260, borderRadius: "50%", background: "radial-gradient(ellipse at 50% 62%, rgba(255,120,50,0.85), rgba(220,80,70,0.55) 42%, rgba(150,70,80,0.3) 68%, transparent 75%)", filter: "blur(2px)", animation: "nuke-head 1.9s cubic-bezier(0.22,1,0.36,1) forwards" }} />
         </div>
       )}
       {embers.length > 0 && (
