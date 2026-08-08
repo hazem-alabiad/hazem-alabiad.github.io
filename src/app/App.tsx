@@ -1452,8 +1452,8 @@ function BootScreen({ onDone }: { onDone: () => void }) {
           <div style={{ position: "absolute", top: 40, left: 40, display: "flex", flexDirection: "column", gap: 22, zIndex: 2 }}>
             {APPS.map(({ Icon, label, color }, i) => (
               <div key={label} className="welcome-icon" style={{ animationDelay: `${i * 90}ms`, cursor: "none", zIndex: 2 }}>
-                <div style={{ width: 40, height: 40, border: `1px solid rgba(0,0,0,0.25)`, background: "rgba(255,255,255,0.06)", color, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}><Icon size={19} /></div>
-                <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 8, letterSpacing: "0.18em", color: "rgba(0,0,0,0.65)", textAlign: "center", marginTop: 4 }}>{label}</span>
+                <div style={{ width: 40, height: 40, border: `1px solid rgba(var(--c1),0.25)`, background: "var(--chip)", color, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}><Icon size={19} /></div>
+                <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 8, letterSpacing: "0.18em", color: "var(--fg-b)", textAlign: "center", marginTop: 4 }}>{label}</span>
               </div>
             ))}
           </div>
@@ -1586,7 +1586,12 @@ const THEME_LABEL: Record<string, string> = {
 };
 
 function getStoredTheme(): string {
-  try { const t = localStorage.getItem("hazem_portfolio_theme"); if (t && THEMES.includes(t as never)) return t; } catch {}
+  try {
+    const q = new URLSearchParams(window.location.search).get("theme");
+    if (q && THEMES.includes(q as never)) return q;
+    const t = localStorage.getItem("hazem_portfolio_theme");
+    if (t && THEMES.includes(t as never)) return t;
+  } catch {}
   return "dark-cyan";
 }
 

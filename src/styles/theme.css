@@ -61,34 +61,69 @@
   --c3h: #ffc83c;
 }
 
-/* Light theme — readable, keeps neon accents */
+/* Light theme — bright, airy, readable; keeps neon accents */
 [data-theme="light"] {
-  --c1: 0, 132, 255;
-  --c1h: #0084ff;
-  --c2: 124, 66, 186;
-  --c2h: #7c42ba;
-  --c3: 22, 155, 84;
-  --c3h: #168f4f;
-  --c4: 168, 115, 32;
-  --c4h: #a87320;
-  --red: 220, 52, 64;
-  --red-soft: 255, 95, 87;
+  --c1: 12, 108, 255;
+  --c1h: #0c6cff;
+  --c2: 124, 92, 255;
+  --c2h: #7b5cff;
+  --c3: 18, 179, 92;
+  --c3h: #12b35c;
+  --c4: 245, 158, 11;
+  --c4h: #f59e0b;
+  --red: 225, 29, 72;
+  --red-soft: 255, 71, 87;
 
-  --bg-page: #f4f6fb;
-  --bg-deep: #e8ecf5;
-  --bg-rgb: 244, 246, 251;
+  --bg-page: #f5f8fd;
+  --bg-deep: #edf2fb;
+  --bg-rgb: 245, 248, 253;
   --card: #ffffff;
-  --card-hover: #eef2fa;
-  --card-photo: #eef2fa;
-  --chip: #e6ebf6;
-  --frame: #e6ebf6;
+  --card-hover: #eef4ff;
+  --card-photo: #e8effc;
+  --chip: #e9f1fd;
+  --frame: #e8effb;
 
-  --fg-a: #16202e;
-  --fg-b: #41506a;
-  --fg-c: #5a677e;
-  --fg-d: #778399;
-  --fg-nav: #2c3a52;
-  --fg-hero: #16202e;
+  --fg-a: #13233f;
+  --fg-b: #3d4f6d;
+  --fg-c: #5c6f8e;
+  --fg-d: #8496b2;
+  --fg-nav: #2b3f63;
+  --fg-hero: #0f1e38;
+
+  --background: #f5f8fd;
+  --foreground: #13233f;
+  --card: #ffffff;
+  --card-foreground: #13233f;
+  --popover: #ffffff;
+  --popover-foreground: #13233f;
+  --primary: #0c6cff;
+  --primary-foreground: #ffffff;
+  --secondary: #eef4ff;
+  --secondary-foreground: #2b3f63;
+  --muted: #e8f0fc;
+  --muted-foreground: #64789a;
+  --accent: #7b5cff;
+  --accent-foreground: #ffffff;
+  --destructive: #e11d48;
+  --destructive-foreground: #ffffff;
+  --border: rgba(12, 108, 255, 0.14);
+  --input: #ffffff;
+  --input-background: #ffffff;
+  --switch-background: #c9d8ef;
+  --ring: #0c6cff;
+  --chart-1: #0c6cff;
+  --chart-2: #7b5cff;
+  --chart-3: #12b35c;
+  --chart-4: #f59e0b;
+  --chart-5: #e11d48;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #13233f;
+  --sidebar-primary: #0c6cff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eef4ff;
+  --sidebar-accent-foreground: #2b3f63;
+  --sidebar-border: rgba(12, 108, 255, 0.14);
+  --sidebar-ring: #0c6cff;
 }
 
 :root {
