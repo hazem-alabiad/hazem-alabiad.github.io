@@ -1273,6 +1273,24 @@ export default function App() {
                 {get("bio1", DEFAULTS.bio1)}
               </p>
 
+              {/* ── Terminal / quick-facts card ── */}
+              <div className="p-5" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.1)", fontFamily: '"JetBrains Mono", monospace', fontSize: 12, maxWidth: 720, marginBottom: 28 }}>
+                <div className="flex gap-2 mb-4 items-center">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#ff5f57" }} />
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#febc2e" }} />
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#28c840" }} />
+                  <span className="blink" style={{ color: "#6b8fab", fontSize: 10, letterSpacing: "0.15em", marginLeft: 8 }}>hazem@tübingen:~$</span>
+                </div>
+                <div style={{ lineHeight: 1.9 }}>
+                  <div><span style={{ color: "#9d4edd" }}>focus</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#00f0ff" }}>[</span></div>
+                  <div style={{ paddingLeft: 20, color: "#8ab4c8" }}>"NLP", "LLMs", "Full-Stack Engineering",</div>
+                  <div style={{ paddingLeft: 20, color: "#8ab4c8" }}>"Computational Linguistics", "ML/DL",</div>
+                  <div><span style={{ color: "#00f0ff" }}>]</span></div>
+                  <div style={{ marginTop: 4 }}><span style={{ color: "#9d4edd" }}>location</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#28c840" }}>"{get("factLocation", DEFAULT_CONTENT.factLocation)}"</span></div>
+                  <div><span style={{ color: "#9d4edd" }}>status</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#febc2e" }}>"Open to opportunities"</span></div>
+                </div>
+              </div>
+
               <div className="flex flex-wrap gap-4 mb-10">
                 <MagneticWrap>
                   <button onClick={() => scrollTo("experience")} className="flex items-center gap-3 transition-all duration-300"
