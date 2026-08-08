@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import hazemPhoto from "@/imports/ADB3B9AC-C855-4126-A54C-3D6BF8705288.jpeg";
 // @ts-ignore
 import cvPdf from "@/imports/Hazem-Alabiad-CV.pdf";
@@ -29,6 +29,9 @@ import {
   Search,
   CornerDownLeft,
   Command,
+  Cpu,
+  Sparkles,
+  Terminal,
 } from "lucide-react";
 
 // ─── Scroll hooks ─────────────────────────────────────────────────────────────
@@ -125,7 +128,7 @@ function CustomCursor() {
         const s = hovered ? 1.8 : 1;
         ringRef.current.style.transform =
           `translate(${lag.current.x - 18}px, ${lag.current.y - 18}px) rotate(${angle}deg) scaleX(${scaleX * s}) scaleY(${scaleY * s})`;
-        ringRef.current.style.borderColor = hovered ? "rgba(157,78,221,0.8)" : "rgba(0,240,255,0.5)";
+        ringRef.current.style.borderColor = hovered ? "rgba(var(--c2),0.8)" : "rgba(var(--c1),0.5)";
       }
       raf.current = requestAnimationFrame(tick);
     };
@@ -135,8 +138,8 @@ function CustomCursor() {
 
   return (
     <>
-      <div ref={dotRef} style={{ position: "fixed", top: 0, left: 0, width: 6, height: 6, borderRadius: "50%", background: "#00f0ff", pointerEvents: "none", zIndex: 9999, mixBlendMode: "screen", transition: "transform 0.05s linear" }} />
-      <div ref={ringRef} style={{ position: "fixed", top: 0, left: 0, width: 36, height: 36, borderRadius: "50%", border: "1px solid rgba(0,240,255,0.5)", pointerEvents: "none", zIndex: 9998, transition: "border-color 0.2s" }} />
+      <div ref={dotRef} style={{ position: "fixed", top: 0, left: 0, width: 6, height: 6, borderRadius: "50%", background: "var(--c1h)", pointerEvents: "none", zIndex: 9999, mixBlendMode: "screen", transition: "transform 0.05s linear" }} />
+      <div ref={ringRef} style={{ position: "fixed", top: 0, left: 0, width: 36, height: 36, borderRadius: "50%", border: "1px solid rgba(var(--c1),0.5)", pointerEvents: "none", zIndex: 9998, transition: "border-color 0.2s" }} />
     </>
   );
 }
@@ -146,8 +149,8 @@ function CustomCursor() {
 function ScrollProgressBar() {
   const p = useScrollProgress();
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 2, zIndex: 9990, background: "rgba(0,240,255,0.07)" }}>
-      <div style={{ height: "100%", width: `${p * 100}%`, background: "linear-gradient(90deg, #00f0ff, #9d4edd)", transition: "width 0.05s linear", boxShadow: "0 0 8px rgba(0,240,255,0.6)" }} />
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 2, zIndex: 9990, background: "rgba(var(--c1),0.07)" }}>
+      <div style={{ height: "100%", width: `${p * 100}%`, background: "linear-gradient(90deg, var(--c1h), var(--c2h))", transition: "width 0.05s linear", boxShadow: "0 0 8px rgba(var(--c1),0.6)" }} />
     </div>
   );
 }
@@ -158,7 +161,7 @@ function CRTOverlay() {
   return (
     <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9980, overflow: "hidden" }}>
       {/* moving scanline */}
-      <div style={{ position: "absolute", left: 0, right: 0, height: 120, background: "linear-gradient(to bottom, transparent, rgba(0,240,255,0.025) 50%, transparent)", animation: "scanline-sweep 8s linear infinite" }} />
+      <div style={{ position: "absolute", left: 0, right: 0, height: 120, background: "linear-gradient(to bottom, transparent, rgba(var(--c1),0.025) 50%, transparent)", animation: "scanline-sweep 8s linear infinite" }} />
       {/* static horizontal lines */}
       <div style={{ position: "absolute", inset: 0, backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px)", backgroundSize: "100% 4px" }} />
     </div>
@@ -231,18 +234,18 @@ function ParticleField() {
     }
     function tick() {
       const W = canvas!.width, H = canvas!.height;
-      ctx!.fillStyle = "rgba(5,8,20,0.18)";
+      ctx!.fillStyle = "rgba(var(--bg-rgb),0.18)";
       ctx!.fillRect(0, 0, W, H);
       ctx!.lineWidth = 0.5;
-      ctx!.strokeStyle = "rgba(0,240,255,0.04)";
+      ctx!.strokeStyle = "rgba(var(--c1),0.04)";
       const GS = 65;
       for (let x = 0; x < W; x += GS) { ctx!.beginPath(); ctx!.moveTo(x, 0); ctx!.lineTo(x, H); ctx!.stroke(); }
       for (let y = 0; y < H; y += GS) { ctx!.beginPath(); ctx!.moveTo(0, y); ctx!.lineTo(W, y); ctx!.stroke(); }
       state.scanY = (state.scanY + 0.55) % H;
       const sg = ctx!.createLinearGradient(0, state.scanY - 80, 0, state.scanY + 80);
-      sg.addColorStop(0, "rgba(0,240,255,0)");
-      sg.addColorStop(0.5, "rgba(0,240,255,0.032)");
-      sg.addColorStop(1, "rgba(0,240,255,0)");
+      sg.addColorStop(0, "rgba(var(--c1),0)");
+      sg.addColorStop(0.5, "rgba(var(--c1),0.032)");
+      sg.addColorStop(1, "rgba(var(--c1),0)");
       ctx!.fillStyle = sg;
       ctx!.fillRect(0, state.scanY - 80, W, 160);
       const { particles, mouse } = state;
@@ -310,19 +313,20 @@ const DEFAULTS = {
 
 // ─── Style helpers (module-level so all components can use them) ──────────────
 
-const mono = (sz: number, color = "#9ab8d0", extra: React.CSSProperties = {}): React.CSSProperties => ({
+const mono = (sz: number, color = "var(--fg-b)", extra: React.CSSProperties = {}): React.CSSProperties => ({
   fontFamily: '"JetBrains Mono", monospace', fontSize: sz, color, ...extra,
 });
-const raj = (sz: number, color = "#e2e8f4"): React.CSSProperties => ({
+const raj = (sz: number, color = "var(--fg-a)"): React.CSSProperties => ({
   fontFamily: '"Rajdhani", sans-serif', fontSize: sz, fontWeight: 700, color,
 });
-const body = (sz: number, color = "#9ab8cc"): React.CSSProperties => ({
+const body = (sz: number, color = "var(--fg-b)"): React.CSSProperties => ({
   fontFamily: '"Outfit", sans-serif', fontSize: sz, color, lineHeight: 1.8,
 });
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function SkillTicker() {
+  const [paused, setPaused] = useState(false);
   const items = [
     "React.js", "TypeScript", "GraphQL", "Node.js", "Python",
     "LLMs", "NLP", "TensorFlow", "Docker", "Elasticsearch",
@@ -332,15 +336,90 @@ function SkillTicker() {
     "Next.js", "Corpus Linguistics", "Fine-tuning", "WebSocket", "Playwright",
   ];
   return (
-    <div style={{ overflow: "hidden", borderTop: "1px solid rgba(0,240,255,0.08)", borderBottom: "1px solid rgba(0,240,255,0.08)", padding: "14px 0", position: "relative", zIndex: 10 }}>
-      <div style={{ display: "flex", gap: 40, width: "max-content", animation: "ticker 28s linear infinite" }}>
+    <div style={{ overflow: "hidden", borderTop: "1px solid rgba(var(--c1),0.08)", borderBottom: "1px solid rgba(var(--c1),0.08)", padding: "14px 0", position: "relative", zIndex: 10 }}
+      onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <div className="ticker-track" style={{ display: "flex", gap: 40, width: "max-content", animation: "ticker 28s linear infinite", animationPlayState: paused ? "paused" : "running" }}>
         {items.map((item, i) => (
-          <span key={i} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.25em", color: i % 3 === 0 ? "#00f0ff" : i % 3 === 1 ? "#9d4edd" : "#4d6b8a", textTransform: "uppercase", whiteSpace: "nowrap", userSelect: "none" }}>
-            {item} <span style={{ color: "rgba(0,240,255,0.2)", margin: "0 4px" }}>◆</span>
+          <span key={i} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.25em", color: i % 3 === 0 ? "var(--c1h)" : i % 3 === 1 ? "var(--c2h)" : "var(--fg-d)", textTransform: "uppercase", whiteSpace: "nowrap", userSelect: "none", display: "flex", alignItems: "center", gap: 12, transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), color 0.25s, letter-spacing 0.25s", cursor: "pointer" }}
+            className="ticker-item" onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.28) translateY(-3px)"; e.currentTarget.style.letterSpacing = "0.34em"; (e.currentTarget.children[0] as HTMLElement).style.opacity = "1"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1) translateY(0)"; e.currentTarget.style.letterSpacing = "0.25em"; (e.currentTarget.children[0] as HTMLElement).style.opacity = "0.2"; }}>
+            {item} <span style={{ color: "rgba(var(--c1),0.4)", margin: "0 4px", opacity: 0.2, transition: "opacity 0.25s" }}>◆</span>
           </span>
         ))}
       </div>
     </div>
+  );
+}
+
+// ─── Quantum bomb (joy) ───────────────────────────────────────────────────────
+
+type Spark = {
+  id: number; x: number; y: number; dx: number; dy: number; size: number; color: string; life: number; rot: number;
+};
+
+function QuantumBomb() {
+  const [armed, setArmed] = useState(true);
+  const [sparks, setSparks] = useState<Spark[]>([]);
+  const [shocking, setShocking] = useState(false);
+  const idRef = useRef(0);
+
+  const detonate = (cx: number, cy: number) => {
+    const colors = ["var(--c1h)", "var(--c2h)", "var(--c3h)", "var(--c4h)", "#ffffff"];
+    const parts: Spark[] = Array.from({ length: 90 }, () => {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 3 + Math.random() * 9;
+      return {
+        id: ++idRef.current,
+        x: cx, y: cy,
+        dx: Math.cos(angle) * speed,
+        dy: Math.sin(angle) * speed - 2,
+        size: 2 + Math.random() * 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        life: 0.7 + Math.random() * 0.9,
+        rot: Math.random() * 360,
+      };
+    });
+    setSparks(parts);
+    setShocking(true);
+    setTimeout(() => setShocking(false), 600);
+    setTimeout(() => setSparks([]), 1900);
+  };
+
+  return (
+    <>
+      {shocking && <div style={{ position: "fixed", inset: 0, zIndex: 9890, pointerEvents: "none", animation: "bomb-shake 0.45s linear" }} />}
+      {sparks.length > 0 && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9880, pointerEvents: "none", overflow: "hidden" }}>
+          {sparks.map((s) => (
+            <div key={s.id} className="bomb-spark" style={{
+              position: "absolute", left: s.x, top: s.y, width: s.size, height: s.size,
+              background: s.color, boxShadow: `0 0 10px ${s.color}`, borderRadius: "50%",
+              ['--sx' as string]: `${s.dx * 40}px`, ['--sy' as string]: `${s.dy * 40}px`,
+              ['--sr' as string]: `${s.rot}deg`, ['--sl' as string]: `${s.life}s`,
+            }} />
+          ))}
+        </div>
+      )}
+      <button onClick={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        detonate(r.left + r.width / 2, r.top + r.height / 2);
+        setArmed(false);
+        setTimeout(() => setArmed(true), 2600);
+      }}
+        style={{
+          position: "fixed", right: 18, bottom: 18, zIndex: 8500, cursor: "pointer", padding: "10px 14px",
+          background: "rgba(var(--bg-rgb),0.82)", border: "1px solid rgba(var(--c1),0.35)",
+          display: "flex", alignItems: "center", gap: 8, backdropFilter: "blur(6px)",
+          transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s, opacity 0.25s",
+          boxShadow: "0 0 18px rgba(var(--c1),0.15)",
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.borderColor = "rgba(var(--c4),0.7)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(var(--c1),0.35)"; }}
+        aria-label="Detonate a quantum bomb">
+        <span className="pulse-dot" style={{ width: 8, height: 8, borderRadius: "50%", background: armed ? "var(--c4h)" : "var(--fg-d)", display: "inline-block", boxShadow: armed ? "0 0 8px var(--c4h)" : "none" }} />
+        <span style={mono(9, armed ? "var(--c4h)" : "var(--fg-d)", { letterSpacing: "0.22em" })}>{armed ? "QUANTUM_BOMB//ARMED" : "RELOADING…"}</span>
+      </button>
+    </>
   );
 }
 
@@ -367,7 +446,7 @@ function FloatingCode() {
           <div key={i} style={{
             position: "absolute", left: `${left}%`, top: `${top}%`,
             fontFamily: '"JetBrains Mono", monospace', fontSize: 10,
-            color: i % 2 === 0 ? "rgba(0,240,255,0.07)" : "rgba(157,78,221,0.07)",
+            color: i % 2 === 0 ? "rgba(var(--c1),0.07)" : "rgba(var(--c2),0.07)",
             letterSpacing: "0.1em", whiteSpace: "nowrap",
             animation: `${anims[i % 3]} ${dur}s ease-in-out ${delay}s infinite`,
           }}>
@@ -389,11 +468,11 @@ function SectionLabel({ num, label }: { num: string; label: string }) {
   }, []);
   return (
     <div ref={ref} className="flex items-center gap-4 mb-6">
-      <span className={`neon-flicker ${vis ? "glitch-enter" : ""}`} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.28em", color: "rgba(0,240,255,0.7)", textTransform: "uppercase" as const }}>
+      <span className={`neon-flicker ${vis ? "glitch-enter" : ""}`} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.28em", color: "rgba(var(--c1),0.7)", textTransform: "uppercase" as const }}>
         MODULE_{num}
       </span>
-      <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, rgba(0,240,255,0.3), transparent)", transform: vis ? "scaleX(1)" : "scaleX(0)", transformOrigin: "left", transition: "transform 1s ease 0.2s" }} />
-      <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.2em", color: "rgba(0,240,255,0.5)", textTransform: "uppercase" as const, opacity: vis ? 1 : 0, transition: "opacity 0.6s ease 0.8s" }}>
+      <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, rgba(var(--c1),0.3), transparent)", transform: vis ? "scaleX(1)" : "scaleX(0)", transformOrigin: "left", transition: "transform 1s ease 0.2s" }} />
+      <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.2em", color: "rgba(var(--c1),0.5)", textTransform: "uppercase" as const, opacity: vis ? 1 : 0, transition: "opacity 0.6s ease 0.8s" }}>
         {label}
       </span>
     </div>
@@ -407,23 +486,23 @@ function SkillBar({ label, level, visible, delay }: { label: string; level: numb
   return (
     <div>
       <div className="flex justify-between items-baseline">
-        <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: 15, color: "#c6d6ea", textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</span>
+        <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: 15, color: "var(--fg-hero)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</span>
         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ display: "flex", gap: 2.5 }}>
             {Array.from({ length: segments }).map((_, i) => (
               <span key={i}
                 style={{
                   width: 6, height: 10,
-                  background: i < filled && visible ? "linear-gradient(180deg, #00f0ff, #9d4edd)" : "#0f1624",
+                  background: i < filled && visible ? "linear-gradient(180deg, var(--c1h), var(--c2h))" : "var(--chip)",
                   transition: "background 0.5s ease, box-shadow 0.5s ease",
                   transitionDelay: `${delay + i * 70}ms`,
-                  boxShadow: i < filled && visible ? "0 0 6px rgba(0,240,255,0.35)" : "none",
+                  boxShadow: i < filled && visible ? "0 0 6px rgba(var(--c1),0.35)" : "none",
                   opacity: visible ? 1 : 0,
                 }}
               />
             ))}
           </span>
-          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 8.5, letterSpacing: "0.16em", color: level >= 78 ? "#00f0ff" : "#6b8fab" }}>{tier}</span>
+          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 8.5, letterSpacing: "0.16em", color: level >= 78 ? "var(--c1h)" : "var(--fg-c)" }}>{tier}</span>
         </span>
       </div>
     </div>
@@ -436,22 +515,22 @@ const FOCUS_ITEMS = ["NLP", "LLMs", "ML / Deep Learning", "Comp. Linguistics", "
 
 function FocusStrip() {
   const { ref, visible } = useReveal(0.15);
-  const accents = ["#00f0ff", "#9d4edd", "#28c840", "#00f0ff", "#9d4edd", "#febc2e"];
-  const bg = ["0,240,255", "157,78,221", "40,200,64", "0,240,255", "157,78,221", "254,188,46"];
+  const bg = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c1)", "var(--c2)", "var(--c4)"];
+  const hexs = ["var(--c1h)", "var(--c2h)", "var(--c3h)", "var(--c1h)", "var(--c2h)", "var(--c4h)"];
   return (
     <div ref={ref} className="flex flex-wrap items-center gap-3" style={{ margin: "0 0 36px", maxWidth: 800 }}>
-      <span className={visible ? "wipe-in" : ""} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(0,240,255,0.5)" }}>FOCUS://</span>
+      <span className={visible ? "wipe-in" : ""} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(var(--c1),0.5)" }}>FOCUS://</span>
       {FOCUS_ITEMS.map((t, i) => (
         <span key={t} className={visible ? "badge-in" : ""}
           style={{
             fontFamily: '"JetBrains Mono", monospace', fontWeight: 500, fontSize: 10,
             letterSpacing: "0.18em", textTransform: "uppercase", padding: "6px 12px",
-            border: `1px solid ${accents[i % accents.length]}` + (visible ? "33" : "22"), color: accents[i % accents.length],
+            border: `1px solid rgba(${bg[i % bg.length]},${visible ? "0.2" : "0.13"})`, color: hexs[i % hexs.length],
             background: `rgba(${bg[i % bg.length]},0.05)`, animationDelay: `${i * 120}ms`,
             cursor: "default", transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s, background 0.25s, border-color 0.25s",
           }}
-          onMouseEnter={(e) => { const el = e.currentTarget; el.style.transform = "translateY(-3px)"; el.style.boxShadow = `0 8px 20px rgba(${bg[i % bg.length]},0.16)`; el.style.background = `rgba(${bg[i % bg.length]},0.1)`; el.style.borderColor = accents[i % accents.length] + "88"; }}
-          onMouseLeave={(e) => { const el = e.currentTarget; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; el.style.background = `rgba(${bg[i % bg.length]},0.05)`; el.style.borderColor = accents[i % accents.length] + "33"; }}>
+          onMouseEnter={(e) => { const el = e.currentTarget; el.style.transform = "translateY(-3px)"; el.style.boxShadow = `0 8px 20px rgba(${bg[i % bg.length]},0.16)`; el.style.background = `rgba(${bg[i % bg.length]},0.1)`; el.style.borderColor = `rgba(${bg[i % bg.length]},0.53)`; }}
+          onMouseLeave={(e) => { const el = e.currentTarget; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; el.style.background = `rgba(${bg[i % bg.length]},0.05)`; el.style.borderColor = `rgba(${bg[i % bg.length]},0.2)`; }}>
           {t}
         </span>
       ))}
@@ -614,7 +693,7 @@ function CVDownloadButton({ cvUrl }: { cvUrl?: string | null }) {
   };
 
   const isActive = phase !== "idle";
-  const borderCol = phase === "done" ? "#28c840" : phase === "transfer" ? "#00f0ff" : "rgba(0,240,255,0.35)";
+  const borderCol = phase === "done" ? "var(--c3h)" : phase === "transfer" ? "var(--c1h)" : "rgba(var(--c1),0.35)";
 
   return (
     <button
@@ -624,10 +703,10 @@ function CVDownloadButton({ cvUrl }: { cvUrl?: string | null }) {
       style={{
         padding: 0,
         border: `1px solid ${borderCol}`,
-        background: isActive ? "rgba(0,240,255,0.05)" : "rgba(0,240,255,0.03)",
+        background: isActive ? "rgba(var(--c1),0.05)" : "rgba(var(--c1),0.03)",
         cursor: phase === "idle" ? "none" : "default",
         minWidth: 300,
-        boxShadow: phase === "transfer" ? "0 0 24px rgba(0,240,255,0.12)" : phase === "done" ? "0 0 28px rgba(40,200,64,0.2)" : "none",
+        boxShadow: phase === "transfer" ? "0 0 24px rgba(var(--c1),0.12)" : phase === "done" ? "0 0 28px rgba(var(--c3),0.2)" : "none",
         transition: "border-color 0.3s, box-shadow 0.3s",
       }}
     >
@@ -635,7 +714,7 @@ function CVDownloadButton({ cvUrl }: { cvUrl?: string | null }) {
       {particles.map((p) => (
         <div key={p.id} style={{
           position: "absolute", left: p.x, top: p.y, width: 3, height: 3,
-          borderRadius: "50%", background: p.id % 3 === 0 ? "#9d4edd" : "#00f0ff",
+          borderRadius: "50%", background: p.id % 3 === 0 ? "var(--c2h)" : "var(--c1h)",
           pointerEvents: "none",
           animation: "none",
           transition: "transform 0.8s cubic-bezier(0,.8,.4,1), opacity 0.8s ease",
@@ -647,66 +726,66 @@ function CVDownloadButton({ cvUrl }: { cvUrl?: string | null }) {
       {/* scan line on idle hover */}
       {phase === "idle" && (
         <div className="absolute left-0 right-0 h-px pointer-events-none opacity-0 group-hover:opacity-100"
-          style={{ background: "linear-gradient(90deg,transparent,#00f0ff,transparent)", top: "40%", animation: "scan-cv 1.4s linear infinite" }} />
+          style={{ background: "linear-gradient(90deg,transparent,var(--c1h),transparent)", top: "40%", animation: "scan-cv 1.4s linear infinite" }} />
       )}
 
       {/* top row */}
       <div className="flex items-center gap-4 w-full" style={{ padding: "14px 20px" }}>
         {/* icon box */}
-        <div style={{ width: 38, height: 38, border: `1px solid ${borderCol}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: phase === "done" ? "#28c840" : "#00f0ff", transition: "border-color 0.3s, color 0.3s", position: "relative" }}>
+        <div style={{ width: 38, height: 38, border: `1px solid ${borderCol}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: phase === "done" ? "var(--c3h)" : "var(--c1h)", transition: "border-color 0.3s, color 0.3s", position: "relative" }}>
           {phase === "idle"     && <FileDown size={15} />}
           {phase === "init"     && <Loader size={15} style={{ animation: "spin 0.5s linear infinite" }} />}
-          {phase === "transfer" && <Loader size={15} style={{ animation: "spin 0.35s linear infinite", color: "#00f0ff" }} />}
+          {phase === "transfer" && <Loader size={15} style={{ animation: "spin 0.35s linear infinite", color: "var(--c1h)" }} />}
           {phase === "done"     && <CheckCheck size={15} />}
           {/* corner accents */}
           {isActive && <>
-            <div style={{ position: "absolute", top: -1, left: -1, width: 6, height: 6, borderTop: "2px solid #00f0ff", borderLeft: "2px solid #00f0ff" }} />
-            <div style={{ position: "absolute", bottom: -1, right: -1, width: 6, height: 6, borderBottom: "2px solid #00f0ff", borderRight: "2px solid #00f0ff" }} />
+            <div style={{ position: "absolute", top: -1, left: -1, width: 6, height: 6, borderTop: "2px solid var(--c1h)", borderLeft: "2px solid var(--c1h)" }} />
+            <div style={{ position: "absolute", bottom: -1, right: -1, width: 6, height: 6, borderBottom: "2px solid var(--c1h)", borderRight: "2px solid var(--c1h)" }} />
           </>}
         </div>
 
         {/* label + sub */}
         <div style={{ textAlign: "left", flex: 1 }}>
-          <div style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.22em", color: phase === "done" ? "#28c840" : "#00f0ff", marginBottom: 3, transition: "color 0.3s" }}>
+          <div style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.22em", color: phase === "done" ? "var(--c3h)" : "var(--c1h)", marginBottom: 3, transition: "color 0.3s" }}>
             {scramble}
           </div>
-          <div style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, color: "#4d6b8a", letterSpacing: "0.12em" }}>
+          <div style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, color: "var(--fg-d)", letterSpacing: "0.12em" }}>
             Hazem-Alabiad-CV.pdf · 86 KB
           </div>
         </div>
 
         {/* percentage */}
         {isActive && (
-          <div style={{ fontFamily: '"Audiowide", cursive', fontSize: 18, color: phase === "done" ? "#28c840" : "#00f0ff", minWidth: 52, textAlign: "right", transition: "color 0.3s" }}>
+          <div style={{ fontFamily: '"Audiowide", cursive', fontSize: 18, color: phase === "done" ? "var(--c3h)" : "var(--c1h)", minWidth: 52, textAlign: "right", transition: "color 0.3s" }}>
             {pct}<span style={{ fontSize: 10 }}>%</span>
           </div>
         )}
       </div>
 
       {/* progress track */}
-      <div style={{ height: 2, background: "rgba(0,240,255,0.08)", width: "100%", position: "relative", overflow: "hidden" }}>
+      <div style={{ height: 2, background: "rgba(var(--c1),0.08)", width: "100%", position: "relative", overflow: "hidden" }}>
         <div style={{
           position: "absolute", left: 0, top: 0, height: "100%",
           width: `${pct}%`,
           background: phase === "done"
-            ? "linear-gradient(90deg,#28c840,#00f0ff)"
-            : "linear-gradient(90deg,#00f0ff,#9d4edd,#00f0ff)",
+            ? "linear-gradient(90deg,var(--c3h),var(--c1h))"
+            : "linear-gradient(90deg,var(--c1h),var(--c2h),var(--c1h))",
           backgroundSize: "200% 100%",
           animation: phase === "transfer" ? "shimmer-text 1.2s linear infinite" : "none",
           transition: "width 0.06s linear, background 0.3s",
-          boxShadow: phase === "transfer" ? "0 0 8px rgba(0,240,255,0.6)" : "none",
+          boxShadow: phase === "transfer" ? "0 0 8px rgba(var(--c1),0.6)" : "none",
         }} />
         {/* chunked tick marks */}
         {[25, 50, 75].map((x) => (
-          <div key={x} style={{ position: "absolute", left: `${x}%`, top: 0, width: 1, height: "100%", background: "rgba(0,240,255,0.15)" }} />
+          <div key={x} style={{ position: "absolute", left: `${x}%`, top: 0, width: 1, height: "100%", background: "rgba(var(--c1),0.15)" }} />
         ))}
       </div>
 
       {/* terminal log panel */}
       {logLines.length > 0 && (
-        <div style={{ width: "100%", padding: "8px 20px 10px", borderTop: "1px solid rgba(0,240,255,0.08)", textAlign: "left" }}>
+        <div style={{ width: "100%", padding: "8px 20px 10px", borderTop: "1px solid rgba(var(--c1),0.08)", textAlign: "left" }}>
           {logLines.map((line, i) => (
-            <div key={i} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, color: i === logLines.length - 1 ? "#b0cede" : "#4d6b8a", letterSpacing: "0.1em", lineHeight: 1.8, animation: "fade-rise 0.25s ease both" }}>
+            <div key={i} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, color: i === logLines.length - 1 ? "var(--fg-nav)" : "var(--fg-d)", letterSpacing: "0.1em", lineHeight: 1.8, animation: "fade-rise 0.25s ease both" }}>
               {line}
             </div>
           ))}
@@ -738,31 +817,31 @@ function ContactForm() {
   };
 
   return (
-    <div className="p-6 flex flex-col gap-5" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.12)" }}>
-      <div style={mono(9, "rgba(0,240,255,0.5)", { textTransform: "uppercase" as const, letterSpacing: "0.22em" })}>
+    <div className="p-6 flex flex-col gap-5" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.12)" }}>
+      <div style={mono(9, "rgba(var(--c1),0.5)", { textTransform: "uppercase" as const, letterSpacing: "0.22em" })}>
         TRANSMIT_MESSAGE // hazem.alabiad@icloud.com
       </div>
 
       {/* Name */}
       <div>
-        <div style={mono(9, "#6b8fab", { marginBottom: 6, letterSpacing: "0.18em", textTransform: "uppercase" as const })}>YOUR_NAME</div>
+        <div style={mono(9, "var(--fg-c)", { marginBottom: 6, letterSpacing: "0.18em", textTransform: "uppercase" as const })}>YOUR_NAME</div>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="optional"
           style={{
-            width: "100%", background: "#050814", border: "1px solid rgba(0,240,255,0.15)",
+            width: "100%", background: "var(--bg-page)", border: "1px solid rgba(var(--c1),0.15)",
             padding: "10px 14px", fontFamily: '"JetBrains Mono", monospace', fontSize: 13,
-            color: "#e2e8f4", outline: "none",
+            color: "var(--fg-a)", outline: "none",
           }}
-          onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.45)")}
-          onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.15)")}
+          onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.45)")}
+          onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.15)")}
         />
       </div>
 
       {/* Message */}
       <div>
-        <div style={mono(9, "#6b8fab", { marginBottom: 6, letterSpacing: "0.18em", textTransform: "uppercase" as const })}>MESSAGE</div>
+        <div style={mono(9, "var(--fg-c)", { marginBottom: 6, letterSpacing: "0.18em", textTransform: "uppercase" as const })}>MESSAGE</div>
         <div style={{ position: "relative" }}>
           <textarea
             value={msg}
@@ -771,15 +850,15 @@ function ContactForm() {
             placeholder="Type your message here..."
             rows={5}
             style={{
-              width: "100%", background: "#050814", border: "1px solid rgba(0,240,255,0.15)",
+              width: "100%", background: "var(--bg-page)", border: "1px solid rgba(var(--c1),0.15)",
               padding: "10px 14px", fontFamily: '"JetBrains Mono", monospace', fontSize: 13,
-              color: "#e2e8f4", outline: "none", resize: "vertical" as const, lineHeight: 1.7,
+              color: "var(--fg-a)", outline: "none", resize: "vertical" as const, lineHeight: 1.7,
             }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.45)")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.15)")}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.45)")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.15)")}
           />
           {typing && (
-            <div style={{ position: "absolute", bottom: 10, right: 12, fontFamily: '"JetBrains Mono", monospace', fontSize: 10, color: "rgba(0,240,255,0.35)" }}>
+            <div style={{ position: "absolute", bottom: 10, right: 12, fontFamily: '"JetBrains Mono", monospace', fontSize: 10, color: "rgba(var(--c1),0.35)" }}>
               ctrl+enter to send
             </div>
           )}
@@ -792,19 +871,19 @@ function ContactForm() {
         disabled={!msg.trim()}
         className="flex items-center justify-center gap-3 transition-all duration-300"
         style={{
-          padding: "13px 24px", border: `1px solid ${sent ? "#28c840" : "rgba(0,240,255,0.4)"}`,
-          background: sent ? "rgba(40,200,64,0.08)" : "rgba(0,240,255,0.04)",
+          padding: "13px 24px", border: `1px solid ${sent ? "var(--c3h)" : "rgba(var(--c1),0.4)"}`,
+          background: sent ? "rgba(var(--c3),0.08)" : "rgba(var(--c1),0.04)",
           fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.22em",
-          color: sent ? "#28c840" : "#00f0ff", cursor: msg.trim() ? "pointer" : "not-allowed",
+          color: sent ? "var(--c3h)" : "var(--c1h)", cursor: msg.trim() ? "pointer" : "not-allowed",
           opacity: msg.trim() ? 1 : 0.4,
         }}
-        onMouseEnter={(e) => { if (msg.trim() && !sent) (e.currentTarget as HTMLElement).style.background = "rgba(0,240,255,0.1)"; }}
-        onMouseLeave={(e) => { if (!sent) (e.currentTarget as HTMLElement).style.background = "rgba(0,240,255,0.04)"; }}
+        onMouseEnter={(e) => { if (msg.trim() && !sent) (e.currentTarget as HTMLElement).style.background = "rgba(var(--c1),0.1)"; }}
+        onMouseLeave={(e) => { if (!sent) (e.currentTarget as HTMLElement).style.background = "rgba(var(--c1),0.04)"; }}
       >
         {sent ? <><CheckCheck size={14} /> MESSAGE SENT ✓</> : <><Mail size={14} /> SEND MESSAGE</>}
       </button>
 
-      <div style={mono(9, "#4d6b8a", { letterSpacing: "0.14em" })}>
+      <div style={mono(9, "var(--fg-d)", { letterSpacing: "0.14em" })}>
         Opens your email client · no data stored
       </div>
     </div>
@@ -877,27 +956,27 @@ function CMSButton({ onUnlock, enabled, onDisable, onReset, onOpenEditor }: {
     <>
       {enabled ? (
         <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
-          <div style={{ ...monoStyle, color: "#00f0ff", background: "rgba(5,8,20,0.9)", border: "1px solid rgba(0,240,255,0.3)", padding: "4px 10px" }}>
+          <div style={{ ...monoStyle, color: "var(--c1h)", background: "rgba(var(--bg-rgb),0.9)", border: "1px solid rgba(var(--c1),0.3)", padding: "4px 10px" }}>
             CMS_ACTIVE — CLICK TEXT TO EDIT
           </div>
           <div className="flex gap-2">
             <button onClick={onOpenEditor} title="Open full CV editor"
-              style={{ ...monoStyle, color: "#00f0ff", background: "rgba(5,8,20,0.9)", border: "1px solid rgba(0,240,255,0.3)", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+              style={{ ...monoStyle, color: "var(--c1h)", background: "rgba(var(--bg-rgb),0.9)", border: "1px solid rgba(var(--c1),0.3)", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
               <PencilLine size={10} /> FULL EDITOR
             </button>
             <button onClick={onReset} title="Reset all CMS edits"
-              style={{ ...monoStyle, color: "#9d4edd", background: "rgba(5,8,20,0.9)", border: "1px solid rgba(157,78,221,0.3)", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+              style={{ ...monoStyle, color: "var(--c2h)", background: "rgba(var(--bg-rgb),0.9)", border: "1px solid rgba(var(--c2),0.3)", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
               <RotateCcw size={10} /> RESET
             </button>
             <button onClick={onDisable}
-              style={{ ...monoStyle, color: "#ff4757", background: "rgba(5,8,20,0.9)", border: "1px solid rgba(255,71,87,0.3)", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+              style={{ ...monoStyle, color: "var(--red)", background: "rgba(var(--bg-rgb),0.9)", border: "1px solid rgba(var(--red),0.3)", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
               <Lock size={10} /> LOCK
             </button>
           </div>
         </div>
       ) : (
         <button onClick={() => setOpen(true)} title="CMS — unlock editing"
-          style={{ ...monoStyle, position: "fixed", bottom: 24, right: 24, zIndex: 50, color: "#9d4edd", background: "rgba(5,8,20,0.85)", border: "1px solid rgba(157,78,221,0.35)", padding: "8px 14px", cursor: "pointer", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", gap: 6, opacity: 0.75 }}
+          style={{ ...monoStyle, position: "fixed", bottom: 24, right: 24, zIndex: 50, color: "var(--c2h)", background: "rgba(var(--bg-rgb),0.85)", border: "1px solid rgba(var(--c2),0.35)", padding: "8px 14px", cursor: "pointer", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", gap: 6, opacity: 0.75 }}
           onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = "1")}
           onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.75")}
         >
@@ -906,26 +985,26 @@ function CMSButton({ onUnlock, enabled, onDisable, onReset, onOpenEditor }: {
       )}
 
       {open && (
-        <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 100, background: "rgba(5,8,20,0.82)", backdropFilter: "blur(16px)" }}
+        <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 100, background: "rgba(var(--bg-rgb),0.82)", backdropFilter: "blur(16px)" }}
           onClick={close}>
-          <div className="relative p-8 w-full" style={{ maxWidth: 400, background: "#0b1020", border: "1px solid rgba(0,240,255,0.2)" }}
+          <div className="relative p-8 w-full" style={{ maxWidth: 400, background: "var(--card-photo)", border: "1px solid rgba(var(--c1),0.2)" }}
             onClick={(e) => e.stopPropagation()}>
-            <button onClick={close} style={{ position: "absolute", top: 16, right: 16, color: "#6b8fab", background: "none", border: "none", cursor: "pointer" }}>
+            <button onClick={close} style={{ position: "absolute", top: 16, right: 16, color: "var(--fg-c)", background: "none", border: "none", cursor: "pointer" }}>
               <X size={14} />
             </button>
 
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-              <Lock size={14} color="#9d4edd" />
-              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.22em", color: "#e2e8f4" }}>CMS_AUTHENTICATION</span>
+              <Lock size={14} color="var(--c2h)" />
+              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.22em", color: "var(--fg-a)" }}>CMS_AUTHENTICATION</span>
             </div>
-            <p style={{ fontFamily: '"Outfit", sans-serif', fontSize: 13, color: "#8ab4c8", lineHeight: 1.7, marginBottom: 24 }}>
+            <p style={{ fontFamily: '"Outfit", sans-serif', fontSize: 13, color: "var(--fg-b)", lineHeight: 1.7, marginBottom: 24 }}>
               Enter a GitHub Personal Access Token (classic) to verify identity and unlock inline text editing. Changes are saved to localStorage.
             </p>
 
             {authedAs ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 10, border: "1px solid rgba(0,240,255,0.2)", padding: "12px 16px" }}>
-                <LockOpen size={13} color="#00f0ff" />
-                <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.15em", color: "#00f0ff" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, border: "1px solid rgba(var(--c1),0.2)", padding: "12px 16px" }}>
+                <LockOpen size={13} color="var(--c1h)" />
+                <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.15em", color: "var(--c1h)" }}>
                   AUTHENTICATED AS: {authedAs.toUpperCase()}
                 </span>
               </div>
@@ -943,17 +1022,17 @@ function CMSButton({ onUnlock, enabled, onDisable, onReset, onOpenEditor }: {
                     boxSizing: "border-box",
                     fontFamily: '"JetBrains Mono", monospace',
                     fontSize: 12,
-                    background: "#080f1c",
-                    border: "1px solid rgba(0,240,255,0.15)",
-                    color: "#e2e8f4",
+                    background: "var(--card)",
+                    border: "1px solid rgba(var(--c1),0.15)",
+                    color: "var(--fg-a)",
                     padding: "10px 14px",
                     outline: "none",
                     letterSpacing: "0.06em",
                     marginBottom: 12,
                     display: "block",
                   }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.4)")}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.15)")}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.4)")}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.15)")}
                 />
                 <button
                   onClick={verify}
@@ -964,16 +1043,16 @@ function CMSButton({ onUnlock, enabled, onDisable, onReset, onOpenEditor }: {
                     fontSize: 11,
                     letterSpacing: "0.2em",
                     padding: "10px",
-                    background: loading || !pat.trim() ? "transparent" : "rgba(0,240,255,0.08)",
-                    border: "1px solid rgba(0,240,255,0.3)",
-                    color: loading || !pat.trim() ? "#6b8fab" : "#00f0ff",
+                    background: loading || !pat.trim() ? "transparent" : "rgba(var(--c1),0.08)",
+                    border: "1px solid rgba(var(--c1),0.3)",
+                    color: loading || !pat.trim() ? "var(--fg-c)" : "var(--c1h)",
                     cursor: loading || !pat.trim() ? "not-allowed" : "pointer",
                   }}
                 >
                   {loading ? "VERIFYING..." : "VERIFY & UNLOCK"}
                 </button>
                 {error && (
-                  <p style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, color: "#ff4757", marginTop: 10, letterSpacing: "0.1em" }}>
+                  <p style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, color: "var(--red)", marginTop: 10, letterSpacing: "0.1em" }}>
                     ERR: {error}
                   </p>
                 )}
@@ -995,11 +1074,12 @@ const BOOT_LINES = [
   "[ OK ] Compiling 6+ years of experience…",
   "[ OK ] Connecting to Tübingen research node",
   "[ OK ] Verifying cryptographic identity",
-  "[ OK ] All systems nominal. Launching portfolio…",
+  "[ OK ] All systems nominal. Launching HAZEM_ABIAD_OS…",
 ];
 
 function BootScreen({ onDone }: { onDone: () => void }) {
   const [lines, setLines] = useState<string[]>([]);
+  const [phase, setPhase] = useState<"boot" | "desktop">("boot");
   const [wiping, setWiping] = useState(false);
 
   useEffect(() => {
@@ -1009,41 +1089,93 @@ function BootScreen({ onDone }: { onDone: () => void }) {
       i++;
       if (i >= BOOT_LINES.length) {
         clearInterval(iv);
-        setTimeout(() => setWiping(true), 400);
-        setTimeout(() => onDone(), 1100);
+        setTimeout(() => setPhase("desktop"), 500);
       }
-    }, 230);
+    }, 240);
     return () => clearInterval(iv);
-  }, [onDone]);
+  }, []);
+
+  const launch = () => {
+    setWiping(true);
+    setTimeout(() => onDone(), 750);
+  };
+
+  const APPS = [
+    { Icon: Brain, label: "NLP_TERM", color: "var(--c1h)" },
+    { Icon: Code2, label: "DEV_STUDIO", color: "var(--c2h)" },
+    { Icon: Database, label: "DATA_GRID", color: "var(--c3h)" },
+    { Icon: GraduationCap, label: "RESEARCH", color: "var(--c4h)" },
+    { Icon: Globe, label: "BROWSER", color: "var(--c1h)" },
+    { Icon: Github, label: "GITHUB", color: "var(--c2h)" },
+  ];
 
   return (
     <div style={{
-      position: "fixed", inset: 0, zIndex: 99999, background: "#020510",
-      display: "flex", flexDirection: "column", justifyContent: "center",
-      padding: "10vh 8vw",
-      animation: wiping ? "boot-wipe 0.55s cubic-bezier(0.7,0,1,1) forwards" : "none",
+      position: "fixed", inset: 0, zIndex: 99999, background: "var(--bg-deep)",
+      display: "flex", flexDirection: "column", overflow: "hidden",
+      animation: wiping ? "boot-wipe 0.65s cubic-bezier(0.7,0,1,1) forwards" : "none",
       transformOrigin: "top",
     }}>
-      <div style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: "rgba(0,240,255,0.4)", letterSpacing: "0.3em", marginBottom: 32 }}>
-        HAZEM_ALABIAD_OS // BOOT SEQUENCE
-      </div>
-      <div className="space-y-2">
-        {lines.map((line, i) => (
-          <div key={i} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 13, color: i === lines.length - 1 ? "#e2e8f4" : "rgba(0,240,255,0.55)", letterSpacing: "0.1em", animation: "boot-row 0.18s ease both" }}>
-            {line}
-            {i === lines.length - 1 && <span className="blink" style={{ marginLeft: 4, color: "#00f0ff" }}>▌</span>}
+      {phase === "boot" ? (
+        <div style={{ padding: "10vh 8vw" }}>
+          <div style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, color: "rgba(var(--c1),0.4)", letterSpacing: "0.3em", marginBottom: 32 }}>
+            HAZEM_ALABIAD_OS // BOOT SEQUENCE
           </div>
-        ))}
-      </div>
-      <div style={{ marginTop: 40, height: 1, background: "rgba(0,240,255,0.12)", overflow: "hidden" }}>
-        <div style={{
-          height: "100%",
-          width: `${(lines.length / BOOT_LINES.length) * 100}%`,
-          background: "linear-gradient(90deg,#00f0ff,#9d4edd)",
-          transition: "width 0.22s ease",
-          boxShadow: "0 0 10px rgba(0,240,255,0.5)",
-        }} />
-      </div>
+          <div className="space-y-2">
+            {lines.map((line, i) => (
+              <div key={i} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 13, color: i === lines.length - 1 ? "var(--fg-a)" : "rgba(var(--c1),0.55)", letterSpacing: "0.1em", animation: "boot-row 0.18s ease both" }}>
+                {line}
+                {i === lines.length - 1 && <span className="blink" style={{ marginLeft: 4, color: "var(--c1h)" }}>▌</span>}
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 40, height: 1, background: "rgba(var(--c1),0.12)", overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${(lines.length / BOOT_LINES.length) * 100}%`, background: "linear-gradient(90deg,var(--c1h),var(--c2h))", transition: "width 0.22s ease", boxShadow: "0 0 10px rgba(var(--c1),0.5)" }} />
+          </div>
+        </div>
+      ) : (
+        <div className="welcome-desktop">
+          {/* desktop icons */}
+          <div style={{ position: "absolute", top: 40, left: 40, display: "flex", flexDirection: "column", gap: 22, zIndex: 2 }}>
+            {APPS.map(({ Icon, label, color }, i) => (
+              <div key={label} className="welcome-icon" style={{ animationDelay: `${i * 90}ms`, cursor: "none", zIndex: 2 }}>
+                <div style={{ width: 40, height: 40, border: `1px solid rgba(0,0,0,0.25)`, background: "rgba(255,255,255,0.06)", color, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}><Icon size={19} /></div>
+                <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 8, letterSpacing: "0.18em", color: "rgba(0,0,0,0.65)", textAlign: "center", marginTop: 4 }}>{label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* center hero */}
+          <div className="welcome-hero" style={{ zIndex: 3, textAlign: "center" }}>
+            <div style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.4em", color: "rgba(var(--c1),0.55)", marginBottom: 14 }}>WELCOME TO</div>
+            <h1 style={{ fontFamily: '"Audiowide", cursive', fontSize: "clamp(2.2rem,6vw,4.5rem)", color: "var(--fg-a)", letterSpacing: "0.06em", marginBottom: 6, textShadow: "0 0 30px rgba(var(--c1),0.35)" }}>
+              HAZEM<span style={{ color: "var(--c1h)" }}>_ALABIAD</span>_OS
+            </h1>
+            <div style={{ margin: "8px auto 18px", height: 1, width: "min(420px,70vw)", background: "linear-gradient(90deg, transparent, rgba(var(--c1),0.5), transparent)" }} />
+            <p style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.3em", color: "var(--fg-b)" }}>
+              VERSION 2.6 <span style={{ color: "var(--c1h)" }}>//</span> BUILT WITH <span style={{ color: "var(--c1h)" }}>AI</span> <Sparkles size={11} style={{ color: "var(--c4h)", verticalAlign: "middle" }} />
+            </p>
+            <div style={{ fontFamily: '"Outfit", sans-serif', fontSize: 15, color: "var(--fg-b)", marginTop: 18, maxWidth: 460, marginLeft: "auto", marginRight: "auto", lineHeight: 1.7 }}>
+              Neural interface online · NLP / LLMs / Computational Linguistics · Full-stack engineering
+            </div>
+          </div>
+
+          {/* taskbar */}
+          <div className="welcome-taskbar" style={{ zIndex: 4 }}>
+            <div style={{ borderRadius: 0, padding: "7px 14px", color: "var(--fg-a)", display: "flex", alignItems: "center", fontWeight: 700 }}>
+              <Cpu size={14} style={{ color: "var(--c1h)", marginRight: 8 }} /> HAAZ-OS
+            </div>
+            <div className="flex items-center gap-2">
+              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.2em", color: "var(--fg-b)", marginRight: 8 }}>
+                {new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
+              </span>
+              <button onClick={launch} className="welcome-start" style={{ cursor: "none", display: "flex", alignItems: "center", gap: 10, padding: "9px 22px", border: "1px solid rgba(var(--c1),0.6)", background: "rgba(var(--c1),0.12)", fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.25em", fontWeight: 700 }}>
+                <Terminal size={14} /> START ▸ PORTFOLIO
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1078,7 +1210,7 @@ function MouseTrail() {
             position: "fixed", left: d.x - 2, top: d.y - 2,
             width: 4 + age * 3, height: 4 + age * 3,
             borderRadius: "50%",
-            background: age > 0.5 ? "rgba(157,78,221,0.4)" : "rgba(0,240,255,0.35)",
+            background: age > 0.5 ? "rgba(var(--c2),0.4)" : "rgba(var(--c1),0.35)",
             pointerEvents: "none", zIndex: 9997,
             animation: "trail-fade 0.55s ease forwards",
             transform: `scale(${0.4 + age * 0.6})`,
@@ -1106,17 +1238,17 @@ function SideNavDots() {
             title={id.toUpperCase()}
             style={{ cursor: "none", display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", padding: 0 }}>
             {isActive && (
-              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, color: "#00f0ff", letterSpacing: "0.2em", textTransform: "uppercase", opacity: 0.7, animation: "fade-rise 0.3s ease" }}>
+              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, color: "var(--c1h)", letterSpacing: "0.2em", textTransform: "uppercase", opacity: 0.7, animation: "fade-rise 0.3s ease" }}>
                 {id}
               </span>
             )}
             <div style={{
               height: 2,
               width: isActive ? 24 : 8,
-              background: isActive ? "#00f0ff" : "rgba(0,240,255,0.25)",
+              background: isActive ? "var(--c1h)" : "rgba(var(--c1),0.25)",
               borderRadius: 1,
               transition: "all 0.3s ease",
-              boxShadow: isActive ? "0 0 6px rgba(0,240,255,0.6)" : "none",
+              boxShadow: isActive ? "0 0 6px rgba(var(--c1),0.6)" : "none",
             }} />
           </button>
         );
@@ -1126,6 +1258,46 @@ function SideNavDots() {
 }
 
 // ─── Command palette (⌘K) ────────────────────────────────────────────────────
+
+const THEMES = ["dark-cyan", "violet", "matrix", "ember", "light"] as const;
+
+const THEME_LABEL: Record<string, string> = {
+  "dark-cyan": "NEON_CYAN",
+  violet: "NEON_VIOLET",
+  matrix: "MATRIX",
+  ember: "EMBER",
+  light: "DAYLIGHT",
+};
+
+function getStoredTheme(): string {
+  try { const t = localStorage.getItem("hazem_portfolio_theme"); if (t && THEMES.includes(t as never)) return t; } catch {}
+  return "dark-cyan";
+}
+
+function ThemeSwitcher({ theme, onChange }: { theme: string; onChange: (t: string) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative" style={{ zIndex: 60 }}>
+      <button onClick={() => setOpen(!open)} onBlur={() => setTimeout(() => setOpen(false), 150)}
+        style={mono(10, "rgba(var(--c1),0.65)", { letterSpacing: "0.16em", border: "1px solid rgba(var(--c1),0.18)", padding: "5px 10px", background: "rgba(var(--c1),0.04)", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 })} >
+        <span className="pulse-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--c1h)", display: "inline-block", boxShadow: "0 0 8px var(--c1h)" }} />
+        {THEME_LABEL[theme] ?? theme.toUpperCase()}
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-2" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.2)", boxShadow: "0 14px 40px rgba(0,0,0,0.5)", width: 170, padding: 4 }}>
+          {THEMES.map((t) => (
+            <button key={t} onMouseDown={(e) => { e.preventDefault(); onChange(t); setOpen(false); }}
+              className="w-full text-left px-3 py-2 flex items-center gap-2 transition-colors"
+              style={{ background: theme === t ? "rgba(var(--c1),0.08)" : "transparent", cursor: "pointer", border: "none" }}>
+              <span className="pulse-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: t === "light" ? "#8a97ad" : `var(--${t === "dark-cyan" ? "c1h" : t === "violet" ? "c2h" : t === "matrix" ? "c3h" : "c4h"})`, display: "inline-block" }} />
+              <span style={mono(9.5, theme === t ? "var(--c1h)" : "var(--fg-b)", { letterSpacing: "0.12em" })}>{THEME_LABEL[t]}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function CommandPalette({ open, onClose, content }: { open: boolean; onClose: () => void; content: CmsContent }) {
   const [q, setQ] = useState("");
@@ -1164,38 +1336,38 @@ function CommandPalette({ open, onClose, content }: { open: boolean; onClose: ()
   if (!open) return null;
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 9995, display: "flex", alignItems: "flex-start", justifyContent: "center", background: "rgba(5,8,20,0.72)", backdropFilter: "blur(6px)", paddingTop: "16vh" }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 9995, display: "flex", alignItems: "flex-start", justifyContent: "center", background: "rgba(var(--bg-rgb),0.72)", backdropFilter: "blur(6px)", paddingTop: "16vh" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ width: "min(520px, 92vw)", background: "#080f1c", border: "1px solid rgba(0,240,255,0.2)", boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(0,240,255,0.08)" }}>
-        <div className="flex gap-2 items-center px-4 pt-3" style={{ borderBottom: "1px solid rgba(0,240,255,0.12)" }}>
-          <div className="w-2 h-2 rounded-full" style={{ background: "#ff5f57" }} />
-          <div className="w-2 h-2 rounded-full" style={{ background: "#febc2e" }} />
-          <div className="w-2 h-2 rounded-full" style={{ background: "#28c840" }} />
-          <span style={{ marginLeft: 8, fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.22em", color: "#6b8fab" }}>QUICK_NAV</span>
-          <span className="ml-auto" style={mono(8.5, "rgba(0,240,255,0.5)", { letterSpacing: "0.15em" })}>ESC_QUIT</span>
+      <div style={{ width: "min(520px, 92vw)", background: "var(--card)", border: "1px solid rgba(var(--c1),0.2)", boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(var(--c1),0.08)" }}>
+        <div className="flex gap-2 items-center px-4 pt-3" style={{ borderBottom: "1px solid rgba(var(--c1),0.12)" }}>
+          <div className="w-2 h-2 rounded-full" style={{ background: "var(--red-soft)" }} />
+          <div className="w-2 h-2 rounded-full" style={{ background: "var(--c4h)" }} />
+          <div className="w-2 h-2 rounded-full" style={{ background: "var(--c3h)" }} />
+          <span style={{ marginLeft: 8, fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.22em", color: "var(--fg-c)" }}>QUICK_NAV</span>
+          <span className="ml-auto" style={mono(8.5, "rgba(var(--c1),0.5)", { letterSpacing: "0.15em" })}>ESC_QUIT</span>
         </div>
         <div className="flex items-center gap-2 px-4 py-3">
-          <Search size={12} color="#00f0ff" style={{ opacity: 0.6 }} />
+          <Search size={12} color="var(--c1h)" style={{ opacity: 0.6 }} />
           <input
             ref={inputRef}
             value={q}
             onChange={(e) => { setQ(e.target.value); setSel(0); }}
             placeholder="type to filter…"
-            style={{ flex: 1, background: "none", border: "none", outline: "none", fontFamily: '"JetBrains Mono", monospace', fontSize: 12, color: "#e2e8f4", letterSpacing: "0.08em" }}
+            style={{ flex: 1, background: "none", border: "none", outline: "none", fontFamily: '"JetBrains Mono", monospace', fontSize: 12, color: "var(--fg-a)", letterSpacing: "0.08em" }}
           />
         </div>
         <div ref={listRef} className="px-2 pb-2 space-y-0.5" style={{ maxHeight: "42vh", overflowY: "auto" }}>
           {filtered.length === 0 && (
-            <div style={mono(11, "#6b8fab", { padding: "14px 10px", textAlign: "center" })}>NO_MATCHES_//404</div>
+            <div style={mono(11, "var(--fg-c)", { padding: "14px 10px", textAlign: "center" })}>NO_MATCHES_//404</div>
           )}
           {filtered.map((it, i) => (
             <button key={it.label} data-idx={i} onClick={() => { it.run(); onClose(); }}
               onMouseEnter={() => setSel(i)}
               className="w-full text-left flex items-center gap-3 px-3 py-2.5 transition-colors"
-              style={{ background: cur === i ? "rgba(0,240,255,0.08)" : "transparent", border: cur === i ? "1px solid rgba(0,240,255,0.25)" : "1px solid transparent", cursor: "pointer" }}>
-              <span style={{ width: 8, height: 8, flexShrink: 0, border: `1px solid ${cur === i ? "#00f0ff" : "#9d4edd"}` }} />
-              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.12em", color: cur === i ? "#00f0ff" : "#e2e8f4" }}>{it.label}</span>
-              <span className="ml-auto flex items-center gap-1.5" style={mono(8.5, cur === i ? "rgba(0,240,255,0.6)" : "#4d6b8a")}>
+              style={{ background: cur === i ? "rgba(var(--c1),0.08)" : "transparent", border: cur === i ? "1px solid rgba(var(--c1),0.25)" : "1px solid transparent", cursor: "pointer" }}>
+              <span style={{ width: 8, height: 8, flexShrink: 0, border: `1px solid ${cur === i ? "var(--c1h)" : "var(--c2h)"}` }} />
+              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.12em", color: cur === i ? "var(--c1h)" : "var(--fg-a)" }}>{it.label}</span>
+              <span className="ml-auto flex items-center gap-1.5" style={mono(8.5, cur === i ? "rgba(var(--c1),0.6)" : "var(--fg-d)")}>
                 {it.hint} {cur === i && <CornerDownLeft size={10} />}
               </span>
             </button>
@@ -1210,24 +1382,24 @@ function ExpEntry({ exp, idx, visible }: { exp: CmsExperience; idx: number; visi
   const [open, setOpen] = useState(idx === 0);
   return (
     <div className={`relative p-5 transition-colors duration-300 ${visible ? "depth-rise" : "opacity-0"} ${exp.current ? "glow-border" : ""}`}
-      style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.07)", animationDelay: `${idx * 110}ms` }}
-      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,240,255,0.35)"; (e.currentTarget as HTMLElement).style.background = "#0b1220"; }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = exp.current ? "" : "rgba(0,240,255,0.07)"; (e.currentTarget as HTMLElement).style.background = "#080f1c"; }}>
+      style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)", animationDelay: `${idx * 110}ms` }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.35)"; (e.currentTarget as HTMLElement).style.background = "var(--card-hover)"; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = exp.current ? "" : "rgba(var(--c1),0.07)"; (e.currentTarget as HTMLElement).style.background = "var(--card)"; }}>
       <button onClick={() => setOpen(!open)} className="w-full text-left" style={{ cursor: "pointer", background: "none", border: "none", padding: 0, fontFamily: "inherit", color: "inherit" }}>
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-3">
           <div>
-            <h3 style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 17, color: "#e2e8f4", marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
+            <h3 style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 17, color: "var(--fg-a)", marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
               {exp.role}
-              <span style={{ color: "#00f0ff", fontSize: 11, flexShrink: 0, transition: "transform 0.3s ease", transform: open ? "rotate(90deg)" : "rotate(0deg)" }}>▶</span>
+              <span style={{ color: "var(--c1h)", fontSize: 11, flexShrink: 0, transition: "transform 0.3s ease", transform: open ? "rotate(90deg)" : "rotate(0deg)" }}>▶</span>
             </h3>
             <div className="flex items-center gap-2 flex-wrap">
-              <span style={mono(10, "#9d4edd", { letterSpacing: "0.12em" })}>{exp.company}</span>
-              {exp.location && <span style={mono(10, "#6b8fab")}>// {exp.location}</span>}
+              <span style={mono(10, "var(--c2h)", { letterSpacing: "0.12em" })}>{exp.company}</span>
+              {exp.location && <span style={mono(10, "var(--fg-c)")}>// {exp.location}</span>}
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            {exp.current && <span style={mono(9, "#00f0ff", { padding: "2px 8px", border: "1px solid rgba(0,240,255,0.3)", letterSpacing: "0.2em" })}>CURRENT</span>}
-            <span style={mono(9, "#6b8fab")}>{exp.period}</span>
+            {exp.current && <span style={mono(9, "var(--c1h)", { padding: "2px 8px", border: "1px solid rgba(var(--c1),0.3)", letterSpacing: "0.2em" })}>CURRENT</span>}
+            <span style={mono(9, "var(--fg-c)")}>{exp.period}</span>
           </div>
         </div>
       </button>
@@ -1236,14 +1408,14 @@ function ExpEntry({ exp, idx, visible }: { exp: CmsExperience; idx: number; visi
           <ul className="space-y-1 mb-4">
             {exp.bullets.map((b, i) => (
               <li key={i} className="flex gap-2 items-start">
-                <span style={{ color: "#00f0ff", marginTop: 7, flexShrink: 0, fontSize: 5 }}>◆</span>
+                <span style={{ color: "var(--c1h)", marginTop: 7, flexShrink: 0, fontSize: 5 }}>◆</span>
                 <span style={body(15)}>{b}</span>
               </li>
             ))}
           </ul>
           <div className="flex flex-wrap gap-1.5">
             {exp.tags.map((tag) => (
-              <span key={tag} style={mono(9, "#9d4edd", { padding: "2px 8px", border: "1px solid rgba(157,78,221,0.25)" })}>{tag}</span>
+              <span key={tag} style={mono(9, "var(--c2h)", { padding: "2px 8px", border: "1px solid rgba(var(--c2),0.25)" })}>{tag}</span>
             ))}
           </div>
         </div>
@@ -1270,7 +1442,7 @@ function Spotlight({ children, className, style }: { children: React.ReactNode; 
       {on && (
         <div style={{
           position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, borderRadius: "inherit",
-          background: `radial-gradient(300px circle at ${pos.x}% ${pos.y}%, rgba(0,240,255,0.07), transparent 60%)`,
+          background: `radial-gradient(300px circle at ${pos.x}% ${pos.y}%, rgba(var(--c1),0.07), transparent 60%)`,
           transition: "opacity 0.2s",
         }} />
       )}
@@ -1309,6 +1481,14 @@ export default function App() {
   const [visits, setVisits] = useState<number | null>(null);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [theme, setTheme] = useState<string>(() => getStoredTheme());
+
+  useLayoutEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-theme", theme);
+      try { localStorage.setItem("hazem_portfolio_theme", theme); } catch {}
+    }
+  }, [theme]);
 
   const activeSection = useActiveSection(NAV);
 
@@ -1345,7 +1525,7 @@ export default function App() {
           contentEditable: true as const,
           suppressContentEditableWarning: true as const,
           onBlur: (e: React.FocusEvent<HTMLElement>) => save(key, e.currentTarget.textContent || ""),
-          style: { ...base, outline: "1px dashed rgba(0,240,255,0.4)", cursor: "text" as const },
+          style: { ...base, outline: "1px dashed rgba(var(--c1),0.4)", cursor: "text" as const },
           title: `CMS: edit "${key}"`,
         }
       : { style: base };
@@ -1379,7 +1559,7 @@ export default function App() {
   const bgHue = `radial-gradient(ellipse at ${50 + progress * 20}% ${50 + progress * 30}%, rgba(${Math.round(157 * progress)},${Math.round(78 * progress)},${Math.round(221 * progress)},0.04) 0%, transparent 70%)`;
 
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ background: "#050814", color: "#e2e8f4", cursor: "none" }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ background: "var(--bg-page)", color: "var(--fg-a)", cursor: "none" }}>
       {!booted && <BootScreen onDone={() => setBooted(true)} />}
       {/* Scroll-reactive ambient background */}
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, background: bgHue, transition: "background 0.3s ease" }} />
@@ -1389,33 +1569,35 @@ export default function App() {
       <SideNavDots />
       <CRTOverlay />
       <ParticleField />
+      <QuantumBomb />
 
       {/* ── Nav ── */}
       <nav className="fixed top-0 w-full z-50 transition-all duration-500"
-        style={{ background: scrolled ? "rgba(5,8,20,0.88)" : "transparent", backdropFilter: scrolled ? "blur(20px)" : "none", borderBottom: scrolled ? "1px solid rgba(0,240,255,0.1)" : "none" }}>
+        style={{ background: scrolled ? "rgba(var(--bg-rgb),0.88)" : "transparent", backdropFilter: scrolled ? "blur(20px)" : "none", borderBottom: scrolled ? "1px solid rgba(var(--c1),0.1)" : "none" }}>
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <button onClick={() => scrollTo("home")} style={mono(13, "#00f0ff", { letterSpacing: "0.2em" })} className="hover:opacity-75 transition-opacity">HAZ:ALABIAD</button>
+          <button onClick={() => scrollTo("home")} style={mono(13, "var(--c1h)", { letterSpacing: "0.2em" })} className="hover:opacity-75 transition-opacity">HAZ:ALABIAD</button>
           <div className="hidden md:flex items-center gap-8">
             {NAV.map((id) => (
               <button key={id} onClick={() => scrollTo(id)}
                 className="uppercase transition-opacity"
-                style={mono(12, activeSection === id ? "#00f0ff" : "#b0cede", { letterSpacing: "0.2em", borderBottom: activeSection === id ? "1px solid rgba(0,240,255,0.5)" : "1px solid transparent", paddingBottom: 2, boxShadow: activeSection === id ? "0 2px 12px rgba(0,240,255,0.15)" : "none" })}>{id}</button>
+                style={mono(12, activeSection === id ? "var(--c1h)" : "var(--fg-nav)", { letterSpacing: "0.2em", borderBottom: activeSection === id ? "1px solid rgba(var(--c1),0.5)" : "1px solid transparent", paddingBottom: 2, boxShadow: activeSection === id ? "0 2px 12px rgba(var(--c1),0.15)" : "none" })}>{id}</button>
             ))}
           </div>
-          <div className="hidden md:flex items-center gap-3">
-            <button onClick={() => setPaletteOpen(true)} style={mono(10, "rgba(0,240,255,0.55)", { letterSpacing: "0.18em", border: "1px solid rgba(0,240,255,0.18)", padding: "5px 10px", background: "rgba(0,240,255,0.04)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 })}
+<div className="hidden md:flex items-center gap-3">
+            <ThemeSwitcher theme={theme} onChange={setTheme} />
+            <button onClick={() => setPaletteOpen(true)} style={mono(10, "rgba(var(--c1),0.55)", { letterSpacing: "0.18em", border: "1px solid rgba(var(--c1),0.18)", padding: "5px 10px", background: "rgba(var(--c1),0.04)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 })}
               className="hover:opacity-100 transition-opacity" aria-label="Command palette">
-              <Command size={12} style={{ color: "#00f0ff" }} /> <span style={{ color: "#e2e8f4" }}>K</span>
+              <Command size={12} style={{ color: "var(--c1h)" }} /> <span style={{ color: "var(--fg-a)" }}>K</span>
             </button>
             <span className="w-1.5 h-1.5 rounded-full bg-[#00f0ff] pulse-dot" />
-            <span style={mono(9, "rgba(0,240,255,0.5)", { letterSpacing: "0.3em" })}>ONLINE_2026</span>
+            <span style={mono(9, "rgba(var(--c1),0.5)", { letterSpacing: "0.3em" })}>ONLINE_2026</span>
           </div>
-          <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)} style={mono(11, "#00f0ff")}>{menuOpen ? "CLOSE" : "MENU"}</button>
+          <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)} style={mono(11, "var(--c1h)")}>{menuOpen ? "CLOSE" : "MENU"}</button>
         </div>
         {menuOpen && (
-          <div className="md:hidden px-6 py-4 space-y-4" style={{ background: "rgba(5,8,20,0.96)", borderTop: "1px solid rgba(0,240,255,0.1)" }}>
+          <div className="md:hidden px-6 py-4 space-y-4" style={{ background: "rgba(var(--bg-rgb),0.96)", borderTop: "1px solid rgba(var(--c1),0.1)" }}>
             {NAV.map((id) => (
-              <button key={id} onClick={() => scrollTo(id)} className="block w-full text-left uppercase" style={mono(10, activeSection === id ? "#00f0ff" : "#9ab8d0", { letterSpacing: "0.22em" })}>{id}</button>
+              <button key={id} onClick={() => scrollTo(id)} className="block w-full text-left uppercase" style={mono(10, activeSection === id ? "var(--c1h)" : "var(--fg-b)", { letterSpacing: "0.22em" })}>{id}</button>
             ))}
           </div>
         )}
@@ -1425,16 +1607,16 @@ export default function App() {
       <section id="home" className="relative min-h-screen flex flex-col justify-center px-6 pt-20" style={{ zIndex: 10 }}>
         <FloatingCode />
         {/* Ambient orbs */}
-        <div className="absolute top-1/4 right-1/4 w-80 h-80 pointer-events-none" style={{ borderRadius: "50%", background: "radial-gradient(circle, rgba(0,240,255,0.07) 0%, transparent 70%)", filter: "blur(40px)", animation: "orb-drift-1 14s ease-in-out infinite" }} />
-        <div className="absolute bottom-1/3 left-1/5 w-64 h-64 pointer-events-none" style={{ borderRadius: "50%", background: "radial-gradient(circle, rgba(157,78,221,0.07) 0%, transparent 70%)", filter: "blur(40px)", animation: "orb-drift-2 18s ease-in-out infinite" }} />
+        <div className="absolute top-1/4 right-1/4 w-80 h-80 pointer-events-none" style={{ borderRadius: "50%", background: "radial-gradient(circle, rgba(var(--c1),0.07) 0%, transparent 70%)", filter: "blur(40px)", animation: "orb-drift-1 14s ease-in-out infinite" }} />
+        <div className="absolute bottom-1/3 left-1/5 w-64 h-64 pointer-events-none" style={{ borderRadius: "50%", background: "radial-gradient(circle, rgba(var(--c2),0.07) 0%, transparent 70%)", filter: "blur(40px)", animation: "orb-drift-2 18s ease-in-out infinite" }} />
         <div className="max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-3 mb-6 flex-wrap">
-            <span style={mono(9, "rgba(0,240,255,0.45)", { letterSpacing: "0.35em" })}>NEURAL_ID::HAZ-2026-ALA-TBN</span>
-            <div className="w-16 h-px" style={{ background: "rgba(0,240,255,0.18)" }} />
-            <span style={mono(9, "rgba(157,78,221,0.45)", { letterSpacing: "0.3em" })}>2026.08.01</span>
+            <span style={mono(9, "rgba(var(--c1),0.45)", { letterSpacing: "0.35em" })}>NEURAL_ID::HAZ-2026-ALA-TBN</span>
+            <div className="w-16 h-px" style={{ background: "rgba(var(--c1),0.18)" }} />
+            <span style={mono(9, "rgba(var(--c2),0.45)", { letterSpacing: "0.3em" })}>2026.08.01</span>
             <div className="flex-1" />
-            <span className="flex items-center gap-2" style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.22em", color: "#28c840", border: "1px solid rgba(40,200,64,0.35)", background: "rgba(40,200,64,0.06)", padding: "6px 12px", animation: "badge-in 0.8s cubic-bezier(0.16,1,0.3,1) 0.6s both" }}>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#28c840] pulse-dot" />
+            <span className="flex items-center gap-2" style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.22em", color: "var(--c3h)", border: "1px solid rgba(var(--c3),0.35)", background: "rgba(var(--c3),0.06)", padding: "6px 12px", animation: "badge-in 0.8s cubic-bezier(0.16,1,0.3,1) 0.6s both" }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--c3h)] pulse-dot" />
               OPEN TO ROLES — NLP · LLM · AI
             </span>
           </div>
@@ -1443,20 +1625,20 @@ export default function App() {
             {/* Left — identity, role, bio, CTAs, stats */}
             <div className="lg:col-span-7">
               <h1 className="glitch leading-none tracking-tight mb-4 select-none"
-                style={{ fontFamily: '"Audiowide", cursive', fontSize: "clamp(3.2rem,10vw,8.5rem)", fontWeight: 400, color: "#e2e8f4", transform: `translateY(${scrollY * 0.18}px)`, willChange: "transform" }}>
-                HAZEM<br /><span className="text-glow-cyan" style={{ color: "#00f0ff" }}>ALABIAD</span>
+                style={{ fontFamily: '"Audiowide", cursive', fontSize: "clamp(3.2rem,10vw,8.5rem)", fontWeight: 400, color: "var(--fg-a)", transform: `translateY(${scrollY * 0.18}px)`, willChange: "transform" }}>
+                HAZEM<br /><span className="text-glow-cyan" style={{ color: "var(--c1h)" }}>ALABIAD</span>
               </h1>
 
               <div className="flex items-center gap-2 mb-6">
-                <div className="blink w-2 h-5 bg-[#00f0ff]" />
-                <p style={mono(14, "#c6d8ec", { letterSpacing: "0.14em", fontSize: "clamp(14px,1.9vw,19px)" })}>{typeText}</p>
+                <div className="blink w-2 h-5 bg-[var(--c1h)]" />
+                <p style={mono(14, "var(--fg-hero)", { letterSpacing: "0.14em", fontSize: "clamp(14px,1.9vw,19px)" })}>{typeText}</p>
               </div>
 
-              <p {...ep("heroTagline", DEFAULTS.heroTagline, { ...body(21, "#c0d4e8"), maxWidth: 760, marginBottom: 20, transform: `translateY(${scrollY * 0.09}px)`, willChange: "transform" })}>
+              <p {...ep("heroTagline", DEFAULTS.heroTagline, { ...body(21, "var(--fg-hero)"), maxWidth: 760, marginBottom: 20, transform: `translateY(${scrollY * 0.09}px)`, willChange: "transform" })}>
                 {get("heroTagline", DEFAULTS.heroTagline)}
               </p>
 
-              <p {...ep("bio1", DEFAULTS.bio1, { ...body(16, "#9ab8d0"), maxWidth: 720, marginBottom: 32 })}>
+              <p {...ep("bio1", DEFAULTS.bio1, { ...body(16, "var(--fg-b)"), maxWidth: 720, marginBottom: 32 })}>
                 {get("bio1", DEFAULTS.bio1)}
               </p>
 
@@ -1465,17 +1647,17 @@ export default function App() {
               <div className="flex flex-wrap gap-4 mb-8">
                 <MagneticWrap>
                   <button onClick={() => scrollTo("experience")} className="flex items-center gap-3 transition-all duration-300"
-                    style={mono(10, "#00f0ff", { padding: "12px 24px", border: "1px solid #00f0ff", letterSpacing: "0.2em", cursor: "none" })}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#00f0ff"; (e.currentTarget as HTMLElement).style.color = "#050814"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#00f0ff"; }}>
+                    style={mono(10, "var(--c1h)", { padding: "12px 24px", border: "1px solid var(--c1h)", letterSpacing: "0.2em", cursor: "none" })}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--c1h)"; (e.currentTarget as HTMLElement).style.color = "var(--bg-page)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--c1h)"; }}>
                     VIEW EXPERIENCE <ArrowUpRight size={13} />
                   </button>
                 </MagneticWrap>
                 <MagneticWrap>
                   <button onClick={() => scrollTo("contact")} className="flex items-center gap-3 transition-all duration-300"
-                    style={mono(10, "#9d4edd", { padding: "12px 24px", border: "1px solid rgba(157,78,221,0.5)", letterSpacing: "0.2em", cursor: "none" })}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#9d4edd"; (e.currentTarget as HTMLElement).style.color = "#fff"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "#9d4edd"; }}>
+                    style={mono(10, "var(--c2h)", { padding: "12px 24px", border: "1px solid rgba(var(--c2),0.5)", letterSpacing: "0.2em", cursor: "none" })}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--c2h)"; (e.currentTarget as HTMLElement).style.color = "#fff"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--c2h)"; }}>
                     CONTACT <Mail size={13} />
                   </button>
                 </MagneticWrap>
@@ -1484,11 +1666,11 @@ export default function App() {
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl">
                 {content.stats.map(({ to, suffix, label }) => (
-                  <div key={label} className="pl-4" style={{ borderLeft: "2px solid rgba(0,240,255,0.2)" }}>
-                    <div style={{ fontFamily: '"Audiowide", cursive', fontSize: "1.6rem", color: "#00f0ff" }}>
+                  <div key={label} className="pl-4" style={{ borderLeft: "2px solid rgba(var(--c1),0.2)" }}>
+                    <div style={{ fontFamily: '"Audiowide", cursive', fontSize: "1.6rem", color: "var(--c1h)" }}>
                       {suffix.startsWith("2.2") ? suffix : <CountUp to={to} suffix={suffix} />}
                     </div>
-                    <div style={mono(9, "#6b8fab", { letterSpacing: "0.16em", marginTop: 4, textTransform: "uppercase" as const })}>{label}</div>
+                    <div style={mono(9, "var(--fg-c)", { letterSpacing: "0.16em", marginTop: 4, textTransform: "uppercase" as const })}>{label}</div>
                   </div>
                 ))}
               </div>
@@ -1498,16 +1680,16 @@ export default function App() {
             <div className="lg:col-span-5 space-y-4">
               <div className="flex justify-center lg:justify-end">
                 <div className="group relative inline-block cursor-pointer"
-                  style={{ filter: "drop-shadow(0 0 26px rgba(0,240,255,0.16))" }}>
+                  style={{ filter: "drop-shadow(0 0 26px rgba(var(--c1),0.16))" }}>
                   <div className="group-hover:opacity-100" style={{
                     position: "absolute", inset: -12, borderRadius: "28px",
-                    background: "radial-gradient(circle, rgba(0,240,255,0.26) 0%, rgba(157,78,221,0.16) 45%, transparent 70%)",
+                    background: "radial-gradient(circle, rgba(var(--c1),0.26) 0%, rgba(var(--c2),0.16) 45%, transparent 70%)",
                     zIndex: 0, opacity: 0.55, transition: "opacity 0.4s ease", filter: "blur(3px)",
                   }} />
                   <div style={{
                     width: 148, height: 148, borderRadius: 16, overflow: "hidden",
-                    border: "2px solid #050814", position: "relative", zIndex: 1,
-                    background: "#0b1020", transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)",
+                    border: "2px solid var(--bg-page)", position: "relative", zIndex: 1,
+                    background: "var(--card-photo)", transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)",
                   }} className="group-hover:scale-105">
                     <img
                       src={content.photo || hazemPhoto}
@@ -1516,64 +1698,64 @@ export default function App() {
                       style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 40%", display: "block" }}
                     />
                     {/* elegant blend — quiet the photo background, focus the centre */}
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(5,8,20,0.10) 0%, transparent 42%, rgba(5,8,20,0.62) 100%), radial-gradient(ellipse 78% 72% at 50% 42%, transparent 52%, rgba(5,8,20,0.5) 100%)", pointerEvents: "none" }} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(var(--bg-rgb),0.10) 0%, transparent 42%, rgba(var(--bg-rgb),0.62) 100%), radial-gradient(ellipse 78% 72% at 50% 42%, transparent 52%, rgba(var(--bg-rgb),0.5) 100%)", pointerEvents: "none" }} />
                     {/* RGB-split glitch fringes */}
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(105deg, rgba(0,240,255,0.16), transparent 45%, transparent 55%, rgba(157,78,221,0.20))", mixBlendMode: "screen" }} />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(105deg, rgba(var(--c1),0.16), transparent 45%, transparent 55%, rgba(var(--c2),0.20))", mixBlendMode: "screen" }} />
                     {/* CRT halftone scanlines */}
                     <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(0,0,0,0.22) 2px, rgba(0,0,0,0.22) 3px)", mixBlendMode: "multiply" }} />
                     {/* moving scan sweep */}
-                    <div style={{ position: "absolute", left: 0, right: 0, height: "55%", top: "-60%", background: "linear-gradient(to bottom, transparent, rgba(0,240,255,0.14) 50%, transparent)", animation: "scan-cv 5.5s linear infinite" }} />
+                    <div style={{ position: "absolute", left: 0, right: 0, height: "55%", top: "-60%", background: "linear-gradient(to bottom, transparent, rgba(var(--c1),0.14) 50%, transparent)", animation: "scan-cv 5.5s linear infinite" }} />
                     {/* targeting reticle */}
                     <div style={{ position: "absolute", left: "50%", top: "50%", width: 44, height: 44, transform: "translate(-50%,-50%)", opacity: 0.5, pointerEvents: "none" }}>
-                      <span style={{ position: "absolute", left: 0, top: "50%", width: 8, height: 1, background: "#00f0ff", boxShadow: "0 0 6px #00f0ff" }} />
-                      <span style={{ position: "absolute", right: 0, top: "50%", width: 8, height: 1, background: "#00f0ff", boxShadow: "0 0 6px #00f0ff" }} />
-                      <span style={{ position: "absolute", top: 6, left: "50%", width: 1, height: 8, background: "#00f0ff", boxShadow: "0 0 6px #00f0ff" }} />
-                      <span style={{ position: "absolute", bottom: 6, left: "50%", width: 1, height: 8, background: "#00f0ff", boxShadow: "0 0 6px #00f0ff" }} />
+                      <span style={{ position: "absolute", left: 0, top: "50%", width: 8, height: 1, background: "var(--c1h)", boxShadow: "0 0 6px var(--c1h)" }} />
+                      <span style={{ position: "absolute", right: 0, top: "50%", width: 8, height: 1, background: "var(--c1h)", boxShadow: "0 0 6px var(--c1h)" }} />
+                      <span style={{ position: "absolute", top: 6, left: "50%", width: 1, height: 8, background: "var(--c1h)", boxShadow: "0 0 6px var(--c1h)" }} />
+                      <span style={{ position: "absolute", bottom: 6, left: "50%", width: 1, height: 8, background: "var(--c1h)", boxShadow: "0 0 6px var(--c1h)" }} />
                     </div>
                     {/* corner HUD brackets */}
-                    {[{ t: 6, l: 6, w: 16, h: 16, br: "4px 0 0 0", bd: "2px solid rgba(0,240,255,0.85)" },
-                      { t: 6, l: "auto", r: 6, w: 16, h: 16, br: "0 6px 0 0", bd: "2px solid rgba(157,78,221,0.85)" },
-                      { t: "auto", b: 6, l: 6, w: 16, h: 16, br: "0 0 0 4px", bd: "2px solid rgba(157,78,221,0.85)" },
-                      { t: "auto", b: 6, r: 6, w: 16, h: 16, br: "0 0 4px 0", bd: "2px solid rgba(0,240,255,0.85)" }].map((c, i) => (
+                    {[{ t: 6, l: 6, w: 16, h: 16, br: "4px 0 0 0", bd: "2px solid rgba(var(--c1),0.85)" },
+                      { t: 6, l: "auto", r: 6, w: 16, h: 16, br: "0 6px 0 0", bd: "2px solid rgba(var(--c2),0.85)" },
+                      { t: "auto", b: 6, l: 6, w: 16, h: 16, br: "0 0 0 4px", bd: "2px solid rgba(var(--c2),0.85)" },
+                      { t: "auto", b: 6, r: 6, w: 16, h: 16, br: "0 0 4px 0", bd: "2px solid rgba(var(--c1),0.85)" }].map((c, i) => (
                       <span key={i} style={{ position: "absolute", top: c.t, bottom: c.b, left: c.l, right: c.r, width: c.w, height: c.h, borderTopLeftRadius: i === 0 ? 4 : 0, borderTopRightRadius: i === 1 ? 4 : 0, borderBottomLeftRadius: i === 2 ? 4 : 0, borderBottomRightRadius: i === 3 ? 4 : 0, borderTop: /top/.test(Object.keys(c).join("")) ? "none" : undefined, ...{} }} />
                   ))}
                   </div>
                   {/* readout strip */}
                   <div style={{
                     position: "absolute", left: 8, right: 8, bottom: 8, zIndex: 2, padding: "3px 7px",
-                    background: "rgba(5,8,20,0.72)", borderLeft: "1px solid rgba(0,240,255,0.5)",
+                    background: "rgba(var(--bg-rgb),0.72)", borderLeft: "1px solid rgba(var(--c1),0.5)",
                     backdropFilter: "blur(6px)", pointerEvents: "none",
                   }}>
-                    <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 7.5, letterSpacing: "0.18em", color: "#9ab8d0" }}>
-                      ID:<span style={{ color: "#00f0ff" }}>HAZ-2026</span>
-                      <span className="blink" style={{ color: "#28c840", margin: "0 4px" }}>█</span>
-                      <span style={{ color: "rgba(0,240,255,0.6)" }}>SIG_OK</span>
+                    <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 7.5, letterSpacing: "0.18em", color: "var(--fg-b)" }}>
+                      ID:<span style={{ color: "var(--c1h)" }}>HAZ-2026</span>
+                      <span className="blink" style={{ color: "var(--c3h)", margin: "0 4px" }}>█</span>
+                      <span style={{ color: "rgba(var(--c1),0.6)" }}>SIG_OK</span>
                     </span>
                   </div>
                   <span style={{
                     position: "absolute", bottom: 34, right: 6, zIndex: 2, width: 14, height: 14,
-                    borderRadius: "50%", background: "#28c840", border: "3px solid #050814",
-                    boxShadow: "0 0 10px rgba(40,200,64,0.9)",
+                    borderRadius: "50%", background: "var(--c3h)", border: "3px solid var(--bg-page)",
+                    boxShadow: "0 0 10px rgba(var(--c3),0.9)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}>
-                    <span style={{ position: "absolute", inset: -3, borderRadius: "50%", background: "rgba(40,200,64,0.5)", animation: "pulse-dot 2s ease-out infinite" }} />
+                    <span style={{ position: "absolute", inset: -3, borderRadius: "50%", background: "rgba(var(--c3),0.5)", animation: "pulse-dot 2s ease-out infinite" }} />
                   </span>
                 </div>
               </div>
 
               {/* ── Terminal / job-mode card — right under the photo ── */}
-              <div className="p-5 relative overflow-hidden" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.15)", fontFamily: '"JetBrains Mono", monospace', fontSize: 11, boxShadow: "0 0 26px rgba(0,240,255,0.06)" }}>
-                <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 2, background: "linear-gradient(90deg, transparent, rgba(0,240,255,0.28), transparent)", animation: "term-beam 7s linear infinite", pointerEvents: "none" }} />
+              <div className="p-5 relative overflow-hidden" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.15)", fontFamily: '"JetBrains Mono", monospace', fontSize: 11, boxShadow: "0 0 26px rgba(var(--c1),0.06)" }}>
+                <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 2, background: "linear-gradient(90deg, transparent, rgba(var(--c1),0.28), transparent)", animation: "term-beam 7s linear infinite", pointerEvents: "none" }} />
                 <div className="flex gap-2 mb-3 items-center">
-                  <div className="w-2 h-2 rounded-full" style={{ background: "#ff5f57" }} />
-                  <div className="w-2 h-2 rounded-full" style={{ background: "#febc2e" }} />
-                  <div className="w-2 h-2 rounded-full" style={{ background: "#28c840" }} />
-                  <span style={{ color: "#6b8fab", fontSize: 9, letterSpacing: "0.15em", marginLeft: 8 }}>
-                    hazem@tübingen:~$ <span style={{ color: "#28c840" }}>./job-mode --targets</span><span className="blink" style={{ color: "#00f0ff" }}>▌</span>
+                  <div className="w-2 h-2 rounded-full" style={{ background: "var(--red-soft)" }} />
+                  <div className="w-2 h-2 rounded-full" style={{ background: "var(--c4h)" }} />
+                  <div className="w-2 h-2 rounded-full" style={{ background: "var(--c3h)" }} />
+                  <span style={{ color: "var(--fg-c)", fontSize: 9, letterSpacing: "0.15em", marginLeft: 8 }}>
+                    hazem@tübingen:~$ <span style={{ color: "var(--c3h)" }}>./job-mode --targets</span><span className="blink" style={{ color: "var(--c1h)" }}>▌</span>
                   </span>
                 </div>
                 <div style={{ lineHeight: 2 }}>
-                  <div style={{ color: "rgba(0,240,255,0.75)", letterSpacing: "0.22em", fontSize: 9, marginBottom: 3 }}>ROLES_LOOKING_FOR:</div>
+                  <div style={{ color: "rgba(var(--c1),0.75)", letterSpacing: "0.22em", fontSize: 9, marginBottom: 3 }}>ROLES_LOOKING_FOR:</div>
                   {[
                     { t: "NLP Engineer", p: true },
                     { t: "LLM / AI Engineer", p: false },
@@ -1581,16 +1763,16 @@ export default function App() {
                     { t: "Full-Stack Engineer", p: false },
                   ].map((r, i) => (
                     <div key={r.t} style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
-                      <span style={{ color: "#9d4edd" }}>[{i + 1}]</span>
-                      <span style={{ color: "#e2e8f4" }}>{r.t}</span>
-                      {r.p && <span style={{ color: "#28c840" }}>← priority</span>}
+                      <span style={{ color: "var(--c2h)" }}>[{i + 1}]</span>
+                      <span style={{ color: "var(--fg-a)" }}>{r.t}</span>
+                      {r.p && <span style={{ color: "var(--c3h)" }}>← priority</span>}
                     </div>
                   ))}
                   <div style={{ marginTop: 8 }}>
-                    <div><span style={{ color: "#9d4edd" }}>availability</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#28c840" }}>"Immediately"</span></div>
-                    <div><span style={{ color: "#9d4edd" }}>location</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#28c840" }}>"{get("factLocation", DEFAULT_CONTENT.factLocation)}"</span></div>
-                    <div><span style={{ color: "#9d4edd" }}>open_to</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#00f0ff" }}>["Full-time", "Working Student", "Remote"]</span></div>
-                    <div><span style={{ color: "#9d4edd" }}>status</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#febc2e" }}>"Open to opportunities"</span></div>
+                    <div><span style={{ color: "var(--c2h)" }}>availability</span> <span style={{ color: "var(--fg-a)" }}>=</span> <span style={{ color: "var(--c3h)" }}>"Immediately"</span></div>
+                    <div><span style={{ color: "var(--c2h)" }}>location</span> <span style={{ color: "var(--fg-a)" }}>=</span> <span style={{ color: "var(--c3h)" }}>"{get("factLocation", DEFAULT_CONTENT.factLocation)}"</span></div>
+                    <div><span style={{ color: "var(--c2h)" }}>open_to</span> <span style={{ color: "var(--fg-a)" }}>=</span> <span style={{ color: "var(--c1h)" }}>["Full-time", "Working Student", "Remote"]</span></div>
+                    <div><span style={{ color: "var(--c2h)" }}>status</span> <span style={{ color: "var(--fg-a)" }}>=</span> <span style={{ color: "var(--c4h)" }}>"Open to opportunities"</span></div>
                   </div>
                 </div>
               </div>
@@ -1603,26 +1785,26 @@ export default function App() {
                   { Icon: Globe, label: "Available", value: get("factAvailable", DEFAULT_CONTENT.factAvailable) },
                 ].map(({ Icon, label, value }) => (
                   <div key={label} className="grid grid-cols-1 gap-1 p-3 transition-all duration-300"
-                    style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.07)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.28)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.07)")}>
-                    <div className="flex items-center gap-1.5" style={{ color: "#4d6b8a" }}>
-                      <Icon size={11} style={{ color: "#00f0ff", opacity: 0.7 }} />
-                      <div style={mono(8.5, "#6b8fab", { textTransform: "uppercase" as const, letterSpacing: "0.16em" })}>{label}</div>
+                    style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.28)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.07)")}>
+                    <div className="flex items-center gap-1.5" style={{ color: "var(--fg-d)" }}>
+                      <Icon size={11} style={{ color: "var(--c1h)", opacity: 0.7 }} />
+                      <div style={mono(8.5, "var(--fg-c)", { textTransform: "uppercase" as const, letterSpacing: "0.16em" })}>{label}</div>
                     </div>
-                    <div style={body(13.5, "#e2e8f4")}>{value}</div>
+                    <div style={body(13.5, "var(--fg-a)")}>{value}</div>
                   </div>
                 ))}
               </div>
             </div>
           </div>
         </div>
-        <div className="float absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2" style={{ color: "rgba(0,240,255,0.35)" }}>
-          <span style={mono(9, "rgba(0,240,255,0.35)", { letterSpacing: "0.3em" })}>SCROLL</span>
+        <div className="float absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2" style={{ color: "rgba(var(--c1),0.35)" }}>
+          <span style={mono(9, "rgba(var(--c1),0.35)", { letterSpacing: "0.3em" })}>SCROLL</span>
           <ChevronDown size={14} />
         </div>
-        <div className="absolute top-24 right-8 w-24 h-24 pointer-events-none" style={{ borderTop: "1px solid rgba(0,240,255,0.12)", borderRight: "1px solid rgba(0,240,255,0.12)" }} />
-        <div className="absolute bottom-20 left-8 w-24 h-24 pointer-events-none" style={{ borderBottom: "1px solid rgba(157,78,221,0.12)", borderLeft: "1px solid rgba(157,78,221,0.12)" }} />
+        <div className="absolute top-24 right-8 w-24 h-24 pointer-events-none" style={{ borderTop: "1px solid rgba(var(--c1),0.12)", borderRight: "1px solid rgba(var(--c1),0.12)" }} />
+        <div className="absolute bottom-20 left-8 w-24 h-24 pointer-events-none" style={{ borderBottom: "1px solid rgba(var(--c2),0.12)", borderLeft: "1px solid rgba(var(--c2),0.12)" }} />
       </section>
 
 
@@ -1631,8 +1813,8 @@ export default function App() {
         <div ref={expR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="01" label="EXPERIENCE" />
           <div className="transition-all duration-1000" style={{ opacity: expR.visible ? 1 : 0, transform: expR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
-              Work <span style={{ color: "#9d4edd" }}>History</span>
+            <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--fg-a)" }}>
+              Work <span style={{ color: "var(--c2h)" }}>History</span>
             </WipeHeading>
             <div className="space-y-4">
               {content.experience.map((exp, idx) => (
@@ -1650,51 +1832,52 @@ export default function App() {
         <div ref={projectsR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="02" label="PROJECTS" />
           <div className="transition-all duration-1000" style={{ opacity: projectsR.visible ? 1 : 0, transform: projectsR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
-              Research <span style={{ color: "#00f0ff" }}>& Projects</span>
+            <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--fg-a)" }}>
+              Research <span style={{ color: "var(--c1h)" }}>& Projects</span>
             </WipeHeading>
             <Spotlight className="grid grid-cols-1 md:grid-cols-2 gap-5">
 {content.projects.map((proj, pidx) => {
                 const ProjIcon = [Brain, Code2, Database, GraduationCap, Globe, Briefcase][pidx % 6];
-                const projColor = ["#00f0ff", "#9d4edd", "#28c840", "#febc2e"][pidx % 4];
-                const sc: Record<string, string> = { RESEARCH: "#9d4edd", COMPLETE: "#28c840", ACTIVE: "#00f0ff", BETA: "#febc2e" };
+                const projColor = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)"][pidx % 4];
+                const projHex = ["var(--c1h)", "var(--c2h)", "var(--c3h)", "var(--c4h)"][pidx % 4];
+                const sc: Record<string, string> = { RESEARCH: "var(--c2h)", COMPLETE: "var(--c3h)", ACTIVE: "var(--c1h)", BETA: "var(--c4h)" };
                 return (
                   <TiltCard key={proj.id || proj.name} className={projectsR.visible ? "slide-up-item" : ""} style={{ animationDelay: `${pidx * 120}ms` }}>
                   <div className="relative p-6 overflow-hidden transition-all duration-300 group"
-                    style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.07)", height: "100%" }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,240,255,0.35)"; (e.currentTarget as HTMLElement).style.background = "#0b1220"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,240,255,0.07)"; (e.currentTarget as HTMLElement).style.background = "#080f1c"; }}>
+                    style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)", height: "100%" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.35)"; (e.currentTarget as HTMLElement).style.background = "var(--card-hover)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.07)"; (e.currentTarget as HTMLElement).style.background = "var(--card)"; }}>
                     {/* shimmer sweep on hover */}
                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300" style={{ overflow: "hidden" }}>
-                      <div style={{ position: "absolute", top: 0, bottom: 0, width: "50%", background: "linear-gradient(90deg, transparent, rgba(0,240,255,0.04), transparent)", animation: "shimmer-sweep 1.2s ease infinite" }} />
+                      <div style={{ position: "absolute", top: 0, bottom: 0, width: "50%", background: "linear-gradient(90deg, transparent, rgba(var(--c1),0.04), transparent)", animation: "shimmer-sweep 1.2s ease infinite" }} />
                     </div>
                     <div className="flex items-start justify-between mb-5">
-                      <div className="flex items-center justify-center" style={{ width: 40, height: 40, border: `1px solid ${projColor}30`, color: projColor }}>
+                      <div className="flex items-center justify-center" style={{ width: 40, height: 40, border: `1px solid rgba(${projColor},0.19)`, color: projHex }}>
                         <ProjIcon size={17} />
                       </div>
                       <div className="flex items-center gap-2">
-                        <span style={mono(9, sc[proj.status] || "#febc2e", { padding: "2px 8px", border: `1px solid ${sc[proj.status] || "#febc2e"}30`, letterSpacing: "0.2em" })}>{proj.status}</span>
-                        <span style={mono(9, "#6b8fab")}>{proj.year}</span>
+                        <span style={mono(9, sc[proj.status] || "var(--c4h)", { padding: "2px 8px", border: "1px solid rgba(var(--c1),0.19)", letterSpacing: "0.2em" })}>{proj.status}</span>
+                        <span style={mono(9, "var(--fg-c)")}>{proj.year}</span>
                       </div>
                     </div>
-                    <h3 className="mb-2 transition-colors duration-200" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 18, color: "#e2e8f4" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = "#00f0ff")}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = "#e2e8f4")}>
+                    <h3 className="mb-2 transition-colors duration-200" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 18, color: "var(--fg-a)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "var(--c1h)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = "var(--fg-a)")}>
                       {proj.name}
                     </h3>
                     <p className="mb-5" style={body(15)}>{proj.desc}</p>
                     <div className="flex flex-wrap gap-1.5 mb-4">
                       {proj.tags.map((tag) => (
-                        <span key={tag} style={mono(9, "#6b8fab", { padding: "2px 7px", background: "#0f1624" })}>{tag}</span>
+                        <span key={tag} style={mono(9, "var(--fg-c)", { padding: "2px 7px", background: "var(--chip)" })}>{tag}</span>
                       ))}
                     </div>
                     <a href={proj.link} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-1.5 transition-opacity hover:opacity-100"
-                      style={mono(9, "#00f0ff", { opacity: 0.45, textDecoration: "none", letterSpacing: "0.15em" })}>
+                      style={mono(9, "var(--c1h)", { opacity: 0.45, textDecoration: "none", letterSpacing: "0.15em" })}>
                       <Github size={11} /> VIEW ON GITHUB
                     </a>
-                    <div className="absolute bottom-0 right-0 w-8 h-8 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderBottom: "1px solid rgba(0,240,255,0.18)", borderRight: "1px solid rgba(0,240,255,0.18)" }} />
-                    <div className="absolute top-0 left-0 w-8 h-8 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderTop: "1px solid rgba(0,240,255,0.18)", borderLeft: "1px solid rgba(0,240,255,0.18)" }} />
+                    <div className="absolute bottom-0 right-0 w-8 h-8 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderBottom: "1px solid rgba(var(--c1),0.18)", borderRight: "1px solid rgba(var(--c1),0.18)" }} />
+                    <div className="absolute top-0 left-0 w-8 h-8 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderTop: "1px solid rgba(var(--c1),0.18)", borderLeft: "1px solid rgba(var(--c1),0.18)" }} />
                   </div>
                   </TiltCard>
                 );
@@ -1709,12 +1892,12 @@ export default function App() {
         <div ref={skillsR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="03" label="PROFICIENCIES" />
           <div className="transition-all duration-1000" style={{ opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
-              Technical <span style={{ color: "#9d4edd" }}>Proficiencies</span>
+            <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--fg-a)" }}>
+              Technical <span style={{ color: "var(--c2h)" }}>Proficiencies</span>
             </WipeHeading>
             <Spotlight className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
               <div>
-                <div style={mono(9, "rgba(0,240,255,0.45)", { marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>FULL_STACK_ENGINEERING</div>
+                <div style={mono(9, "rgba(var(--c1),0.45)", { marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>FULL_STACK_ENGINEERING</div>
                 <div className="space-y-2.5">
                   {content.skills.filter((s) => s.cat === "stack").map((s, i) => (
                     <SkillBar key={s.id || s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} />
@@ -1722,7 +1905,7 @@ export default function App() {
                 </div>
               </div>
               <div>
-                <div style={mono(9, "rgba(157,78,221,0.45)", { marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>AI_NLP_RESEARCH</div>
+                <div style={mono(9, "rgba(var(--c2),0.45)", { marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>AI_NLP_RESEARCH</div>
                 <div className="space-y-2.5">
                   {content.skills.filter((s) => s.cat === "ai").map((s, i) => (
                     <SkillBar key={s.id || s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} />
@@ -1730,22 +1913,22 @@ export default function App() {
                 </div>
               </div>
             </Spotlight>
-            <div className="mt-8 pt-5" style={{ borderTop: "1px solid rgba(0,240,255,0.08)" }}>
-              <div style={mono(9, "rgba(0,240,255,0.45)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>SPOKEN_LANGUAGES</div>
+            <div className="mt-8 pt-5" style={{ borderTop: "1px solid rgba(var(--c1),0.08)" }}>
+              <div style={mono(9, "rgba(var(--c1),0.45)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>SPOKEN_LANGUAGES</div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {content.languages.map((lang, i) => {
                   const L = lang.level.toLowerCase();
                   const pct = L.includes("native") ? 100 : L.includes("profic") ? 75 : L.includes("fluent") ? 85 : L.includes("beginner") ? 40 : 60;
                   const filled = Math.round((pct / 100) * 8);
                   return (
-                    <div key={lang.id} className="px-4 py-3" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.1)" }}>
+                    <div key={lang.id} className="px-4 py-3" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.1)" }}>
                       <div className="flex items-center justify-between mb-2">
-                        <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 19, color: "#e2e8f4" }}>{lang.name}</span>
-                        <span style={mono(8.5, pct >= 75 ? "#00f0ff" : "#6b8fab", { letterSpacing: "0.14em" })}>{lang.level.toUpperCase()}</span>
+                        <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 19, color: "var(--fg-a)" }}>{lang.name}</span>
+                        <span style={mono(8.5, pct >= 75 ? "var(--c1h)" : "var(--fg-c)", { letterSpacing: "0.14em" })}>{lang.level.toUpperCase()}</span>
                       </div>
                       <div className="flex gap-1" style={{ opacity: skillsR.visible ? 1 : 0, transition: "opacity 0.5s ease", transitionDelay: `${i * 90}ms` }}>
                         {Array.from({ length: 8 }).map((_, k) => (
-                          <span key={k} style={{ flex: 1, height: 3, background: k < filled ? "linear-gradient(90deg, #00f0ff, #9d4edd)" : "#0f1624", transition: "background 0.5s ease", transitionDelay: `${i * 90 + k * 50}ms`, boxShadow: k < filled ? "0 0 5px rgba(0,240,255,0.3)" : "none" }} />
+                          <span key={k} style={{ flex: 1, height: 3, background: k < filled ? "linear-gradient(90deg, var(--c1h), var(--c2h))" : "var(--chip)", transition: "background 0.5s ease", transitionDelay: `${i * 90 + k * 50}ms`, boxShadow: k < filled ? "0 0 5px rgba(var(--c1),0.3)" : "none" }} />
                         ))}
                       </div>
                     </div>
@@ -1764,8 +1947,8 @@ export default function App() {
           <div className="transition-all duration-1000" style={{ opacity: contactR.visible ? 1 : 0, transform: contactR.visible ? "translateY(0)" : "translateY(32px)" }}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
               <div>
-                <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "#e2e8f4" }}>
-                  Get in <span style={{ color: "#00f0ff" }}>Touch</span>
+                <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--fg-a)" }}>
+                  Get in <span style={{ color: "var(--c1h)" }}>Touch</span>
                 </WipeHeading>
                 <p className="mb-6" style={body(17)}>{get("contactIntro", DEFAULT_CONTENT.contactIntro)}</p>
                 <div className="space-y-3">
@@ -1775,29 +1958,29 @@ export default function App() {
                     const Icon = iconKey.includes("GIT") ? Github : iconKey.includes("LINK") ? Linkedin : iconKey.includes("SCHOLAR") ? Globe : Mail;
                     const inner = (
                       <>
-                        <div className="flex items-center justify-center flex-shrink-0" style={{ width: 32, height: 32, border: "1px solid rgba(0,240,255,0.2)", color: "#00f0ff" }}>
+                        <div className="flex items-center justify-center flex-shrink-0" style={{ width: 32, height: 32, border: "1px solid rgba(var(--c1),0.2)", color: "var(--c1h)" }}>
                           <Icon size={13} />
                         </div>
                         <div className="flex-1">
-                          <div style={mono(9, "#6b8fab", { marginBottom: 3, textTransform: "uppercase" as const, letterSpacing: "0.2em" })}>{link.label}</div>
-                          <div style={body(16, "#e2e8f4")}>{link.value}</div>
+                          <div style={mono(9, "var(--fg-c)", { marginBottom: 3, textTransform: "uppercase" as const, letterSpacing: "0.2em" })}>{link.label}</div>
+                          <div style={body(16, "var(--fg-a)")}>{link.value}</div>
                         </div>
                         <span className="flex items-center gap-1.5 flex-shrink-0">
-                          {isMail ? <Copy size={13} color="#00f0ff" style={{ opacity: 0.6 }} /> : <ArrowUpRight size={13} color="#00f0ff" style={{ opacity: 0.4 }} />}
+                          {isMail ? <Copy size={13} color="var(--c1h)" style={{ opacity: 0.6 }} /> : <ArrowUpRight size={13} color="var(--c1h)" style={{ opacity: 0.4 }} />}
                           {isMail && copiedEmail && (
-                            <span style={mono(9, "#28c840", { letterSpacing: "0.15em" })}>COPIED</span>
+                            <span style={mono(9, "var(--c3h)", { letterSpacing: "0.15em" })}>COPIED</span>
                           )}
                         </span>
                       </>
                     );
                     const base = "flex items-center gap-4 p-4 transition-all duration-300";
-                    const box = { background: "#080f1c", border: "1px solid rgba(0,240,255,0.07)" };
+                    const box = { background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)" };
                     if (isMail) {
                       return (
                         <button key={link.id} onClick={() => { navigator.clipboard.writeText(link.value).catch(() => {}); setCopiedEmail(true); setTimeout(() => setCopiedEmail(false), 2000); }}
-                          className={`${base} w-full text-left`} style={{ ...box, borderColor: copiedEmail ? "rgba(40,200,64,0.4)" : "rgba(0,240,255,0.07)", cursor: "pointer" }}
-                          onMouseEnter={(e) => (e.currentTarget.style.borderColor = copiedEmail ? "rgba(40,200,64,0.5)" : "rgba(0,240,255,0.28)")}
-                          onMouseLeave={(e) => (e.currentTarget.style.borderColor = copiedEmail ? "rgba(40,200,64,0.4)" : "rgba(0,240,255,0.07)")}>
+                          className={`${base} w-full text-left`} style={{ ...box, borderColor: copiedEmail ? "rgba(var(--c3),0.4)" : "rgba(var(--c1),0.07)", cursor: "pointer" }}
+                          onMouseEnter={(e) => (e.currentTarget.style.borderColor = copiedEmail ? "rgba(var(--c3),0.5)" : "rgba(var(--c1),0.28)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.borderColor = copiedEmail ? "rgba(var(--c3),0.4)" : "rgba(var(--c1),0.07)")}>
                           {inner}
                         </button>
                       );
@@ -1806,8 +1989,8 @@ export default function App() {
                       <a key={link.id} href={link.href || "#"} target="_blank" rel="noopener noreferrer"
                         className={base}
                         style={{ ...box, textDecoration: "none" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.28)")}
-                        onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.07)")}>
+                        onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.28)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.07)")}>
                         {inner}
                       </a>
                     );
@@ -1823,18 +2006,18 @@ export default function App() {
       </section>
 
       {/* Footer */}
-      <footer className="relative py-8 px-6" style={{ zIndex: 10, borderTop: "1px solid rgba(0,240,255,0.07)" }}>
+      <footer className="relative py-8 px-6" style={{ zIndex: 10, borderTop: "1px solid rgba(var(--c1),0.07)" }}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span style={mono(9, "#6b8fab", { letterSpacing: "0.22em" })}>{get("footerLine", DEFAULT_CONTENT.footerLine)}</span>
+          <span style={mono(9, "var(--fg-c)", { letterSpacing: "0.22em" })}>{get("footerLine", DEFAULT_CONTENT.footerLine)}</span>
           <div className="flex items-center gap-4">
             {visits !== null && (
-              <span style={{ ...mono(9, "#6b8fab", { letterSpacing: "0.18em" }), display: "flex", alignItems: "center", gap: 6 }}>
-                <span className="pulse-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: "#00f0ff", display: "inline-block" }} />
+              <span style={{ ...mono(9, "var(--fg-c)", { letterSpacing: "0.18em" }), display: "flex", alignItems: "center", gap: 6 }}>
+                <span className="pulse-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--c1h)", display: "inline-block" }} />
                 VIEWS:{visits.toLocaleString()}
               </span>
             )}
-            <a href="https://github.com/hazem-alabiad" target="_blank" rel="noopener noreferrer" style={{ color: "#6b8fab", opacity: 0.6 }} onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")} onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}><Github size={14} /></a>
-            <a href="https://linkedin.com/in/hazemalabiad" target="_blank" rel="noopener noreferrer" style={{ color: "#6b8fab", opacity: 0.6 }} onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")} onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}><Linkedin size={14} /></a>
+            <a href="https://github.com/hazem-alabiad" target="_blank" rel="noopener noreferrer" style={{ color: "var(--fg-c)", opacity: 0.6 }} onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")} onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}><Github size={14} /></a>
+            <a href="https://linkedin.com/in/hazemalabiad" target="_blank" rel="noopener noreferrer" style={{ color: "var(--fg-c)", opacity: 0.6 }} onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")} onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.6")}><Linkedin size={14} /></a>
           </div>
         </div>
       </footer>

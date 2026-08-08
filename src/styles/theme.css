@@ -1,5 +1,96 @@
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Portfolio theme tokens — everything color-constant in the JSX maps here.
+ * Swap via [data-theme] attribute on <html>. Default = dark-cyan.
+ * RGB triplets (--c1, --c2, ...) feed rgba() inside inline styles.
+ */
+
+:root,
+[data-theme="dark-cyan"] {
+  --c1: 0, 240, 255;       /* primary accent (cyan) RGB */
+  --c1h: #00f0ff;          /* primary accent hex */
+  --c2: 157, 78, 221;      /* secondary accent (violet) RGB */
+  --c2h: #9d4edd;
+  --c3: 40, 200, 64;       /* positive / green RGB */
+  --c3h: #28c840;
+  --c4: 254, 188, 46;      /* warn / amber RGB */
+  --c4h: #febc2e;
+  --red: 255, 71, 87;      /* destructive RGB */
+  --red-soft: 255, 95, 87; /* terminal dot red */
+
+  --bg-page: #050814;      /* page / hero background */
+  --bg-deep: #020510;      /* boot screen */
+  --bg-rgb: 5, 8, 20;
+  --card: #080f1c;         /* card surface */
+  --card-hover: #0b1220;
+  --card-photo: #0b1020;   /* photo plate */
+  --chip: #0f1624;
+  --frame: #0a1220;
+
+  --fg-a: #e2e8f4;         /* primary text */
+  --fg-b: #9ab8d0;         /* soft text */
+  --fg-c: #6b8fab;         /* muted text */
+  --fg-d: #4d6b8a;         /* faint text */
+  --fg-nav: #b0cede;
+  --fg-hero: #c6d8ec;
+}
+
+[data-theme="violet"] {
+  --c1: 186, 121, 255;
+  --c1h: #ba79ff;
+  --c2: 0, 240, 255;
+  --c2h: #00f0ff;
+  --c3h: #28c840;
+}
+
+[data-theme="matrix"] {
+  --c1: 34, 255, 106;
+  --c1h: #22ff6a;
+  --c2: 0, 240, 200;
+  --c2h: #00f0c8;
+  --c4h: #ffe14d;
+}
+
+[data-theme="ember"] {
+  --c1: 255, 138, 51;
+  --c1h: #ff8a33;
+  --c2: 255, 66, 87;
+  --c2h: #ff4257;
+  --c3: 255, 200, 60;
+  --c3h: #ffc83c;
+}
+
+/* Light theme — readable, keeps neon accents */
+[data-theme="light"] {
+  --c1: 0, 132, 255;
+  --c1h: #0084ff;
+  --c2: 124, 66, 186;
+  --c2h: #7c42ba;
+  --c3: 22, 155, 84;
+  --c3h: #168f4f;
+  --c4: 168, 115, 32;
+  --c4h: #a87320;
+  --red: 220, 52, 64;
+  --red-soft: 255, 95, 87;
+
+  --bg-page: #f4f6fb;
+  --bg-deep: #e8ecf5;
+  --bg-rgb: 244, 246, 251;
+  --card: #ffffff;
+  --card-hover: #eef2fa;
+  --card-photo: #eef2fa;
+  --chip: #e6ebf6;
+  --frame: #e6ebf6;
+
+  --fg-a: #16202e;
+  --fg-b: #41506a;
+  --fg-c: #5a677e;
+  --fg-d: #778399;
+  --fg-nav: #2c3a52;
+  --fg-hero: #16202e;
+}
+
 :root {
   --font-size: 18px;
   --background: #050814;

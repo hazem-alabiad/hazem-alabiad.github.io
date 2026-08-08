@@ -147,8 +147,8 @@
 
 /* ── Glow border pulse ── */
 @keyframes glow-border {
-  0%, 100% { border-color: rgba(0,240,255,0.08); box-shadow: none; }
-  50%       { border-color: rgba(0,240,255,0.45); box-shadow: 0 0 18px rgba(0,240,255,0.12); }
+  0%, 100% { border-color: rgba(var(--c1),0.14); box-shadow: none; }
+  50%       { border-color: rgba(var(--c1),0.45); box-shadow: 0 0 18px rgba(var(--c1),0.12); }
 }
 .glow-border { animation: glow-border 3.5s ease-in-out infinite; }
 
@@ -246,5 +246,96 @@
 }
 
 /* ── Text glow (accent headings) ── */
-.text-glow-cyan { text-shadow: 0 0 18px rgba(0,240,255,0.35), 0 0 48px rgba(0,240,255,0.15); }
-.text-glow-violet { text-shadow: 0 0 18px rgba(157,78,221,0.4), 0 0 48px rgba(157,78,221,0.18); }
+.text-glow-cyan { text-shadow: 0 0 18px rgba(var(--c1),0.35), 0 0 48px rgba(var(--c1),0.15); }
+.text-glow-violet { text-shadow: 0 0 18px rgba(var(--c2),0.4), 0 0 48px rgba(var(--c2),0.18); }
+
+/* ── Quantum bomb ── */
+@keyframes bomb-shake {
+  0%   { transform: translate(0,0); }
+  25%  { transform: translate(-7px,4px); }
+  50%  { transform: translate(6px,-6px); }
+  75%  { transform: translate(-4px,-3px); }
+  100% { transform: translate(0,0); }
+}
+@keyframes spark-fly {
+  0%   { transform: translate(0,0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(var(--sx,0px),var(--sy,0px)) rotate(var(--sr,180deg)) scale(0.2); opacity: 0; }
+}
+.bomb-spark {
+  animation-name: spark-fly;
+  animation-timing-function: cubic-bezier(0.16,1,0.3,1);
+  animation-fill-mode: both;
+  animation-duration: var(--sl, 1s);
+  border-radius: 50%;
+}
+@keyframes pulse-breathing {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.4); opacity: 0.55; }
+}
+.pulse-breathe { animation: pulse-breathing 1.6s ease-in-out infinite; }
+
+/* ── Welcome OS ── */
+.welcome-desktop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(1200px 700px at 70% 20%, rgba(var(--c2),0.16), transparent 60%),
+    radial-gradient(1000px 600px at 20% 80%, rgba(var(--c1),0.14), transparent 60%),
+    var(--bg-deep);
+  overflow: hidden;
+}
+.welcome-desktop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px);
+  pointer-events: none;
+}
+@keyframes welcome-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.welcome-hero { animation: welcome-rise 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+@keyframes icon-pop {
+  0%   { opacity: 0; transform: translateY(-10px) scale(0.7); }
+  60%  { transform: translateY(0) scale(1.05); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.welcome-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: icon-pop 0.5s cubic-bezier(0.16,1,0.3,1) both;
+  transition: transform 0.22s cubic-bezier(0.16,1,0.3,1);
+}
+.welcome-icon:hover { transform: scale(1.12); }
+@keyframes taskbar-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.welcome-taskbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid rgba(var(--c1),0.18);
+  background: rgba(var(--bg-rgb),0.55);
+  backdrop-filter: blur(12px);
+  animation: taskbar-in 0.5s ease 0.2s both;
+}
+.welcome-start {
+  transition: box-shadow 0.2s, background 0.2s, transform 0.2s cubic-bezier(0.16,1,0.3,1);
+}
+.welcome-start:hover {
+  background: rgba(var(--c1),0.22);
+  box-shadow: 0 0 24px rgba(var(--c1),0.5);
+  transform: translateY(-2px);
+}
