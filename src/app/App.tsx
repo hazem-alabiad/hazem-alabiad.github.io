@@ -1400,7 +1400,10 @@ function BootScreen({ onDone }: { onDone: () => void }) {
     return () => clearInterval(iv);
   }, []);
 
+  const launched = useRef(false);
   const launch = () => {
+    if (launched.current) return;
+    launched.current = true;
     setWiping(true);
     setTimeout(() => onDone(), 750);
   };
@@ -1430,9 +1433,9 @@ function BootScreen({ onDone }: { onDone: () => void }) {
   ];
 
   return (
-    <div style={{
+    <div onClick={launch} style={{
       position: "fixed", inset: 0, zIndex: 99999, background: "var(--bg-deep)",
-      display: "flex", flexDirection: "column", overflow: "hidden",
+      display: "flex", flexDirection: "column", overflow: "hidden", cursor: "pointer",
       animation: wiping ? "boot-wipe 0.65s cubic-bezier(0.7,0,1,1) forwards" : "none",
       transformOrigin: "top",
     }}>
@@ -1453,13 +1456,13 @@ function BootScreen({ onDone }: { onDone: () => void }) {
             <div style={{ height: "100%", width: `${(lines.length / BOOT_LINES.length) * 100}%`, background: "linear-gradient(90deg,var(--c1h),var(--c2h))", transition: "width 0.22s ease", boxShadow: "0 0 10px rgba(var(--c1),0.5)" }} />
           </div>
           <div style={{ position: "fixed", bottom: 28, right: 40, fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.25em", color: "rgba(var(--c1),0.45)" }}>
-            ENTER ↵ SKIP BOOT
+            TAP OR ENTER ↵ — SKIP BOOT
           </div>
         </div>
       ) : (
         <div className="welcome-desktop">
           {/* desktop icons */}
-          <div style={{ position: "absolute", top: 40, left: 40, display: "flex", flexDirection: "column", gap: 22, zIndex: 2 }}>
+          <div className="welcome-icons" style={{ position: "absolute", top: 40, left: 40, display: "flex", flexDirection: "column", gap: 22, zIndex: 2 }}>
             {APPS.map(({ Icon, label, color }, i) => (
               <div key={label} className="welcome-icon" style={{ animationDelay: `${i * 90}ms`, cursor: "none", zIndex: 2 }}>
                 <div style={{ width: 40, height: 40, border: `1px solid rgba(var(--c1),0.25)`, background: "var(--chip)", color, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}><Icon size={19} /></div>
@@ -1482,7 +1485,7 @@ function BootScreen({ onDone }: { onDone: () => void }) {
               Neural interface online · NLP / LLMs / Computational Linguistics · Full-stack engineering
             </div>
             <div className="blink" style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.35em", color: "rgba(var(--c1),0.6)", marginTop: 26, cursor: "none" }}>
-              [ ENTER ↵ ] LAUNCH PORTFOLIO
+              [ TAP ANYWHERE / ENTER ↵ ] LAUNCH PORTFOLIO
             </div>
           </div>
 

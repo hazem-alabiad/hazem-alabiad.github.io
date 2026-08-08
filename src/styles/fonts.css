@@ -426,3 +426,28 @@
     contain-intrinsic-size: auto 650px;
   }
 }
+
+/* Welcome OS — mobile layout */
+@media (max-width: 639px) {
+  .welcome-icons { display: none !important; }
+  .welcome-taskbar {
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 6px;
+    backdrop-filter: none;
+  }
+  .welcome-taskbar .welcome-start {
+    padding: 8px 12px;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+  }
+  .welcome-taskbar > div:first-child {
+    padding: 4px 8px !important;
+  }
+  .welcome-hero {
+    padding: 0 18px;
+  }
+  .welcome-hero h1 {
+    letter-spacing: 0.04em;
+  }
+}
