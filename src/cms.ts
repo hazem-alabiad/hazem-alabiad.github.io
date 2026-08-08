@@ -69,14 +69,14 @@ export interface CmsContent {
 
 export const DEFAULT_CONTENT: CmsContent = {
   heroTagline:
-    "M.A. student in Computational Linguistics at Tübingen, with 6+ years of software engineering experience. Bridging full-stack engineering with NLP, AI, and LLM research.",
+    "Software Engineer with 6+ years of experience, M.A. student in Computational Linguistics at Tübingen. Bridging production-grade full-stack engineering with AI, NLP, and LLM research.",
   bio1:
-    "I am a working student and full-stack engineer pursuing an M.A. in Computational Linguistics at the University of Tübingen. My work spans production-grade React systems used by millions, to NLP/LLM research on multilingual data and cognitive science.",
+    "Software Engineer with 6+ years of experience building production-ready, maintainable systems and pixel-perfect UIs using React, Next.js, TypeScript, and modern tooling. Experienced in leading cross-functional teams, improving developer experience, and delivering design-driven applications at scale.",
   bio2:
-    "Currently serving as Research Assistant at both the University of Tübingen and the Leibniz-Institut für Wissensmedien (IWM), while seeking opportunities in NLP, AI, LLM, and Software Engineering.",
+    "Currently pursuing an M.A. in Computational Linguistics at the University of Tübingen and working as a Student Assistant at IWM & the Autonomous Learning Lab (Uni Tübingen), focusing on AI, ML, LLMs, NLP, and Cognitive Science — bridging software engineering and intelligent systems. Open to Working Student & internship roles in NLP, AI/ML, and LLMs — Tübingen, Stuttgart, or remote.",
   factLocation: "Tübingen, Germany",
   factDegree: "M.A. Computational Linguistics",
-  factCurrent: "Research Asst. · Tübingen Uni & IWM",
+  factCurrent: "Student Asst. · IWM & Auto. Learning Lab",
   factAvailable: "NLP / AI / Full-Stack",
   contactIntro:
     "Open to NLP/AI research roles, full-stack engineering positions, and research collaborations. Based in Tübingen, open to remote worldwide.",

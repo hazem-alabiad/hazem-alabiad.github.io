@@ -285,11 +285,11 @@ function useReveal(threshold = 0.1) {
 
 const DEFAULTS = {
   heroTagline:
-    "M.A. student in Computational Linguistics at Tübingen, with 6+ years of software engineering experience. Bridging full-stack engineering with NLP, AI, and LLM research.",
+    "Software Engineer with 6+ years of experience, M.A. student in Computational Linguistics at Tübingen. Bridging production-grade full-stack engineering with AI, NLP, and LLM research.",
   bio1:
-    "I am a working student and full-stack engineer pursuing an M.A. in Computational Linguistics at the University of Tübingen. My work spans production-grade React systems used by millions, to NLP/LLM research on multilingual data and cognitive science.",
+    "Software Engineer with 6+ years of experience building production-ready, maintainable systems and pixel-perfect UIs using React, Next.js, TypeScript, and modern tooling. Experienced in leading cross-functional teams, improving developer experience, and delivering design-driven applications at scale.",
   bio2:
-    "Currently serving as Research Assistant at both the University of Tübingen and the Leibniz-Institut für Wissensmedien (IWM), while seeking opportunities in NLP, AI, LLM, and Software Engineering.",
+    "Currently pursuing an M.A. in Computational Linguistics at the University of Tübingen and working as a Student Assistant at IWM & the Autonomous Learning Lab (Uni Tübingen), focusing on AI, ML, LLMs, NLP, and Cognitive Science — bridging software engineering and intelligent systems. Open to Working Student & internship roles in NLP, AI/ML, and LLMs — Tübingen, Stuttgart, or remote.",
 };
 
 // ─── Style helpers (module-level so all components can use them) ──────────────
@@ -755,6 +755,9 @@ function ContactForm() {
 
 // ─── CMS Button ───────────────────────────────────────────────────────────────
 
+const CMS_TOKEN_KEY = "hazem-portfolio-cms-token";
+const CMS_OWNER = "hazem-alabiad";
+
 function CMSButton({ onUnlock, enabled, onDisable, onReset, onOpenEditor }: {
   onUnlock: () => void;
   enabled: boolean;
@@ -770,28 +773,45 @@ function CMSButton({ onUnlock, enabled, onDisable, onReset, onOpenEditor }: {
 
   const close = () => { setOpen(false); setError(""); setPat(""); setAuthedAs(""); };
 
-  const verify = async () => {
-    if (!pat.trim()) return;
+  const saveToken = (token: string) => localStorage.setItem(CMS_TOKEN_KEY, token);
+
+  const verify = async (token = pat.trim()) => {
+    if (!token) return;
     setLoading(true);
     setError("");
     try {
       const res = await fetch("https://api.github.com/user", {
-        headers: { Authorization: `token ${pat.trim()}` },
+        headers: { Authorization: `token ${token}` },
       });
       if (res.ok) {
         const data = await res.json();
+        if (data.login !== CMS_OWNER) {
+          localStorage.removeItem(CMS_TOKEN_KEY);
+          setError(`NOT AUTHORIZED. CMS is private to "@${CMS_OWNER}" only.`);
+          setLoading(false);
+          return;
+        }
+        saveToken(token);
         setAuthedAs(data.login || "authenticated");
         setTimeout(() => { onUnlock(); close(); }, 1200);
       } else if (res.status === 401) {
+        localStorage.removeItem(CMS_TOKEN_KEY);
         setError("Invalid or expired PAT.");
       } else {
         setError(`Error ${res.status}. Check your token scope.`);
       }
     } catch {
+      localStorage.removeItem(CMS_TOKEN_KEY);
       setError("Network error. Check your connection.");
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    const stored = localStorage.getItem(CMS_TOKEN_KEY);
+    if (stored) verify(stored);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const monoStyle: React.CSSProperties = { fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.2em" };
 
@@ -1288,32 +1308,32 @@ export default function App() {
 {/* Photo */}
               <div className="flex justify-center lg:justify-start mb-6">
                 <div className="group relative inline-block cursor-pointer"
-                  style={{ filter: "drop-shadow(0 0 18px rgba(0,240,255,0.12))" }}>
+                  style={{ filter: "drop-shadow(0 0 26px rgba(0,240,255,0.16))" }}>
                   <div style={{
-                    position: "absolute", inset: -4, borderRadius: "50%",
-                    background: "conic-gradient(from 0deg, #00f0ff, #9d4edd, #28c840, #00f0ff)",
+                    position: "absolute", inset: -6, borderRadius: "20px",
+                    background: "conic-gradient(from 0deg, #00f0ff, #9d4edd, #28c840, #febc2e, #00f0ff)",
                     zIndex: 0, animation: "spin-slow 4s linear infinite",
                     transition: "filter 0.4s ease",
                   }} />
                   <div className="group-hover:opacity-100" style={{
-                    position: "absolute", inset: -10, borderRadius: "50%",
-                    background: "radial-gradient(circle, rgba(0,240,255,0.28) 0%, rgba(157,78,221,0.18) 45%, transparent 70%)",
-                    zIndex: 0, opacity: 0.55, transition: "opacity 0.4s ease", filter: "blur(2px)",
+                    position: "absolute", inset: -12, borderRadius: "28px",
+                    background: "radial-gradient(circle, rgba(0,240,255,0.26) 0%, rgba(157,78,221,0.16) 45%, transparent 70%)",
+                    zIndex: 0, opacity: 0.55, transition: "opacity 0.4s ease", filter: "blur(3px)",
                   }} />
                   <div style={{
-                    width: 108, height: 108, borderRadius: "50%", overflow: "hidden",
-                    border: "3px solid #050814", position: "relative", zIndex: 1,
+                    width: 148, height: 148, borderRadius: 16, overflow: "hidden",
+                    border: "2px solid #050814", position: "relative", zIndex: 1,
                     background: "#0b1020", transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)",
                   }} className="group-hover:scale-105">
                     <img
                       src={content.photo || hazemPhoto}
                       alt="Hazem Alabiad"
                       loading="eager"
-                      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 12%", display: "block" }}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 40%", display: "block" }}
                     />
                   </div>
                   <span style={{
-                    position: "absolute", bottom: 4, right: 4, zIndex: 2, width: 14, height: 14,
+                    position: "absolute", bottom: 10, right: 10, zIndex: 2, width: 16, height: 16,
                     borderRadius: "50%", background: "#28c840", border: "3px solid #050814",
                     boxShadow: "0 0 10px rgba(40,200,64,0.9)",
                     display: "flex", alignItems: "center", justifyContent: "center",
