@@ -414,3 +414,15 @@
   box-shadow: 0 0 24px rgba(var(--c1),0.5);
   transform: translateY(-2px);
 }
+
+/* render offscreen sections lazily — faster scroll, faster first load */
+#experience, #projects, #skills, #contact {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+  contain: layout style;
+}
+@media (max-width: 639px) {
+  #experience, #projects, #skills, #contact {
+    contain-intrinsic-size: auto 650px;
+  }
+}

@@ -38,16 +38,6 @@ import {
 
 // ─── Scroll hooks ─────────────────────────────────────────────────────────────
 
-function useScrollY() {
-  const [y, setY] = useState(0);
-  useEffect(() => {
-    const fn = () => setY(window.scrollY);
-    window.addEventListener("scroll", fn, { passive: true });
-    return () => window.removeEventListener("scroll", fn);
-  }, []);
-  return y;
-}
-
 function useScrollProgress() {
   const [p, setP] = useState(0);
   useEffect(() => {
@@ -220,11 +210,16 @@ function ParticleField() {
       mouse: { x: -9999, y: -9999 },
       scanY: 0,
       raf: 0,
+      link: true,
+      paused: false,
     };
     function init() {
       canvas!.width = window.innerWidth;
       canvas!.height = window.innerHeight;
-      state.particles = Array.from({ length: 110 }, () => ({
+      const w = canvas!.width;
+      const count = w < 640 ? 38 : w < 1024 ? 64 : 110;
+      state.link = w >= 768;
+      state.particles = Array.from({ length: count }, () => ({
         x: Math.random() * canvas!.width,
         y: Math.random() * canvas!.height,
         vx: (Math.random() - 0.5) * 0.42,
@@ -235,15 +230,18 @@ function ParticleField() {
       }));
     }
     function tick() {
+      if (state.paused) { state.raf = requestAnimationFrame(tick); return; }
       const W = canvas!.width, H = canvas!.height;
       ctx!.fillStyle = "rgba(5,8,20,0.18)";
       ctx!.fillRect(0, 0, W, H);
-      ctx!.lineWidth = 0.5;
-      ctx!.strokeStyle = "rgba(0,240,255,0.04)";
-      const GS = 65;
-      for (let x = 0; x < W; x += GS) { ctx!.beginPath(); ctx!.moveTo(x, 0); ctx!.lineTo(x, H); ctx!.stroke(); }
-      for (let y = 0; y < H; y += GS) { ctx!.beginPath(); ctx!.moveTo(0, y); ctx!.lineTo(W, y); ctx!.stroke(); }
       state.scanY = (state.scanY + 0.55) % H;
+      if (state.scanY < 0.55) {
+        ctx!.strokeStyle = "rgba(0,240,255,0.04)";
+        ctx!.lineWidth = 0.5;
+        const GS = 65;
+        for (let x = 0; x < W; x += GS) { ctx!.beginPath(); ctx!.moveTo(x, 0); ctx!.lineTo(x, H); ctx!.stroke(); }
+        for (let y = 0; y < H; y += GS) { ctx!.beginPath(); ctx!.moveTo(0, y); ctx!.lineTo(W, y); ctx!.stroke(); }
+      }
       const sg = ctx!.createLinearGradient(0, state.scanY - 80, 0, state.scanY + 80);
       sg.addColorStop(0, "rgba(0,240,255,0)");
       sg.addColorStop(0.5, "rgba(0,240,255,0.032)");
@@ -251,6 +249,7 @@ function ParticleField() {
       ctx!.fillStyle = sg;
       ctx!.fillRect(0, state.scanY - 80, W, 160);
       const { particles, mouse } = state;
+      const linkDraw = state.link;
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         const dx = mouse.x - p.x, dy = mouse.y - p.y;
@@ -261,29 +260,39 @@ function ParticleField() {
         if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
         if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
         const r = Math.round(p.t * 157), g = Math.round(240 - p.t * 162), b = Math.round(255 - p.t * 34);
-        ctx!.beginPath(); ctx!.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(${r},${g},${b},${p.a})`; ctx!.fill();
-        for (let j = i + 1; j < particles.length; j++) {
-          const q = particles[j];
-          const dd = Math.sqrt((p.x - q.x) ** 2 + (p.y - q.y) ** 2);
-          if (dd < 115) {
-            ctx!.strokeStyle = `rgba(${r},${g},${b},${(1 - dd / 115) * 0.2})`;
-            ctx!.lineWidth = 0.4;
-            ctx!.beginPath(); ctx!.moveTo(p.x, p.y); ctx!.lineTo(q.x, q.y); ctx!.stroke();
+        if (linkDraw) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const q = particles[j];
+            const dd = Math.sqrt((p.x - q.x) ** 2 + (p.y - q.y) ** 2);
+            if (dd < 115) {
+              ctx!.strokeStyle = `rgba(${r},${g},${b},${(1 - dd / 115) * 0.2})`;
+              ctx!.lineWidth = 0.4;
+              ctx!.beginPath(); ctx!.moveTo(p.x, p.y); ctx!.lineTo(q.x, q.y); ctx!.stroke();
+            }
           }
         }
+        ctx!.beginPath(); ctx!.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx!.fillStyle = `rgba(${r},${g},${b},${p.a})`; ctx!.fill();
       }
       state.raf = requestAnimationFrame(tick);
     }
+    const onVis = () => { state.paused = document.hidden; };
+    document.addEventListener("visibilitychange", onVis);
     init(); tick();
     const onResize = () => init();
-    const onMove = (e: MouseEvent) => { state.mouse.x = e.clientX; state.mouse.y = e.clientY; };
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      const pt = e instanceof TouchEvent && e.touches.length ? e.touches[0] : (e as MouseEvent);
+      state.mouse.x = pt.clientX; state.mouse.y = pt.clientY;
+    };
     window.addEventListener("resize", onResize);
     window.addEventListener("mousemove", onMove);
+    window.addEventListener("touchmove", onMove, { passive: true });
     return () => {
       cancelAnimationFrame(state.raf);
+      document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("touchmove", onMove);
     };
   }, []);
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }} />;
@@ -583,8 +592,9 @@ function QuantumBomb() {
 
   const detonate = (cx: number, cy: number) => {
     playBombSound();
+    const small = window.innerWidth < 640;
     const colors = ["var(--c1h)", "var(--c2h)", "var(--c3h)", "var(--c4h)", "#ffffff"];
-    const parts: Spark[] = Array.from({ length: 150 }, () => {
+    const parts: Spark[] = Array.from({ length: small ? 64 : 150 }, () => {
       const angle = Math.random() * Math.PI * 2;
       const speed = 2 + Math.random() * 14;
       return {
@@ -604,7 +614,7 @@ function QuantumBomb() {
     setBlast({ x: cx, y: cy });
     setAfterglow(true);
     setFlash(true);
-    setEmbers(Array.from({ length: 24 }, () => ({
+    setEmbers(Array.from({ length: small ? 10 : 24 }, () => ({
       x: cx + (Math.random() - 0.5) * 220,
       y: cy + (Math.random() - 0.5) * 40,
       dx: (Math.random() - 0.5) * 180,
@@ -1803,6 +1813,23 @@ export default function App() {
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [theme, setTheme] = useState<string>(() => getStoredTheme());
+  const heroNameRef = useRef<HTMLHeadingElement>(null);
+  const heroTagRef = useRef<HTMLParagraphElement>(null);
+
+  // parallax without React re-renders — direct rAF writes to the DOM
+  useEffect(() => {
+    let raf = 0;
+    if (heroNameRef.current) heroNameRef.current.style.willChange = "transform";
+    if (heroTagRef.current) heroTagRef.current.style.willChange = "transform";
+    const upd = () => {
+      const y = window.scrollY;
+      if (heroNameRef.current) heroNameRef.current.style.transform = `translateY(${y * 0.18}px)`;
+      if (heroTagRef.current) heroTagRef.current.style.transform = `translateY(${y * 0.09}px)`;
+      raf = requestAnimationFrame(upd);
+    };
+    raf = requestAnimationFrame(upd);
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   useLayoutEffect(() => {
     if (typeof document !== "undefined") {
@@ -1819,7 +1846,6 @@ export default function App() {
     return () => { alive = false; };
   }, []);
 
-  const scrollY = useScrollY();
   const expR = useReveal();
   const projectsR = useReveal();
   const skillsR = useReveal();
@@ -1920,6 +1946,19 @@ export default function App() {
             {NAV.map((id) => (
               <button key={id} onClick={() => scrollTo(id)} className="block w-full text-left uppercase" style={mono(10, activeSection === id ? "var(--c1h)" : "var(--fg-b)", { letterSpacing: "0.22em" })}>{id}</button>
             ))}
+            <div className="pt-1 space-y-2" style={{ borderTop: "1px solid rgba(var(--c1),0.1)" }}>
+              <span style={mono(9, "rgba(var(--c1),0.45)", { letterSpacing: "0.25em" })}>THEME</span>
+              <div className="grid grid-cols-2 gap-2">
+                {THEMES.map((t) => (
+                  <button key={t} onClick={() => { setTheme(t); setMenuOpen(false); }}
+                    className="flex items-center gap-2 px-3 py-2 text-left transition-colors"
+                    style={{ background: theme === t ? "rgba(var(--c1),0.1)" : "rgba(var(--c1),0.04)", border: `1px solid ${theme === t ? "rgba(var(--c1),0.4)" : "rgba(var(--c1),0.14)"}`, cursor: "pointer" }}>
+                    <span className="pulse-dot" style={{ width: 8, height: 8, borderRadius: "50%", background: t === "light" ? "#8a97ad" : `var(--${t === "dark-cyan" ? "c1h" : t === "violet" ? "c2h" : t === "matrix" ? "c3h" : "c4h"})`, display: "inline-block" }} />
+                    <span style={mono(9, theme === t ? "var(--c1h)" : "var(--fg-b)", { letterSpacing: "0.1em" })}>{THEME_LABEL[t]}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </nav>
@@ -1945,8 +1984,8 @@ export default function App() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
             {/* Left — identity, role, bio, CTAs, stats */}
             <div className="lg:col-span-7">
-              <h1 className="glitch leading-none tracking-tight mb-4 select-none"
-                style={{ fontFamily: '"Audiowide", cursive', fontSize: "clamp(3.2rem,10vw,8.5rem)", fontWeight: 400, color: "var(--fg-a)", transform: `translateY(${scrollY * 0.18}px)`, willChange: "transform" }}>
+              <h1 ref={heroNameRef} className="glitch leading-none tracking-tight mb-4 select-none"
+                style={{ fontFamily: '"Audiowide", cursive', fontSize: "clamp(3.2rem,10vw,8.5rem)", fontWeight: 400, color: "var(--fg-a)" }}>
                 HAZEM<br /><span className="text-glow-cyan" style={{ color: "var(--c1h)" }}>ALABIAD</span>
               </h1>
 
@@ -1955,7 +1994,7 @@ export default function App() {
                 <p style={mono(14, "var(--fg-hero)", { letterSpacing: "0.14em", fontSize: "clamp(14px,1.9vw,19px)" })}>{typeText}</p>
               </div>
 
-              <p {...ep("heroTagline", DEFAULTS.heroTagline, { ...body(21, "var(--fg-hero)"), maxWidth: 760, marginBottom: 20, transform: `translateY(${scrollY * 0.09}px)`, willChange: "transform" })}>
+              <p ref={heroTagRef} {...ep("heroTagline", DEFAULTS.heroTagline, { ...body(21, "var(--fg-hero)"), maxWidth: 760, marginBottom: 20 })}>
                 {get("heroTagline", DEFAULTS.heroTagline)}
               </p>
 
@@ -2015,7 +2054,8 @@ export default function App() {
                     <img
                       src={content.photo || hazemPhoto}
                       alt="Hazem Alabiad"
-                      loading="eager"
+                      loading="lazy"
+                      decoding="async"
                       style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 40%", display: "block" }}
                     />
                     {/* elegant blend — quiet the photo background, focus the centre */}
