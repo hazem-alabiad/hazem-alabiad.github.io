@@ -3,7 +3,7 @@ import hazemPhoto from "@/imports/ADB3B9AC-C855-4126-A54C-3D6BF8705288.jpeg";
 // @ts-ignore
 import cvPdf from "@/imports/Hazem-Alabiad-CV.pdf";
 import CmsEditor from "@/CmsEditor";
-import { loadContent, saveContent, resetContent, DEFAULT_CONTENT, type CmsContent } from "@/cms";
+import { loadContent, saveContent, resetContent, DEFAULT_CONTENT, type CmsContent, type CmsExperience } from "@/cms";
 import {
   Github,
   Mail,
@@ -26,6 +26,9 @@ import {
   Loader,
   Copy,
   CheckCheck,
+  Search,
+  CornerDownLeft,
+  Command,
 } from "lucide-react";
 
 // ─── Scroll hooks ─────────────────────────────────────────────────────────────
@@ -51,6 +54,18 @@ function useScrollProgress() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
   return p;
+}
+
+function useActiveSection(ids: readonly string[]) {
+  const [active, setActive] = useState(ids[0] ?? "");
+  useEffect(() => {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); });
+    }, { threshold: 0.35 });
+    ids.forEach((id) => { const el = document.getElementById(id); if (el) obs.observe(el); });
+    return () => obs.disconnect();
+  }, [ids]);
+  return active;
 }
 
 function useScrollVelocity() {
@@ -429,14 +444,14 @@ function FocusStrip() {
       {FOCUS_ITEMS.map((t, i) => (
         <span key={t} className={visible ? "badge-in" : ""}
           style={{
-            fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.05rem, 2vw, 1.4rem)",
-            letterSpacing: "0.06em", textTransform: "uppercase", padding: "9px 18px",
-            border: `1px solid ${accents[i % accents.length]}` + (visible ? "" : "33"), color: accents[i % accents.length],
-            background: `rgba(${bg[i % bg.length]},0.06)`, animationDelay: `${i * 120}ms`,
+            fontFamily: '"JetBrains Mono", monospace', fontWeight: 500, fontSize: 10,
+            letterSpacing: "0.18em", textTransform: "uppercase", padding: "6px 12px",
+            border: `1px solid ${accents[i % accents.length]}` + (visible ? "33" : "22"), color: accents[i % accents.length],
+            background: `rgba(${bg[i % bg.length]},0.05)`, animationDelay: `${i * 120}ms`,
             cursor: "default", transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s, background 0.25s, border-color 0.25s",
           }}
-          onMouseEnter={(e) => { const el = e.currentTarget; el.style.transform = "translateY(-4px)"; el.style.boxShadow = `0 10px 26px rgba(${bg[i % bg.length]},0.18)`; el.style.background = `rgba(${bg[i % bg.length]},0.12)`; el.style.borderColor = accents[i % accents.length] + "99"; }}
-          onMouseLeave={(e) => { const el = e.currentTarget; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; el.style.background = `rgba(${bg[i % bg.length]},0.06)`; el.style.borderColor = accents[i % accents.length] + "33"; }}>
+          onMouseEnter={(e) => { const el = e.currentTarget; el.style.transform = "translateY(-3px)"; el.style.boxShadow = `0 8px 20px rgba(${bg[i % bg.length]},0.16)`; el.style.background = `rgba(${bg[i % bg.length]},0.1)`; el.style.borderColor = accents[i % accents.length] + "88"; }}
+          onMouseLeave={(e) => { const el = e.currentTarget; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; el.style.background = `rgba(${bg[i % bg.length]},0.05)`; el.style.borderColor = accents[i % accents.length] + "33"; }}>
           {t}
         </span>
       ))}
@@ -1076,22 +1091,15 @@ function MouseTrail() {
 
 // ─── Side Nav Dots ─────────────────────────────────────────────────────────────
 
-const SECTIONS = ["home", "about", "experience", "projects", "skills", "contact"] as const;
+const NAV = ["experience", "projects", "skills", "contact"] as const;
+const ALL_SECTIONS = ["home", ...NAV] as const;
 
 function SideNavDots() {
-  const [active, setActive] = useState("home");
-
-  useEffect(() => {
-    const obs = new IntersectionObserver((entries) => {
-      entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); });
-    }, { threshold: 0.4 });
-    SECTIONS.forEach((id) => { const el = document.getElementById(id); if (el) obs.observe(el); });
-    return () => obs.disconnect();
-  }, []);
+  const active = useActiveSection(ALL_SECTIONS);
 
   return (
     <div style={{ position: "fixed", right: 20, top: "50%", transform: "translateY(-50%)", zIndex: 9000, display: "flex", flexDirection: "column", gap: 12, alignItems: "flex-end" }}>
-      {SECTIONS.map((id) => {
+      {ALL_SECTIONS.map((id) => {
         const isActive = active === id;
         return (
           <button key={id} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })}
@@ -1113,6 +1121,133 @@ function SideNavDots() {
           </button>
         );
       })}
+    </div>
+  );
+}
+
+// ─── Command palette (⌘K) ────────────────────────────────────────────────────
+
+function CommandPalette({ open, onClose, content }: { open: boolean; onClose: () => void; content: CmsContent }) {
+  const [q, setQ] = useState("");
+  const [sel, setSel] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  const items = [
+    ...NAV.map((id) => ({ type: "section" as const, label: id.toUpperCase(), hint: "JUMP", run: () => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }) })),
+    ...content.links.map((l) => ({ type: "link" as const, label: l.label.toUpperCase(), hint: "OPEN", run: () => window.open(l.href || "#", "_blank") })),
+    { type: "mail" as const, label: "COPY EMAIL", hint: "CLIPBOARD", run: () => { navigator.clipboard.writeText(content.links.find((l) => l.label.toLowerCase().includes("mail"))?.value || "").catch(() => {}); } },
+  ];
+
+  const filtered = q.trim() ? items.filter((it) => it.label.toLowerCase().includes(q.toLowerCase())) : items;
+  const cur = sel >= filtered.length ? 0 : sel;
+
+  useEffect(() => {
+    if (open) { setQ(""); setSel(0); setTimeout(() => inputRef.current?.focus(), 50); }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown") { e.preventDefault(); setSel((s) => Math.min(s + 1, filtered.length - 1)); }
+      if (e.key === "ArrowUp") { e.preventDefault(); setSel((s) => Math.max(s - 1, 0)); }
+      if (e.key === "Enter" && filtered[cur]) { filtered[cur].run(); onClose(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, q, filtered, cur, onClose]);
+
+  useEffect(() => {
+    listRef.current?.querySelectorAll<HTMLElement>("[data-idx]")[cur]?.scrollIntoView({ block: "nearest" });
+  }, [cur]);
+
+  if (!open) return null;
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9995, display: "flex", alignItems: "flex-start", justifyContent: "center", background: "rgba(5,8,20,0.72)", backdropFilter: "blur(6px)", paddingTop: "16vh" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ width: "min(520px, 92vw)", background: "#080f1c", border: "1px solid rgba(0,240,255,0.2)", boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(0,240,255,0.08)" }}>
+        <div className="flex gap-2 items-center px-4 pt-3" style={{ borderBottom: "1px solid rgba(0,240,255,0.12)" }}>
+          <div className="w-2 h-2 rounded-full" style={{ background: "#ff5f57" }} />
+          <div className="w-2 h-2 rounded-full" style={{ background: "#febc2e" }} />
+          <div className="w-2 h-2 rounded-full" style={{ background: "#28c840" }} />
+          <span style={{ marginLeft: 8, fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.22em", color: "#6b8fab" }}>QUICK_NAV</span>
+          <span className="ml-auto" style={mono(8.5, "rgba(0,240,255,0.5)", { letterSpacing: "0.15em" })}>ESC_QUIT</span>
+        </div>
+        <div className="flex items-center gap-2 px-4 py-3">
+          <Search size={12} color="#00f0ff" style={{ opacity: 0.6 }} />
+          <input
+            ref={inputRef}
+            value={q}
+            onChange={(e) => { setQ(e.target.value); setSel(0); }}
+            placeholder="type to filter…"
+            style={{ flex: 1, background: "none", border: "none", outline: "none", fontFamily: '"JetBrains Mono", monospace', fontSize: 12, color: "#e2e8f4", letterSpacing: "0.08em" }}
+          />
+        </div>
+        <div ref={listRef} className="px-2 pb-2 space-y-0.5" style={{ maxHeight: "42vh", overflowY: "auto" }}>
+          {filtered.length === 0 && (
+            <div style={mono(11, "#6b8fab", { padding: "14px 10px", textAlign: "center" })}>NO_MATCHES_//404</div>
+          )}
+          {filtered.map((it, i) => (
+            <button key={it.label} data-idx={i} onClick={() => { it.run(); onClose(); }}
+              onMouseEnter={() => setSel(i)}
+              className="w-full text-left flex items-center gap-3 px-3 py-2.5 transition-colors"
+              style={{ background: cur === i ? "rgba(0,240,255,0.08)" : "transparent", border: cur === i ? "1px solid rgba(0,240,255,0.25)" : "1px solid transparent", cursor: "pointer" }}>
+              <span style={{ width: 8, height: 8, flexShrink: 0, border: `1px solid ${cur === i ? "#00f0ff" : "#9d4edd"}` }} />
+              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.12em", color: cur === i ? "#00f0ff" : "#e2e8f4" }}>{it.label}</span>
+              <span className="ml-auto flex items-center gap-1.5" style={mono(8.5, cur === i ? "rgba(0,240,255,0.6)" : "#4d6b8a")}>
+                {it.hint} {cur === i && <CornerDownLeft size={10} />}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExpEntry({ exp, idx, visible }: { exp: CmsExperience; idx: number; visible: boolean }) {
+  const [open, setOpen] = useState(idx === 0);
+  return (
+    <div className={`relative p-5 transition-colors duration-300 ${visible ? "depth-rise" : "opacity-0"} ${exp.current ? "glow-border" : ""}`}
+      style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.07)", animationDelay: `${idx * 110}ms` }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,240,255,0.35)"; (e.currentTarget as HTMLElement).style.background = "#0b1220"; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = exp.current ? "" : "rgba(0,240,255,0.07)"; (e.currentTarget as HTMLElement).style.background = "#080f1c"; }}>
+      <button onClick={() => setOpen(!open)} className="w-full text-left" style={{ cursor: "pointer", background: "none", border: "none", padding: 0, fontFamily: "inherit", color: "inherit" }}>
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-3">
+          <div>
+            <h3 style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 17, color: "#e2e8f4", marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
+              {exp.role}
+              <span style={{ color: "#00f0ff", fontSize: 11, flexShrink: 0, transition: "transform 0.3s ease", transform: open ? "rotate(90deg)" : "rotate(0deg)" }}>▶</span>
+            </h3>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span style={mono(10, "#9d4edd", { letterSpacing: "0.12em" })}>{exp.company}</span>
+              {exp.location && <span style={mono(10, "#6b8fab")}>// {exp.location}</span>}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {exp.current && <span style={mono(9, "#00f0ff", { padding: "2px 8px", border: "1px solid rgba(0,240,255,0.3)", letterSpacing: "0.2em" })}>CURRENT</span>}
+            <span style={mono(9, "#6b8fab")}>{exp.period}</span>
+          </div>
+        </div>
+      </button>
+      <div style={{ display: "grid", gridTemplateRows: open ? "1fr" : "0fr", transition: "grid-template-rows 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+        <div style={{ overflow: "hidden" }}>
+          <ul className="space-y-1 mb-4">
+            {exp.bullets.map((b, i) => (
+              <li key={i} className="flex gap-2 items-start">
+                <span style={{ color: "#00f0ff", marginTop: 7, flexShrink: 0, fontSize: 5 }}>◆</span>
+                <span style={body(15)}>{b}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="flex flex-wrap gap-1.5">
+            {exp.tags.map((tag) => (
+              <span key={tag} style={mono(9, "#9d4edd", { padding: "2px 8px", border: "1px solid rgba(157,78,221,0.25)" })}>{tag}</span>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1146,8 +1281,6 @@ function Spotlight({ children, className, style }: { children: React.ReactNode; 
 
 // ─── App ─────────────────────────────────────────────────────────────────────
 
-const NAV = ["experience", "projects", "skills", "contact"] as const;
-
 const VISIT_KEY = "hazem_portfolio_couter_v1";
 const VISIT_URL = "https://countapi.mileshilliard.com/api/v1";
 
@@ -1175,6 +1308,9 @@ export default function App() {
   const [content, setContent] = useState<CmsContent>(() => loadContent());
   const [visits, setVisits] = useState<number | null>(null);
   const [copiedEmail, setCopiedEmail] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  const activeSection = useActiveSection(NAV);
 
   useEffect(() => {
     let alive = true;
@@ -1226,6 +1362,15 @@ export default function App() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setPaletteOpen((o) => !o); }
+      if (e.key === "Escape") setPaletteOpen(false);
+    };
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
+  }, []);
+
   const scrollTo = (id: string) => { document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); setMenuOpen(false); };
 
 
@@ -1252,10 +1397,16 @@ export default function App() {
           <button onClick={() => scrollTo("home")} style={mono(13, "#00f0ff", { letterSpacing: "0.2em" })} className="hover:opacity-75 transition-opacity">HAZ:ALABIAD</button>
           <div className="hidden md:flex items-center gap-8">
             {NAV.map((id) => (
-              <button key={id} onClick={() => scrollTo(id)} className="uppercase hover:opacity-100 transition-opacity" style={mono(12, "#b0cede", { letterSpacing: "0.2em" })}>{id}</button>
+              <button key={id} onClick={() => scrollTo(id)}
+                className="uppercase transition-opacity"
+                style={mono(12, activeSection === id ? "#00f0ff" : "#b0cede", { letterSpacing: "0.2em", borderBottom: activeSection === id ? "1px solid rgba(0,240,255,0.5)" : "1px solid transparent", paddingBottom: 2, boxShadow: activeSection === id ? "0 2px 12px rgba(0,240,255,0.15)" : "none" })}>{id}</button>
             ))}
           </div>
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-3">
+            <button onClick={() => setPaletteOpen(true)} style={mono(10, "rgba(0,240,255,0.55)", { letterSpacing: "0.18em", border: "1px solid rgba(0,240,255,0.18)", padding: "5px 10px", background: "rgba(0,240,255,0.04)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 })}
+              className="hover:opacity-100 transition-opacity" aria-label="Command palette">
+              <Command size={12} style={{ color: "#00f0ff" }} /> <span style={{ color: "#e2e8f4" }}>K</span>
+            </button>
             <span className="w-1.5 h-1.5 rounded-full bg-[#00f0ff] pulse-dot" />
             <span style={mono(9, "rgba(0,240,255,0.5)", { letterSpacing: "0.3em" })}>ONLINE_2026</span>
           </div>
@@ -1264,7 +1415,7 @@ export default function App() {
         {menuOpen && (
           <div className="md:hidden px-6 py-4 space-y-4" style={{ background: "rgba(5,8,20,0.96)", borderTop: "1px solid rgba(0,240,255,0.1)" }}>
             {NAV.map((id) => (
-              <button key={id} onClick={() => scrollTo(id)} className="block w-full text-left uppercase" style={mono(10, "#9ab8d0", { letterSpacing: "0.22em" })}>{id}</button>
+              <button key={id} onClick={() => scrollTo(id)} className="block w-full text-left uppercase" style={mono(10, activeSection === id ? "#00f0ff" : "#9ab8d0", { letterSpacing: "0.22em" })}>{id}</button>
             ))}
           </div>
         )}
@@ -1348,12 +1499,6 @@ export default function App() {
               <div className="flex justify-center lg:justify-end">
                 <div className="group relative inline-block cursor-pointer"
                   style={{ filter: "drop-shadow(0 0 26px rgba(0,240,255,0.16))" }}>
-                  <div style={{
-                    position: "absolute", inset: -6, borderRadius: "20px",
-                    background: "conic-gradient(from 0deg, #00f0ff, #9d4edd, #28c840, #febc2e, #00f0ff)",
-                    zIndex: 0, animation: "spin-slow 4s linear infinite",
-                    transition: "filter 0.4s ease",
-                  }} />
                   <div className="group-hover:opacity-100" style={{
                     position: "absolute", inset: -12, borderRadius: "28px",
                     background: "radial-gradient(circle, rgba(0,240,255,0.26) 0%, rgba(157,78,221,0.16) 45%, transparent 70%)",
@@ -1416,28 +1561,8 @@ export default function App() {
                 </div>
               </div>
 
-              {[
-                { Icon: MapPin, label: "Location", value: get("factLocation", DEFAULT_CONTENT.factLocation) },
-                { Icon: GraduationCap, label: "Degree", value: get("factDegree", DEFAULT_CONTENT.factDegree) },
-                { Icon: Briefcase, label: "Current Role", value: get("factCurrent", DEFAULT_CONTENT.factCurrent) },
-                { Icon: Globe, label: "Available For", value: get("factAvailable", DEFAULT_CONTENT.factAvailable) },
-              ].map(({ Icon, label, value }) => (
-                <div key={label} className="flex gap-4 items-start p-4 transition-all duration-300"
-                  style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.07)" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.28)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.07)")}>
-                  <div className="flex items-center justify-center flex-shrink-0" style={{ width: 32, height: 32, border: "1px solid rgba(0,240,255,0.2)", color: "#00f0ff" }}>
-                    <Icon size={13} />
-                  </div>
-                  <div>
-                    <div style={mono(9, "#6b8fab", { marginBottom: 4, textTransform: "uppercase" as const, letterSpacing: "0.18em" })}>{label}</div>
-                    <div style={body(16, "#e2e8f4")}>{value}</div>
-                  </div>
-                </div>
-              ))}
-
-              {/* ── Terminal / job-mode card ── */}
-              <div className="p-5 relative overflow-hidden" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.15)", fontFamily: '"JetBrains Mono", monospace', fontSize: 11, marginTop: 10, boxShadow: "0 0 26px rgba(0,240,255,0.06)" }}>
+              {/* ── Terminal / job-mode card — right under the photo ── */}
+              <div className="p-5 relative overflow-hidden" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.15)", fontFamily: '"JetBrains Mono", monospace', fontSize: 11, boxShadow: "0 0 26px rgba(0,240,255,0.06)" }}>
                 <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 2, background: "linear-gradient(90deg, transparent, rgba(0,240,255,0.28), transparent)", animation: "term-beam 7s linear infinite", pointerEvents: "none" }} />
                 <div className="flex gap-2 mb-3 items-center">
                   <div className="w-2 h-2 rounded-full" style={{ background: "#ff5f57" }} />
@@ -1469,6 +1594,26 @@ export default function App() {
                   </div>
                 </div>
               </div>
+
+<div className="grid grid-cols-2 gap-3">
+                {[
+                  { Icon: MapPin, label: "Location", value: get("factLocation", DEFAULT_CONTENT.factLocation) },
+                  { Icon: GraduationCap, label: "Degree", value: get("factDegree", DEFAULT_CONTENT.factDegree) },
+                  { Icon: Briefcase, label: "Current Role", value: get("factCurrent", DEFAULT_CONTENT.factCurrent) },
+                  { Icon: Globe, label: "Available", value: get("factAvailable", DEFAULT_CONTENT.factAvailable) },
+                ].map(({ Icon, label, value }) => (
+                  <div key={label} className="grid grid-cols-1 gap-1 p-3 transition-all duration-300"
+                    style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.07)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.28)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(0,240,255,0.07)")}>
+                    <div className="flex items-center gap-1.5" style={{ color: "#4d6b8a" }}>
+                      <Icon size={11} style={{ color: "#00f0ff", opacity: 0.7 }} />
+                      <div style={mono(8.5, "#6b8fab", { textTransform: "uppercase" as const, letterSpacing: "0.16em" })}>{label}</div>
+                    </div>
+                    <div style={body(13.5, "#e2e8f4")}>{value}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -1482,7 +1627,7 @@ export default function App() {
 
 
       {/* ── Experience ── */}
-      <section id="experience" className="relative py-14 px-6" style={{ zIndex: 10 }}>
+      <section id="experience" className="relative py-10 px-6" style={{ zIndex: 10 }}>
         <div ref={expR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="01" label="EXPERIENCE" />
           <div className="transition-all duration-1000" style={{ opacity: expR.visible ? 1 : 0, transform: expR.visible ? "translateY(0)" : "translateY(32px)" }}>
@@ -1491,37 +1636,7 @@ export default function App() {
             </WipeHeading>
             <div className="space-y-4">
               {content.experience.map((exp, idx) => (
-                <div key={exp.id || idx} className={`relative p-5 transition-colors duration-300 ${expR.visible ? "depth-rise" : "opacity-0"} ${exp.current ? "glow-border" : ""}`}
-                  style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.07)", animationDelay: `${idx * 110}ms` }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,240,255,0.35)"; (e.currentTarget as HTMLElement).style.background = "#0b1220"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = exp.current ? "" : "rgba(0,240,255,0.07)"; (e.currentTarget as HTMLElement).style.background = "#080f1c"; }}>
-                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-3">
-                    <div>
-                      <h3 style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 17, color: "#e2e8f4", marginBottom: 4 }}>{exp.role}</h3>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span style={mono(10, "#9d4edd", { letterSpacing: "0.12em" })}>{exp.company}</span>
-                        {exp.location && <span style={mono(10, "#6b8fab")}>// {exp.location}</span>}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {exp.current && <span style={mono(9, "#00f0ff", { padding: "2px 8px", border: "1px solid rgba(0,240,255,0.3)", letterSpacing: "0.2em" })}>CURRENT</span>}
-                      <span style={mono(9, "#6b8fab")}>{exp.period}</span>
-                    </div>
-                  </div>
-                  <ul className="space-y-1 mb-4">
-                    {exp.bullets.map((b, i) => (
-                      <li key={i} className="flex gap-2 items-start">
-                        <span style={{ color: "#00f0ff", marginTop: 7, flexShrink: 0, fontSize: 5 }}>◆</span>
-                        <span style={body(15)}>{b}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="flex flex-wrap gap-1.5">
-                    {exp.tags.map((tag) => (
-                      <span key={tag} style={mono(9, "#9d4edd", { padding: "2px 8px", border: "1px solid rgba(157,78,221,0.25)" })}>{tag}</span>
-                    ))}
-                  </div>
-                </div>
+                <ExpEntry key={exp.id || idx} exp={exp} idx={idx} visible={expR.visible} />
               ))}
             </div>
           </div>
@@ -1531,7 +1646,7 @@ export default function App() {
       <SkillTicker />
 
       {/* ── Projects ── */}
-      <section id="projects" className="relative py-14 px-6" style={{ zIndex: 10 }}>
+      <section id="projects" className="relative py-10 px-6" style={{ zIndex: 10 }}>
         <div ref={projectsR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="02" label="PROJECTS" />
           <div className="transition-all duration-1000" style={{ opacity: projectsR.visible ? 1 : 0, transform: projectsR.visible ? "translateY(0)" : "translateY(32px)" }}>
@@ -1590,7 +1705,7 @@ export default function App() {
       </section>
 
       {/* ── Skills ── */}
-      <section id="skills" className="relative py-14 px-6" style={{ zIndex: 10 }}>
+      <section id="skills" className="relative py-10 px-6" style={{ zIndex: 10 }}>
         <div ref={skillsR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="03" label="PROFICIENCIES" />
           <div className="transition-all duration-1000" style={{ opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(32px)" }}>
@@ -1643,7 +1758,7 @@ export default function App() {
       </section>
 
       {/* ── Contact ── */}
-      <section id="contact" className="relative py-14 px-6" style={{ zIndex: 10 }}>
+      <section id="contact" className="relative py-10 px-6" style={{ zIndex: 10 }}>
         <div ref={contactR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="04" label="CONTACT" />
           <div className="transition-all duration-1000" style={{ opacity: contactR.visible ? 1 : 0, transform: contactR.visible ? "translateY(0)" : "translateY(32px)" }}>
@@ -1725,6 +1840,7 @@ export default function App() {
       </footer>
 
       {/* CMS */}
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} content={content} />
       <CMSButton
         enabled={cmsEnabled}
         onUnlock={() => { setCmsEnabled(true); setEditorOpen(true); }}
