@@ -1,12 +1,11 @@
 
-# Portfolio Website
+  # Revamp Portfolio Design
 
-This repository hosts a professional portfolio and CV website for Hazem Alabiad.
+  This is a code bundle for Revamp Portfolio Design. The original project is available at https://www.figma.com/design/VvROVzACoQnqVIeJCLAiLg/Revamp-Portfolio-Design.
 
-The site is designed to showcase:
+  ## Running the code
 
-- career experience and credentials
-- technical skills and project highlights
-- personal brand and professional identity
-- responsive presentation for desktop and mobile
+  Run `npm i` to install the dependencies.
+
+  Run `npm run dev` to start the development server.
   

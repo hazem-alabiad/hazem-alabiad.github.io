@@ -1,5 +1,231 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap');
 
-body {
-  font-family: 'DM Sans', sans-serif;
+@keyframes glitch {
+  0%, 78%, 100% { clip-path: none; transform: none; }
+  80% { clip-path: inset(18% 0 68% 0); transform: translate(-6px, 0); color: #00f0ff; }
+  82% { clip-path: inset(52% 0 18% 0); transform: translate(6px, 0); color: #9d4edd; }
+  84% { clip-path: none; transform: translate(-2px, 0); }
+  86% { clip-path: none; transform: none; }
 }
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-dot {
+  0% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.5); }
+  70% { box-shadow: 0 0 0 8px rgba(0, 240, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); }
+}
+
+.glitch  { animation: glitch 7s infinite; }
+.blink   { animation: blink 1s step-end infinite; }
+.float   { animation: float 3.5s ease-in-out infinite; }
+.pulse-dot { animation: pulse-dot 2s ease-out infinite; }
+
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.28); border-radius: 2px; }
+
+@keyframes scan-cv {
+  0%   { transform: translateY(-100%); opacity: 0.7; }
+  100% { transform: translateY(400%);  opacity: 0; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes shimmer-text {
+  0%   { background-position: -300% center; }
+  100% { background-position: 300% center; }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes orb-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(40px, -60px) scale(1.1); }
+  66%  { transform: translate(-30px, 30px) scale(0.95); }
+}
+@keyframes orb-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  40%  { transform: translate(-50px, 40px) scale(1.05); }
+  70%  { transform: translate(30px, -30px) scale(0.9); }
+}
+@keyframes tilt-reset {
+  to { transform: perspective(800px) rotateX(0deg) rotateY(0deg); }
+}
+.slide-up-item { animation: slide-up 0.6s ease both; }
+
+/* ── Scroll progress bar ── */
+@keyframes none {}
+
+/* ── Photo ring spin ── */
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+/* ── CRT scanline sweep ── */
+@keyframes scanline-sweep {
+  0%   { transform: translateY(-100vh); opacity: 0.04; }
+  100% { transform: translateY(100vh);  opacity: 0.04; }
+}
+
+/* ── Neon flicker ── */
+@keyframes neon-flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+  20%, 24%, 55% { opacity: 0.15; }
+}
+.neon-flicker { animation: neon-flicker 6s infinite; }
+
+/* ── Clip-path wipe reveal (left → right) ── */
+@keyframes wipe-in {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0% 0 0); }
+}
+.wipe-in { animation: wipe-in 0.85s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* ── Fade + rise (used for stagger) ── */
+@keyframes fade-rise {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-rise { animation: fade-rise 0.7s ease both; }
+
+/* ── Horizontal line grow ── */
+@keyframes line-grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ── Pulse glow ── */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,240,255,0); }
+  50%       { box-shadow: 0 0 14px 2px rgba(0,240,255,0.22); }
+}
+.pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+
+/* ── Char pop (staggered text entry) ── */
+@keyframes char-pop {
+  from { opacity: 0; transform: translateY(12px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Subtle noise shift ── */
+@keyframes noise-shift {
+  0%  { clip-path: inset(0 0 98% 0); }
+  10% { clip-path: inset(60% 0 20% 0); transform: translateX(-3px); }
+  20% { clip-path: inset(10% 0 70% 0); transform: translateX(3px); }
+  30% { clip-path: none; transform: none; }
+  100%{ clip-path: none; transform: none; }
+}
+
+/* ── Cursor ring ── */
+@keyframes cursor-ring {
+  0%   { transform: translate(-50%,-50%) scale(0.5); opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(2.5); opacity: 0; }
+}
+
+/* ── Ticker ── */
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ── Depth rise (3-D flip-in from below) ── */
+@keyframes depth-rise {
+  from { opacity: 0; transform: perspective(900px) rotateX(18deg) translateY(50px); }
+  to   { opacity: 1; transform: perspective(900px) rotateX(0deg)  translateY(0); }
+}
+.depth-rise { animation: depth-rise 0.75s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* ── Glow border pulse ── */
+@keyframes glow-border {
+  0%, 100% { border-color: rgba(0,240,255,0.08); box-shadow: none; }
+  50%       { border-color: rgba(0,240,255,0.45); box-shadow: 0 0 18px rgba(0,240,255,0.12); }
+}
+.glow-border { animation: glow-border 3.5s ease-in-out infinite; }
+
+/* ── Shimmer card sweep ── */
+@keyframes shimmer-sweep {
+  from { left: -60%; }
+  to   { left: 120%; }
+}
+
+/* ── Number count-up flicker ── */
+@keyframes count-flicker {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+/* ── Timeline draw ── */
+@keyframes draw-line {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+/* ── Split-word left / right ── */
+@keyframes word-from-left {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes word-from-right {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Section glitch-enter ── */
+@keyframes glitch-enter {
+  0%   { clip-path: inset(0 0 100% 0); transform: translateY(-4px); opacity: 0; }
+  40%  { clip-path: inset(0 0 0% 0);   transform: translateY(2px);  opacity: 1; }
+  60%  { transform: translateX(-3px); }
+  80%  { transform: translateX(3px); }
+  100% { transform: translateX(0); }
+}
+.glitch-enter { animation: glitch-enter 0.55s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* ── Particle burst ── */
+@keyframes particle-out {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--pvx, 60px), var(--pvy, -40px)) scale(0); opacity: 0; }
+}
+
+/* ── Boot screen wipe-out ── */
+@keyframes boot-wipe {
+  0%   { transform: scaleY(1); }
+  100% { transform: scaleY(0); transform-origin: top; }
+}
+@keyframes boot-row {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Mouse trail dot ── */
+@keyframes trail-fade {
+  from { opacity: 0.6; transform: scale(1); }
+  to   { opacity: 0;   transform: scale(0.2); }
+}
+
+/* ── Spotlight pulse ── */
+@keyframes spotlight-breathe {
+  0%,100% { opacity: 0.07; }
+  50%      { opacity: 0.13; }
+}
+
+/* ── Side dot active ── */
+@keyframes side-dot-pop {
+  0%   { transform: scaleX(1); }
+  50%  { transform: scaleX(2.5); }
+  100% { transform: scaleX(1); }
+}
+
+/* ── Float random ── */
+@keyframes float-a { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-18px) rotate(3deg)} }
+@keyframes float-b { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-12px) rotate(-2deg)} }
+@keyframes float-c { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-22px) rotate(1deg)} }
