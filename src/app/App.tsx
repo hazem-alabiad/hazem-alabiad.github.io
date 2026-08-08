@@ -392,7 +392,7 @@ function SkillBar({ label, level, visible, delay }: { label: string; level: numb
   return (
     <div>
       <div className="flex justify-between items-baseline">
-        <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, color: "#b0cede" }}>{label}</span>
+        <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: 15, color: "#c6d6ea", textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</span>
         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ display: "flex", gap: 2.5 }}>
             {Array.from({ length: segments }).map((_, i) => (
@@ -411,6 +411,35 @@ function SkillBar({ label, level, visible, delay }: { label: string; level: numb
           <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 8.5, letterSpacing: "0.16em", color: level >= 78 ? "#00f0ff" : "#6b8fab" }}>{tier}</span>
         </span>
       </div>
+    </div>
+  );
+}
+
+// ─── Focus chips ─────────────────────────────────────────────────────────────
+
+const FOCUS_ITEMS = ["NLP", "LLMs", "ML / Deep Learning", "Comp. Linguistics", "Multilingual AI", "AI Research"];
+
+function FocusStrip() {
+  const { ref, visible } = useReveal(0.15);
+  const accents = ["#00f0ff", "#9d4edd", "#28c840", "#00f0ff", "#9d4edd", "#febc2e"];
+  const bg = ["0,240,255", "157,78,221", "40,200,64", "0,240,255", "157,78,221", "254,188,46"];
+  return (
+    <div ref={ref} className="flex flex-wrap items-center gap-3" style={{ margin: "0 0 36px", maxWidth: 800 }}>
+      <span className={visible ? "wipe-in" : ""} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(0,240,255,0.5)" }}>FOCUS://</span>
+      {FOCUS_ITEMS.map((t, i) => (
+        <span key={t} className={visible ? "badge-in" : ""}
+          style={{
+            fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.05rem, 2vw, 1.4rem)",
+            letterSpacing: "0.06em", textTransform: "uppercase", padding: "9px 18px",
+            border: `1px solid ${accents[i % accents.length]}` + (visible ? "" : "33"), color: accents[i % accents.length],
+            background: `rgba(${bg[i % bg.length]},0.06)`, animationDelay: `${i * 120}ms`,
+            cursor: "default", transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s, background 0.25s, border-color 0.25s",
+          }}
+          onMouseEnter={(e) => { const el = e.currentTarget; el.style.transform = "translateY(-4px)"; el.style.boxShadow = `0 10px 26px rgba(${bg[i % bg.length]},0.18)`; el.style.background = `rgba(${bg[i % bg.length]},0.12)`; el.style.borderColor = accents[i % accents.length] + "99"; }}
+          onMouseLeave={(e) => { const el = e.currentTarget; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; el.style.background = `rgba(${bg[i % bg.length]},0.06)`; el.style.borderColor = accents[i % accents.length] + "33"; }}>
+          {t}
+        </span>
+      ))}
     </div>
   );
 }
@@ -1248,10 +1277,15 @@ export default function App() {
         <div className="absolute top-1/4 right-1/4 w-80 h-80 pointer-events-none" style={{ borderRadius: "50%", background: "radial-gradient(circle, rgba(0,240,255,0.07) 0%, transparent 70%)", filter: "blur(40px)", animation: "orb-drift-1 14s ease-in-out infinite" }} />
         <div className="absolute bottom-1/3 left-1/5 w-64 h-64 pointer-events-none" style={{ borderRadius: "50%", background: "radial-gradient(circle, rgba(157,78,221,0.07) 0%, transparent 70%)", filter: "blur(40px)", animation: "orb-drift-2 18s ease-in-out infinite" }} />
         <div className="max-w-7xl mx-auto w-full">
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-3 mb-6 flex-wrap">
             <span style={mono(9, "rgba(0,240,255,0.45)", { letterSpacing: "0.35em" })}>NEURAL_ID::HAZ-2026-ALA-TBN</span>
             <div className="w-16 h-px" style={{ background: "rgba(0,240,255,0.18)" }} />
             <span style={mono(9, "rgba(157,78,221,0.45)", { letterSpacing: "0.3em" })}>2026.08.01</span>
+            <div className="flex-1" />
+            <span className="flex items-center gap-2" style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.22em", color: "#28c840", border: "1px solid rgba(40,200,64,0.35)", background: "rgba(40,200,64,0.06)", padding: "6px 12px", animation: "badge-in 0.8s cubic-bezier(0.16,1,0.3,1) 0.6s both" }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#28c840] pulse-dot" />
+              OPEN TO ROLES — NLP · LLM · AI
+            </span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
@@ -1259,21 +1293,23 @@ export default function App() {
             <div className="lg:col-span-7">
               <h1 className="glitch leading-none tracking-tight mb-4 select-none"
                 style={{ fontFamily: '"Audiowide", cursive', fontSize: "clamp(3.2rem,10vw,8.5rem)", fontWeight: 400, color: "#e2e8f4", transform: `translateY(${scrollY * 0.18}px)`, willChange: "transform" }}>
-                HAZEM<br /><span style={{ color: "#00f0ff" }}>ALABIAD</span>
+                HAZEM<br /><span className="text-glow-cyan" style={{ color: "#00f0ff" }}>ALABIAD</span>
               </h1>
 
               <div className="flex items-center gap-2 mb-6">
                 <div className="blink w-2 h-5 bg-[#00f0ff]" />
-                <p style={mono(14, "#b0cede", { letterSpacing: "0.14em", fontSize: "clamp(12px,1.6vw,15px)" })}>{typeText}</p>
+                <p style={mono(14, "#c6d8ec", { letterSpacing: "0.14em", fontSize: "clamp(14px,1.9vw,19px)" })}>{typeText}</p>
               </div>
 
-              <p {...ep("heroTagline", DEFAULTS.heroTagline, { ...body(20, "#b0cede"), maxWidth: 720, marginBottom: 20, transform: `translateY(${scrollY * 0.09}px)`, willChange: "transform" })}>
+              <p {...ep("heroTagline", DEFAULTS.heroTagline, { ...body(21, "#c0d4e8"), maxWidth: 760, marginBottom: 20, transform: `translateY(${scrollY * 0.09}px)`, willChange: "transform" })}>
                 {get("heroTagline", DEFAULTS.heroTagline)}
               </p>
 
-              <p {...ep("bio1", DEFAULTS.bio1, { ...body(16, "#9ab8d0"), maxWidth: 720, marginBottom: 28 })}>
+              <p {...ep("bio1", DEFAULTS.bio1, { ...body(16, "#9ab8d0"), maxWidth: 720, marginBottom: 32 })}>
                 {get("bio1", DEFAULTS.bio1)}
               </p>
+
+              <FocusStrip />
 
               <div className="flex flex-wrap gap-4 mb-8">
                 <MagneticWrap>
@@ -1334,6 +1370,8 @@ export default function App() {
                       loading="eager"
                       style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 40%", display: "block" }}
                     />
+                    {/* elegant blend — quiet the photo background, focus the centre */}
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(5,8,20,0.10) 0%, transparent 42%, rgba(5,8,20,0.62) 100%), radial-gradient(ellipse 78% 72% at 50% 42%, transparent 52%, rgba(5,8,20,0.5) 100%)", pointerEvents: "none" }} />
                     {/* RGB-split glitch fringes */}
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(105deg, rgba(0,240,255,0.16), transparent 45%, transparent 55%, rgba(157,78,221,0.20))", mixBlendMode: "screen" }} />
                     {/* CRT halftone scanlines */}
@@ -1398,20 +1436,37 @@ export default function App() {
                 </div>
               ))}
 
-              {/* ── Terminal / quick-facts card ── */}
-              <div className="p-5" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.12)", fontFamily: '"JetBrains Mono", monospace', fontSize: 11, marginTop: 10, boxShadow: "0 0 0 rgba(0,240,255,0)" }}>
+              {/* ── Terminal / job-mode card ── */}
+              <div className="p-5 relative overflow-hidden" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.15)", fontFamily: '"JetBrains Mono", monospace', fontSize: 11, marginTop: 10, boxShadow: "0 0 26px rgba(0,240,255,0.06)" }}>
+                <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 2, background: "linear-gradient(90deg, transparent, rgba(0,240,255,0.28), transparent)", animation: "term-beam 7s linear infinite", pointerEvents: "none" }} />
                 <div className="flex gap-2 mb-3 items-center">
                   <div className="w-2 h-2 rounded-full" style={{ background: "#ff5f57" }} />
                   <div className="w-2 h-2 rounded-full" style={{ background: "#febc2e" }} />
                   <div className="w-2 h-2 rounded-full" style={{ background: "#28c840" }} />
-                  <span className="blink" style={{ color: "#6b8fab", fontSize: 9, letterSpacing: "0.15em", marginLeft: 8 }}>hazem@tübingen:~$</span>
+                  <span style={{ color: "#6b8fab", fontSize: 9, letterSpacing: "0.15em", marginLeft: 8 }}>
+                    hazem@tübingen:~$ <span style={{ color: "#28c840" }}>./job-mode --targets</span><span className="blink" style={{ color: "#00f0ff" }}>▌</span>
+                  </span>
                 </div>
-                <div style={{ lineHeight: 1.9 }}>
-                  <div><span style={{ color: "#9d4edd" }}>focus</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#00f0ff" }}>[</span></div>
-                  <div style={{ paddingLeft: 18, color: "#8ab4c8" }}>"NLP", "LLMs", "Full-Stack", "Comp. Linguistics", "ML/DL"</div>
-                  <div><span style={{ color: "#00f0ff" }}>]</span></div>
-                  <div style={{ marginTop: 2 }}><span style={{ color: "#9d4edd" }}>location</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#28c840" }}>"{get("factLocation", DEFAULT_CONTENT.factLocation)}"</span></div>
-                  <div><span style={{ color: "#9d4edd" }}>status</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#febc2e" }}>"Open to opportunities"</span></div>
+                <div style={{ lineHeight: 2 }}>
+                  <div style={{ color: "rgba(0,240,255,0.75)", letterSpacing: "0.22em", fontSize: 9, marginBottom: 3 }}>ROLES_LOOKING_FOR:</div>
+                  {[
+                    { t: "NLP Engineer", p: true },
+                    { t: "LLM / AI Engineer", p: false },
+                    { t: "Research Engineer · AI/CompLing", p: false },
+                    { t: "Full-Stack Engineer", p: false },
+                  ].map((r, i) => (
+                    <div key={r.t} style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
+                      <span style={{ color: "#9d4edd" }}>[{i + 1}]</span>
+                      <span style={{ color: "#e2e8f4" }}>{r.t}</span>
+                      {r.p && <span style={{ color: "#28c840" }}>← priority</span>}
+                    </div>
+                  ))}
+                  <div style={{ marginTop: 8 }}>
+                    <div><span style={{ color: "#9d4edd" }}>availability</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#28c840" }}>"Immediately"</span></div>
+                    <div><span style={{ color: "#9d4edd" }}>location</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#28c840" }}>"{get("factLocation", DEFAULT_CONTENT.factLocation)}"</span></div>
+                    <div><span style={{ color: "#9d4edd" }}>open_to</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#00f0ff" }}>["Full-time", "Working Student", "Remote"]</span></div>
+                    <div><span style={{ color: "#9d4edd" }}>status</span> <span style={{ color: "#e2e8f4" }}>=</span> <span style={{ color: "#febc2e" }}>"Open to opportunities"</span></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1570,7 +1625,7 @@ export default function App() {
                   return (
                     <div key={lang.id} className="px-4 py-3" style={{ background: "#080f1c", border: "1px solid rgba(0,240,255,0.1)" }}>
                       <div className="flex items-center justify-between mb-2">
-                        <span style={body(16, "#e2e8f4")}>{lang.name}</span>
+                        <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 19, color: "#e2e8f4" }}>{lang.name}</span>
                         <span style={mono(8.5, pct >= 75 ? "#00f0ff" : "#6b8fab", { letterSpacing: "0.14em" })}>{lang.level.toUpperCase()}</span>
                       </div>
                       <div className="flex gap-1" style={{ opacity: skillsR.visible ? 1 : 0, transition: "opacity 0.5s ease", transitionDelay: `${i * 90}ms` }}>

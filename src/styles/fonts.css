@@ -229,3 +229,22 @@
 @keyframes float-a { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-18px) rotate(3deg)} }
 @keyframes float-b { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-12px) rotate(-2deg)} }
 @keyframes float-c { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-22px) rotate(1deg)} }
+
+/* ── Focus chip / badge pop-in ── */
+@keyframes badge-in {
+  from { opacity: 0; transform: translateY(18px) scale(0.8); filter: blur(6px); }
+  to   { opacity: 1; transform: translateY(0) scale(1);     filter: blur(0); }
+}
+.badge-in { animation: badge-in 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* ── Terminal scan beam ── */
+@keyframes term-beam {
+  0%   { top: -10%; opacity: 0; }
+  8%   { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { top: 112%; opacity: 0; }
+}
+
+/* ── Text glow (accent headings) ── */
+.text-glow-cyan { text-shadow: 0 0 18px rgba(0,240,255,0.35), 0 0 48px rgba(0,240,255,0.15); }
+.text-glow-violet { text-shadow: 0 0 18px rgba(157,78,221,0.4), 0 0 48px rgba(157,78,221,0.18); }
