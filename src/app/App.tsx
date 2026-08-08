@@ -354,48 +354,135 @@ function SkillTicker() {
 // ─── Quantum bomb (joy) ───────────────────────────────────────────────────────
 
 type Spark = {
-  id: number; x: number; y: number; dx: number; dy: number; size: number; color: string; life: number; rot: number;
+  id: number; x: number; y: number; dx: number; dy: number; size: number; color: string; life: number; rot: number; shape: "dot" | "square";
 };
+
+let bombCtx: AudioContext | null = null;
+function getBombCtx() {
+  if (typeof window === "undefined") return null;
+  const AC = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AC) return null;
+  if (!bombCtx) bombCtx = new AC();
+  if (bombCtx.state === "suspended") bombCtx.resume();
+  return bombCtx;
+}
+
+function playBombSound() {
+  const ctx = getBombCtx();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.9, now);
+  master.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
+  master.connect(ctx.destination);
+
+  // low sub rumble
+  const sub = ctx.createOscillator();
+  sub.type = "sine";
+  sub.frequency.setValueAtTime(160, now);
+  sub.frequency.exponentialRampToValueAtTime(32, now + 1.3);
+  const subg = ctx.createGain();
+  subg.gain.setValueAtTime(0.85, now);
+  subg.gain.exponentialRampToValueAtTime(0.001, now + 1.3);
+  sub.connect(subg).connect(master);
+  sub.start(now); sub.stop(now + 1.4);
+
+  // white noise burst through a sweeping lowpass = explosion body
+  const dur = 1.15;
+  const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * dur), ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 1.7);
+  const noise = ctx.createBufferSource();
+  noise.buffer = buf;
+  const nf = ctx.createBiquadFilter();
+  nf.type = "lowpass";
+  nf.frequency.setValueAtTime(5200, now);
+  nf.frequency.exponentialRampToValueAtTime(180, now + dur);
+  const ng = ctx.createGain();
+  ng.gain.setValueAtTime(0.6, now);
+  ng.gain.exponentialRampToValueAtTime(0.001, now + dur);
+  noise.connect(nf).connect(ng).connect(master);
+  noise.start(now); noise.stop(now + dur + 0.05);
+
+  // bright initial crack
+  const crack = ctx.createOscillator();
+  crack.type = "square";
+  crack.frequency.setValueAtTime(980, now);
+  crack.frequency.exponentialRampToValueAtTime(70, now + 0.32);
+  const cg = ctx.createGain();
+  cg.gain.setValueAtTime(0.14, now);
+  cg.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+  crack.connect(cg).connect(master);
+  crack.start(now); crack.stop(now + 0.36);
+
+  // thin hissy tail (shrapnel whistle)
+  const tail = ctx.createOscillator();
+  tail.type = "sawtooth";
+  tail.frequency.setValueAtTime(1900, now + 0.05);
+  tail.frequency.exponentialRampToValueAtTime(220, now + 0.6);
+  const tg = ctx.createGain();
+  tg.gain.setValueAtTime(0.05, now + 0.05);
+  tg.gain.exponentialRampToValueAtTime(0.001, now + 0.62);
+  tail.connect(tg).connect(master);
+  tail.start(now + 0.05); tail.stop(now + 0.64);
+}
 
 function QuantumBomb() {
   const [armed, setArmed] = useState(true);
   const [sparks, setSparks] = useState<Spark[]>([]);
   const [shocking, setShocking] = useState(false);
+  const [blast, setBlast] = useState<{ x: number; y: number } | null>(null);
+  const [afterglow, setAfterglow] = useState(false);
   const idRef = useRef(0);
 
   const detonate = (cx: number, cy: number) => {
+    playBombSound();
     const colors = ["var(--c1h)", "var(--c2h)", "var(--c3h)", "var(--c4h)", "#ffffff"];
-    const parts: Spark[] = Array.from({ length: 90 }, () => {
+    const parts: Spark[] = Array.from({ length: 150 }, () => {
       const angle = Math.random() * Math.PI * 2;
-      const speed = 3 + Math.random() * 9;
+      const speed = 2 + Math.random() * 14;
       return {
         id: ++idRef.current,
         x: cx, y: cy,
         dx: Math.cos(angle) * speed,
-        dy: Math.sin(angle) * speed - 2,
-        size: 2 + Math.random() * 5,
+        dy: Math.sin(angle) * speed - 2.5,
+        size: 1.5 + Math.random() * 5,
+        shape: Math.random() > 0.65 ? "square" : "dot",
         color: colors[Math.floor(Math.random() * colors.length)],
-        life: 0.7 + Math.random() * 0.9,
+        life: 0.55 + Math.random() * 0.95,
         rot: Math.random() * 360,
       };
     });
     setSparks(parts);
     setShocking(true);
-    setTimeout(() => setShocking(false), 600);
-    setTimeout(() => setSparks([]), 1900);
+    setBlast({ x: cx, y: cy });
+    setAfterglow(true);
+    setTimeout(() => setShocking(false), 900);
+    setTimeout(() => setAfterglow(false), 1400);
+    setTimeout(() => setSparks([]), 1800);
+    setTimeout(() => setBlast(null), 1600);
   };
 
   return (
     <>
       {shocking && <div style={{ position: "fixed", inset: 0, zIndex: 9890, pointerEvents: "none", animation: "bomb-shake 0.45s linear" }} />}
+      {afterglow && <div style={{ position: "fixed", inset: 0, zIndex: 9870, pointerEvents: "none", background: "radial-gradient(circle, rgba(255,255,255,0.28), transparent 60%)", mixBlendMode: "screen", animation: "bomb-afterglow 0.9s ease-out forwards" }} />}
+      {blast && (
+        <div style={{ position: "fixed", left: blast.x, top: blast.y, zIndex: 9885, pointerEvents: "none" }}>
+          <div style={{ position: "absolute", translate: "-50% -50%", borderRadius: "50%", /* flash core */ width: 40, height: 40, background: "var(--c4h)", boxShadow: "0 0 60px 30px rgba(255,200,60,0.8), 0 0 160px 80px rgba(0,240,255,0.5)", animation: "bomb-flash 0.6s ease-out forwards" }} />
+          <div style={{ position: "absolute", translate: "-50% -50%", width: 20, height: 20, borderRadius: "50%", border: "3px solid rgba(var(--c1),0.9)", opacity: 0.9, animation: "bomb-ring 0.7s cubic-bezier(0.16,1,0.3,1) forwards" }} />
+        </div>
+      )}
       {sparks.length > 0 && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9880, pointerEvents: "none", overflow: "hidden" }}>
           {sparks.map((s) => (
             <div key={s.id} className="bomb-spark" style={{
               position: "absolute", left: s.x, top: s.y, width: s.size, height: s.size,
-              background: s.color, boxShadow: `0 0 10px ${s.color}`, borderRadius: "50%",
-              ['--sx' as string]: `${s.dx * 40}px`, ['--sy' as string]: `${s.dy * 40}px`,
+              background: s.color, boxShadow: s.shape === "square" ? "none" : `0 0 10px ${s.color}`,
+              borderRadius: s.shape === "square" ? "1px" : "50%",
+              ['--sx' as string]: `${s.dx * 45}px`, ['--sy' as string]: `${s.dy * 45}px`,
               ['--sr' as string]: `${s.rot}deg`, ['--sl' as string]: `${s.life}s`,
+              ['--srot' as string]: `${s.rot * 3}deg`,
             }} />
           ))}
         </div>
@@ -407,7 +494,7 @@ function QuantumBomb() {
         setTimeout(() => setArmed(true), 2600);
       }}
         style={{
-          position: "fixed", right: 18, bottom: 18, zIndex: 8500, cursor: "pointer", padding: "10px 14px",
+          position: "fixed", left: 18, bottom: 18, zIndex: 8500, cursor: "pointer", padding: "10px 14px",
           background: "rgba(var(--bg-rgb),0.82)", border: "1px solid rgba(var(--c1),0.35)",
           display: "flex", alignItems: "center", gap: 8, backdropFilter: "blur(6px)",
           transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s, opacity 0.25s",
@@ -416,8 +503,8 @@ function QuantumBomb() {
         onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.borderColor = "rgba(var(--c4),0.7)"; }}
         onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(var(--c1),0.35)"; }}
         aria-label="Detonate a quantum bomb">
-        <span className="pulse-dot" style={{ width: 8, height: 8, borderRadius: "50%", background: armed ? "var(--c4h)" : "var(--fg-d)", display: "inline-block", boxShadow: armed ? "0 0 8px var(--c4h)" : "none" }} />
-        <span style={mono(9, armed ? "var(--c4h)" : "var(--fg-d)", { letterSpacing: "0.22em" })}>{armed ? "QUANTUM_BOMB//ARMED" : "RELOADING…"}</span>
+        <span className="pulse-breathe" style={{ width: 8, height: 8, borderRadius: "50%", background: armed ? "var(--c4h)" : "var(--fg-d)", display: "inline-block", boxShadow: armed ? "0 0 8px var(--c4h)" : "none" }} />
+        <span style={mono(9, armed ? "var(--c4h)" : "var(--fg-d)", { letterSpacing: "0.22em" })}>{armed ? "☢ QUANTUM_BOMB//ARMED" : "RELOADING…"}</span>
       </button>
     </>
   );
