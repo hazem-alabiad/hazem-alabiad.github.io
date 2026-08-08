@@ -982,8 +982,9 @@ function ContactForm() {
 const CMS_TOKEN_KEY = "hazem-portfolio-cms-token";
 const CMS_OWNER = "hazem-alabiad";
 
-function CMSButton({ onUnlock, enabled, onDisable, onReset, onOpenEditor }: {
+function CMSButton({ onUnlock, onAutoUnlock, enabled, onDisable, onReset, onOpenEditor }: {
   onUnlock: () => void;
+  onAutoUnlock: () => void;
   enabled: boolean;
   onDisable: () => void;
   onReset: () => void;
@@ -999,7 +1000,7 @@ function CMSButton({ onUnlock, enabled, onDisable, onReset, onOpenEditor }: {
 
   const saveToken = (token: string) => localStorage.setItem(CMS_TOKEN_KEY, token);
 
-  const verify = async (token = pat.trim()) => {
+  const verify = async (token = pat.trim(), auto = false) => {
     if (!token) return;
     setLoading(true);
     setError("");
@@ -1017,7 +1018,7 @@ function CMSButton({ onUnlock, enabled, onDisable, onReset, onOpenEditor }: {
         }
         saveToken(token);
         setAuthedAs(data.login || "authenticated");
-        setTimeout(() => { onUnlock(); close(); }, 1200);
+        setTimeout(() => { auto ? onAutoUnlock() : onUnlock(); close(); }, 1200);
       } else if (res.status === 401) {
         localStorage.removeItem(CMS_TOKEN_KEY);
         setError("Invalid or expired PAT.");
@@ -1033,7 +1034,7 @@ function CMSButton({ onUnlock, enabled, onDisable, onReset, onOpenEditor }: {
 
   useEffect(() => {
     const stored = localStorage.getItem(CMS_TOKEN_KEY);
-    if (stored) verify(stored);
+    if (stored) verify(stored, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -2135,6 +2136,7 @@ export default function App() {
       <CMSButton
         enabled={cmsEnabled}
         onUnlock={() => { setCmsEnabled(true); setEditorOpen(true); }}
+        onAutoUnlock={() => setCmsEnabled(true)}
         onDisable={() => setCmsEnabled(false)}
         onOpenEditor={() => setEditorOpen(true)}
         onReset={() => { setContent(loadContent()); resetContent(); }}
