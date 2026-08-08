@@ -3,7 +3,7 @@ import hazemPhoto from "@/imports/ADB3B9AC-C855-4126-A54C-3D6BF8705288.jpeg";
 // @ts-ignore
 import cvPdf from "@/imports/Hazem-Alabiad-CV.pdf";
 import CmsEditor from "@/CmsEditor";
-import { loadContent, saveContent, resetContent, type CmsContent } from "@/cms";
+import { loadContent, saveContent, resetContent, DEFAULT_CONTENT, type CmsContent } from "@/cms";
 import {
   Github,
   Mail,
