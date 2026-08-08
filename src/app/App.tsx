@@ -324,13 +324,13 @@ const DEFAULTS = {
 // ─── Style helpers (module-level so all components can use them) ──────────────
 
 const mono = (sz: number, color = "var(--fg-b)", extra: React.CSSProperties = {}): React.CSSProperties => ({
-  fontFamily: '"JetBrains Mono", monospace', fontSize: sz, color, ...extra,
+  fontFamily: '"JetBrains Mono", monospace', fontSize: `clamp(${Math.max(9, Math.round(sz * 0.78))}px, ${((sz * 100) / 1280).toFixed(2)}vw, ${sz}px)`, color, ...extra,
 });
 const raj = (sz: number, color = "var(--fg-a)"): React.CSSProperties => ({
   fontFamily: '"Rajdhani", sans-serif', fontSize: sz, fontWeight: 700, color,
 });
 const body = (sz: number, color = "var(--fg-b)"): React.CSSProperties => ({
-  fontFamily: '"Outfit", sans-serif', fontSize: sz, color, lineHeight: 1.8,
+  fontFamily: '"Outfit", sans-serif', fontSize: `clamp(${Math.max(13, Math.round(sz * 0.72))}px, ${((sz * 100) / 1280).toFixed(2)}vw, ${sz}px)`, color, lineHeight: 1.8,
 });
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
