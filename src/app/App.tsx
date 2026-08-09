@@ -371,10 +371,10 @@ function SectionLabel({ num, label }: { num: string; label: string }) {
   );
 }
 
-function SkillListItem({ label, index, visible, delay }: { label: string; index: number; visible: boolean; delay: number }) {
+function SkillListItem({ label, index, visible, delay, accent = "var(--c1h)" }: { label: string; index: number; visible: boolean; delay: number; accent?: string }) {
   return (
     <div className="flex items-baseline gap-3 py-2.5" style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(8px)", transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`, borderBottom: "1px solid rgba(var(--c1),0.07)" }}>
-      <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.1em", color: "var(--c1h)", opacity: 0.7 }}>{String(index).padStart(2, "0")}</span>
+      <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.1em", color: accent, opacity: 0.7 }}>{String(index).padStart(2, "0")}</span>
       <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: 18.5, color: "var(--fg-hero)", letterSpacing: "0.01em" }}>{label}</span>
     </div>
   );
@@ -429,6 +429,37 @@ function KeywordMarquee() {
         ))}
       </div>
     </div>
+  );
+}
+
+function CurrentFocus() {
+  const { ref, visible } = useReveal(0.15);
+  const items = [
+    { tag: "LLM_AI_TUTOR", text: "Building a working-student LLM AI-tutor at Uni Tübingen — retrieval-augmented tutoring for the Autonomous Learning Lab.", hex: "var(--c1h)" },
+    { tag: "IWM_RESEARCH", text: "Social-media & TikTok research at Leibniz-Institut für Wissensmedien (IWM) — scraping, NLP, and behavioral analysis.", hex: "var(--c3h)" },
+    { tag: "M.A._THESIS", text: "Computational Linguistics M.A. at Uni Tübingen — Arabic multiword-expression extraction with LLMs + cross-lingual transfer.", hex: "var(--c2h)" },
+  ];
+  return (
+    <section id="focus" className="relative py-16 lg:py-20 px-6" style={{ zIndex: 10, background: "linear-gradient(180deg, transparent, rgba(var(--c1),0.025) 50%, transparent)" }}>
+      <div ref={ref} className="max-w-7xl mx-auto">
+        <div className="flex items-center gap-3 mb-8" style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(16px)", transition: "opacity 0.8s ease, transform 0.8s ease" }}>
+          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--c3h)", boxShadow: "0 0 10px var(--c3h)" }} />
+          <span style={mono(11, "var(--fg-a)", { letterSpacing: "0.28em" })}>WHAT I'M WORKING ON NOW</span>
+          <span style={{ height: 1, flex: 1, background: "rgba(var(--c1),0.12)", marginLeft: 6 }} />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {items.map((it, i) => (
+            <div key={it.tag} className="console-frame p-5"
+              style={{ border: "1px solid rgba(var(--c1),0.08)", background: "var(--card)", opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)", transition: `opacity 0.7s ease ${i * 90}ms, transform 0.7s ease ${i * 90}ms` }}>
+              <div className="flex items-center gap-2 mb-3">
+                <span style={mono(8.5, it.hex, { padding: "2px 7px", border: "1px solid rgba(var(--c1),0.16)", letterSpacing: "0.16em" })}>{it.tag}</span>
+              </div>
+              <p style={body(13.5, "var(--fg-b)", { lineHeight: 1.55 })}>{it.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -1528,8 +1559,12 @@ function EnhancedTerminal({ factLocation }: { factLocation: string }) {
   );
 }
 
+const BOOTED_KEY = "hazem_portfolio_booted_v2";
+
 export default function App() {
-  const [booted, setBooted] = useState(false);
+  const [booted, setBooted] = useState<boolean>(() => {
+    try { return localStorage.getItem(BOOTED_KEY) === "1"; } catch { return false; }
+  });
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [cmsEnabled, setCmsEnabled] = useState(false);
@@ -1623,7 +1658,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: "var(--bg-page)", color: "var(--fg-a)" }}>
-      {!booted && <BootScreen onDone={() => setBooted(true)} />}
+      {!booted && <BootScreen onDone={() => { setBooted(true); try { localStorage.setItem(BOOTED_KEY, "1"); } catch {} }} />}
       {/* Ambient background drift (pure CSS transforms, barely-there) */}
       <div className="neural-bg" aria-hidden="true" />
       <div className="ambient" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }} aria-hidden="true">
@@ -1713,6 +1748,20 @@ export default function App() {
                 {get("heroTagline", DEFAULTS.heroTagline)}
               </p>
 
+              <div className="flex flex-wrap items-center gap-x-8 gap-y-3 mb-5" style={{ maxWidth: 600 }}>
+                {[
+                  { n: "2.2M+", l: "USERS SHIPPED" },
+                  { n: "1M+", l: "ENTERPRISE USERS" },
+                  { n: "6+", l: "YEARS ENGINEERING" },
+                  { n: "70%+", l: "TEST COVERAGE" },
+                ].map((m, i) => (
+                  <div key={m.l}>
+                    <div style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.3rem,2.4vw,1.7rem)", color: "var(--c1h)", lineHeight: 1, letterSpacing: "0.01em" }}>{m.n}</div>
+                    <div className="mt-1" style={mono(8.5, "var(--fg-c)", { letterSpacing: "0.18em" })}>{m.l}</div>
+                  </div>
+                ))}
+              </div>
+
               <div className="flex flex-wrap gap-3.5 mb-4">
                 <MagneticWrap>
                   <button onClick={() => scrollTo("experience")} className="flex items-center gap-2.5 transition-all duration-300"
@@ -1779,6 +1828,7 @@ export default function App() {
 
       <ImpactStrip />
       <KeywordMarquee />
+      <CurrentFocus />
 
       {/* ── Experience ── */}
       <section id="experience" className="relative py-20 lg:py-28 px-6" style={{ zIndex: 10 }}>
@@ -1842,6 +1892,11 @@ export default function App() {
                       <h3 style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: 18, color: "var(--fg-a)", letterSpacing: "0.02em" }}>{proj.name}</h3>
                     </div>
                     <p className="mb-5 flex-1" style={{ ...body(14, "var(--fg-b)", { lineHeight: 1.6 }), minHeight: 0 }}>{proj.desc}</p>
+                    {proj.impact ? (
+                      <div className="mb-5" style={{ ...mono(10, "var(--fg-hero)", { letterSpacing: "0.08em" }), lineHeight: 1.5, padding: "8px 11px", borderLeft: "2px solid rgba(var(--c1),0.6)", background: "rgba(var(--c1),0.05)" }}>
+                        <span style={{ color: "var(--c1h)" }}>▎</span> {proj.impact}
+                      </div>
+                    ) : null}
                     <div className="flex items-end justify-between gap-3">
                       <div className="flex flex-wrap gap-1.5">
                         {proj.tags.slice(0, 5).map((tag) => (
@@ -1874,18 +1929,18 @@ export default function App() {
               Technical <span style={{ color: "var(--c2h)" }}>Proficiencies</span>
             </WipeHeading>
             <Spotlight className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12">
-              <div className="console-frame p-6" style={{ border: "1px solid rgba(var(--c1),0.1)", background: "var(--card)" }}>
-                <div style={mono(9, "rgba(var(--c1),0.45)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>FULL_STACK_ENGINEERING</div>
+              <div className="console-frame p-6" style={{ border: "1px solid rgba(var(--c2),0.14)", background: "var(--card)" }}>
+                <div style={mono(9, "rgba(var(--c2),0.55)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>AI / NLP / LLM RESEARCH</div>
                 <div>
-                  {content.skills.filter((s) => s.cat === "stack").map((s, i) => (
-                    <SkillListItem key={s.id || s.label} label={s.label} index={i + 1} visible={skillsR.visible} delay={i * 90} />
+                  {content.skills.filter((s) => s.cat === "ai").map((s, i) => (
+                    <SkillListItem key={s.id || s.label} label={s.label} index={i + 1} visible={skillsR.visible} delay={i * 90} accent="var(--c2h)" />
                   ))}
                 </div>
               </div>
               <div className="console-frame p-6" style={{ border: "1px solid rgba(var(--c1),0.1)", background: "var(--card)" }}>
-                <div style={mono(9, "rgba(var(--c2),0.45)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>AI_NLP_RESEARCH</div>
+                <div style={mono(9, "rgba(var(--c1),0.45)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>FULL_STACK_ENGINEERING</div>
                 <div>
-                  {content.skills.filter((s) => s.cat === "ai").map((s, i) => (
+                  {content.skills.filter((s) => s.cat === "stack").map((s, i) => (
                     <SkillListItem key={s.id || s.label} label={s.label} index={i + 1} visible={skillsR.visible} delay={i * 90} />
                   ))}
                 </div>
@@ -1956,12 +2011,30 @@ export default function App() {
                     const box = { background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)" };
                     if (isMail) {
                       return (
-                        <button key={link.id} onClick={() => { navigator.clipboard.writeText(link.value).catch(() => {}); setCopiedEmail(true); setTimeout(() => setCopiedEmail(false), 2000); }}
-                          className={`${base} w-full text-left`} style={{ ...box, borderColor: copiedEmail ? "rgba(var(--c3),0.4)" : "rgba(var(--c1),0.07)", cursor: "pointer" }}
+                        <div key={link.id} className={`${base} w-full`} style={{ ...box, borderColor: copiedEmail ? "rgba(var(--c3),0.4)" : "rgba(var(--c1),0.07)" }}
                           onMouseEnter={(e) => (e.currentTarget.style.borderColor = copiedEmail ? "rgba(var(--c3),0.5)" : "rgba(var(--c1),0.28)")}
                           onMouseLeave={(e) => (e.currentTarget.style.borderColor = copiedEmail ? "rgba(var(--c3),0.4)" : "rgba(var(--c1),0.07)")}>
-                          {inner}
-                        </button>
+                          <a href={link.href || `mailto:${link.value}`} className="flex items-center gap-3.5 flex-1 min-w-0" style={{ textDecoration: "none" }}
+                            aria-label={`Email ${link.value}`}>
+                            <div className="flex items-center justify-center flex-shrink-0" style={{ width: 32, height: 32, border: "1px solid rgba(var(--c1),0.2)", color: "var(--c1h)" }}>
+                              <Icon size={13} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div style={mono(9, "var(--fg-c)", { marginBottom: 3, textTransform: "uppercase" as const, letterSpacing: "0.2em" })}>{link.label}</div>
+                              <div style={body(16, "var(--fg-a)")}>{link.value}</div>
+                            </div>
+                          </a>
+                          <span className="flex items-center gap-1.5 flex-shrink-0">
+                            <button type="button" title="Copy email"
+                              onClick={() => { navigator.clipboard.writeText(link.value).catch(() => {}); setCopiedEmail(true); setTimeout(() => setCopiedEmail(false), 2000); }}
+                              style={{ background: "transparent", border: "none", cursor: "pointer", padding: 4 }}>
+                              <Copy size={13} color="var(--c1h)" style={{ opacity: 0.6 }} />
+                            </button>
+                            {copiedEmail && (
+                              <span style={mono(9, "var(--c3h)", { letterSpacing: "0.15em" })}>COPIED</span>
+                            )}
+                          </span>
+                        </div>
                       );
                     }
                     return (
