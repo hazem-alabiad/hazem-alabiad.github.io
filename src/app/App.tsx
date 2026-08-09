@@ -170,8 +170,9 @@ function WipeHeading({ children, style, className }: { children: React.ReactNode
     return () => obs.disconnect();
   }, []);
   return (
-    <div ref={ref} className={`${visible ? "wipe-in" : ""} ${className ?? ""}`} style={{ ...style, clipPath: visible ? undefined : "inset(0 100% 0 0)" }}>
+    <div ref={ref} className={`relative ${visible ? "wipe-in" : ""} ${className ?? ""}`} style={{ ...style }}>
       {children}
+      <span className="wipe-head-rule" style={{ background: "linear-gradient(90deg, var(--c1h), var(--c2h), transparent)" }} />
     </div>
   );
 }
@@ -2026,8 +2027,8 @@ export default function App() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
             {/* Left — identity, role, bio, CTAs, stats */}
             <div className="lg:col-span-7">
-              <h1 ref={heroNameRef} className="glitch leading-none tracking-tight mb-4 select-none"
-                style={{ fontFamily: '"Audiowide", cursive', fontSize: "clamp(3.2rem,10vw,8.5rem)", fontWeight: 400, color: "var(--fg-a)" }}>
+              <h1 ref={heroNameRef} className="leading-none tracking-tight mb-4 select-none"
+                style={{ fontFamily: '"Unbounded", sans-serif', fontWeight: 300, fontSize: "clamp(2.9rem,9.2vw,7.5rem)", color: "var(--fg-a)", letterSpacing: "0.02em" }}>
                 HAZEM<br />
                 <span className="name-hover">
                   {"ALABIAD".split("").map((ch, i) => (

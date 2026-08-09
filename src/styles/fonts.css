@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&family=Unbounded:wght@300;400;500;600;700&display=swap');
 
 @keyframes glitch {
   0%, 78%, 100% { clip-path: none; transform: none; }
@@ -86,10 +86,22 @@
 
 /* ── Clip-path wipe reveal (left → right) ── */
 @keyframes wipe-in {
-  from { clip-path: inset(0 100% 0 0); }
-  to   { clip-path: inset(0 0% 0 0); }
+  from { opacity: 0; transform: translateY(22px); filter: blur(10px); }
+  to   { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
-.wipe-in { animation: wipe-in 0.85s cubic-bezier(0.16,1,0.3,1) both; }
+.wipe-in { animation: wipe-in 0.9s cubic-bezier(0.16,1,0.3,1) both; }
+.wipe-head-rule {
+  position: absolute;
+  left: 0; bottom: -10px;
+  height: 2px;
+  width: 0;
+  box-shadow: 0 0 14px rgba(var(--c1),0.6);
+  animation: wipe-rule-in 0.8s cubic-bezier(0.16,1,0.3,1) 0.35s both;
+}
+@keyframes wipe-rule-in {
+  from { width: 0; opacity: 0; }
+  to   { width: 64px; opacity: 1; }
+}
 
 /* ── Fade + rise (used for stagger) ── */
 @keyframes fade-rise {
@@ -248,48 +260,64 @@
 /* ── Text glow (accent headings) ── */
 .text-glow-cyan { text-shadow: 0 0 18px rgba(var(--c1),0.35), 0 0 48px rgba(var(--c1),0.15); }
 
-/* ── Hero name — per-letter hover stagger ── */
+/* ── Hero name — gradient text, sheen sweep, staggered boot ── */
 .name-hover {
   display: inline-block;
   position: relative;
+  padding-bottom: 0.06em;
 }
 .name-letter {
   display: inline-block;
-  text-shadow: 0 0 14px rgba(var(--c1),0.3), 0 0 34px rgba(var(--c1),0.12);
-  transition: transform 0.28s cubic-bezier(0.16,1,0.3,1), color 0.24s, text-shadow 0.28s;
-  animation: name-boot 0.7s cubic-bezier(0.16,1,0.3,1) both;
-  animation-delay: calc(var(--i, 0) * 90ms);
+  background-image: linear-gradient(115deg,
+    var(--c1h) 0%, #eaf6ff 28%, var(--c1h) 45%, var(--c2h) 62%, var(--c1h) 80%);
+  background-size: 280% 100%;
+  background-position: 0% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 34px rgba(var(--c1),0.22);
+  animation: name-boot 0.7s cubic-bezier(0.16,1,0.3,1) both, name-sheen 8s linear infinite;
+  animation-delay: calc(var(--i, 0) * 85ms), calc(var(--i, 0) * 40ms);
+  transition: transform 0.32s cubic-bezier(0.16,1,0.3,1), background-position 0.4s ease;
+}
+@keyframes name-sheen {
+  0%   { background-position: 0% 0; }
+  42%  { background-position: 180% 0; }
+  58%  { background-position: 180% 0; }
+  100% { background-position: 0% 0; }
 }
 @keyframes name-boot {
-  from { opacity: 0; transform: translateY(0.35em) scale(0.9); filter: blur(4px); }
-  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  from { opacity: 0; transform: translateY(0.4em) scale(0.86) rotate(1.5deg); }
+  to   { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
 }
 @media (hover: hover) {
   .name-hover:hover .name-letter {
-    transform: translateY(-0.09em);
-    text-shadow: 0 0 20px rgba(var(--c1),0.9), 0 0 60px rgba(var(--c1),0.45);
-    color: #fff !important;
+    transform: translateY(-0.1em);
+    background-position: 100% 0 !important;
+    filter: drop-shadow(0 0 14px rgba(var(--c1),0.55));
+    transition-duration: 0.16s, 0.28s;
   }
   .name-hover:hover .name-letter:nth-child(1) { transition-delay: 0ms; }
-  .name-hover:hover .name-letter:nth-child(2) { transition-delay: 35ms; }
-  .name-hover:hover .name-letter:nth-child(3) { transition-delay: 70ms; }
-  .name-hover:hover .name-letter:nth-child(4) { transition-delay: 105ms; }
-  .name-hover:hover .name-letter:nth-child(5) { transition-delay: 140ms; }
-  .name-hover:hover .name-letter:nth-child(6) { transition-delay: 175ms; }
-  .name-hover:hover .name-letter:nth-child(7) { transition-delay: 210ms; }
+  .name-hover:hover .name-letter:nth-child(2) { transition-delay: 30ms; }
+  .name-hover:hover .name-letter:nth-child(3) { transition-delay: 60ms; }
+  .name-hover:hover .name-letter:nth-child(4) { transition-delay: 90ms; }
+  .name-hover:hover .name-letter:nth-child(5) { transition-delay: 120ms; }
+  .name-hover:hover .name-letter:nth-child(6) { transition-delay: 150ms; }
+  .name-hover:hover .name-letter:nth-child(7) { transition-delay: 180ms; }
 }
 @keyframes name-underline-in {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(1); }
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
 }
 .name-underline {
   position: absolute;
-  left: 0; right: 0; bottom: -0.12em;
+  left: 0; right: 0; bottom: -0.1em;
   height: 2px;
-  background: linear-gradient(90deg, var(--c1h), rgba(var(--c1),0.2));
+  background: linear-gradient(90deg, var(--c1h), rgba(var(--c1),0.15));
   transform-origin: left;
   animation: name-underline-in 0.9s cubic-bezier(0.16,1,0.3,1) 0.9s both;
-  box-shadow: 0 0 16px rgba(var(--c1),0.7);
+  box-shadow: 0 0 16px rgba(var(--c1),0.5);
 }
 .name-caret {
   position: absolute;
@@ -298,7 +326,7 @@
   transform: translateY(-50%);
   background: var(--c1h);
   box-shadow: 0 0 10px var(--c1h);
-  animation: blink 1.05s step-end 1.8s infinite;
+  animation: blink 1.05s step-end 1.9s infinite;
 }
 .text-glow-violet { text-shadow: 0 0 18px rgba(var(--c2),0.4), 0 0 48px rgba(var(--c2),0.18); }
 
