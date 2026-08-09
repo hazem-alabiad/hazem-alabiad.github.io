@@ -1448,6 +1448,12 @@ function EnhancedTerminal({ factLocation }: { factLocation: string }) {
 
       {/* body */}
       <div className="px-5 py-5 space-y-4">
+        {/* boot echo */}
+        <div style={mono(10.5, "var(--fg-d)", { letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: 8 })}>
+          <span style={{ color: "var(--c3h)" }}>✓</span>
+          <span>hazem-alabiad.ini loaded — 4 roles, {factLocation}</span>
+        </div>
+
         {/* typed command */}
         <div style={mono(13, "var(--fg-hero)", { display: "flex", alignItems: "center", gap: 8, letterSpacing: "0.04em" })}>
           <span style={{ color: "var(--c3h)" }}>➜</span>
@@ -1586,6 +1592,7 @@ export default function App() {
     <div className="min-h-screen overflow-x-hidden" style={{ background: "var(--bg-page)", color: "var(--fg-a)" }}>
       {!booted && <BootScreen onDone={() => setBooted(true)} />}
       {/* Ambient background drift (pure CSS transforms, barely-there) */}
+      <div className="neural-bg" aria-hidden="true" />
       <div className="ambient" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }} aria-hidden="true">
         <div className="orb orb-a" />
         <div className="orb orb-b" />
@@ -1647,9 +1654,15 @@ export default function App() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
             {/* Left — identity, role, bio, CTAs */}
             <div className="lg:col-span-7">
+              <div className="flex items-center gap-2.5 mb-5" style={{ opacity: 1 }}>
+                <span style={mono(11, "var(--c3h)", { letterSpacing: "0.06em" })}>➜</span>
+                <span style={mono(11, "var(--c2h)", { letterSpacing: "0.06em" })}>~/hazem-alabiad</span>
+                <span className="blink" style={{ display: "inline-block", width: 6, height: 12, background: "var(--c1h)", boxShadow: "0 0 8px rgba(var(--c1),0.7)" }} />
+              </div>
+
               <h1 ref={heroNameRef} className="relative leading-[1.02] tracking-tight mb-4 select-none"
-                style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(3rem,8vw,6.2rem)", letterSpacing: "-0.02em", color: "var(--fg-a)" }}>
-                Hazem Alabiad
+                style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(3.2rem,8.5vw,6.6rem)", letterSpacing: "-0.02em", color: "var(--fg-a)" }}>
+                Hazem <span style={{ background: "linear-gradient(135deg, var(--c1h), var(--c2h))", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", color: "transparent" }}>Alabiad</span>
               </h1>
 
               <p className="mb-6" style={{ ...mono(13, "var(--c1h)", { letterSpacing: "0.12em" }), fontSize: "clamp(12px,1.6vw,16px)" }}>
@@ -1660,7 +1673,7 @@ export default function App() {
                 {get("heroTagline", DEFAULTS.heroTagline)}
               </p>
 
-              <div className="flex flex-wrap gap-3.5 mb-12">
+              <div className="flex flex-wrap gap-3.5 mb-4">
                 <MagneticWrap>
                   <button onClick={() => scrollTo("experience")} className="flex items-center gap-2.5 transition-all duration-300"
                     style={mono(10, "var(--c1h)", { padding: "14px 28px", border: "1px solid rgba(var(--c1),0.55)", letterSpacing: "0.18em", cursor: "pointer" })}
@@ -1680,19 +1693,18 @@ export default function App() {
                 <CVDownloadButton cvUrl={content.cvDataUrl} />
               </div>
 
-              {/* Quick availability pills */}
-              <div className="flex flex-wrap items-center gap-2.5" style={{ maxWidth: 600 }}>
-                <span style={mono(9, "rgba(var(--c1),0.5)", { letterSpacing: "0.2em", textTransform: "uppercase" })}>AVAILABLE</span>
-                <span style={mono(10, "var(--c3h)", { padding: "4px 12px", border: "1px solid rgba(var(--c3),0.35)", letterSpacing: "0.12em", background: "rgba(var(--c3),0.06)" })}>Immediately</span>
-                <span style={mono(10, "var(--fg-c)", { padding: "4px 12px", border: "1px solid rgba(var(--c1),0.2)", letterSpacing: "0.12em", background: "var(--chip)" })}>Remote · On-site</span>
-                <span style={mono(10, "var(--c1h)", { padding: "4px 12px", border: "1px solid rgba(var(--c1),0.35)", letterSpacing: "0.12em", background: "rgba(var(--c1),0.06)" })}>Full-time · Contract</span>
+              <div className="flex items-center gap-4" style={{ maxWidth: 600 }}>
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--c3h)", boxShadow: "0 0 8px var(--c3h)" }} />
+                <span style={mono(10, "var(--fg-c)", { letterSpacing: "0.16em" })}>OPEN TO FULL-TIME · REMOTE · ON-SITE IN TÜBINGEN / STUTTGART</span>
               </div>
             </div>
 
             {/* Right — Photo + Enhanced Terminal */}
             <div className="lg:col-span-5 space-y-5">
               {/* Photo — smaller, professional frame */}
-              <div className="group relative cursor-pointer" style={{ filter: "drop-shadow(0 16px 48px rgba(0,0,0,0.35))" }}>
+              <div className="group relative cursor-pointer console-frame" style={{ filter: "drop-shadow(0 16px 48px rgba(0,0,0,0.35))" }}>
+                <div className="br-tl" />
+                <div className="br-br" />
                 <div style={{
                   width: "100%", aspectRatio: "4/5", maxWidth: 320, margin: "0 auto", overflow: "hidden", position: "relative",
                   border: "1px solid rgba(var(--c1),0.18)", background: "var(--card-photo)",
@@ -1770,10 +1782,13 @@ export default function App() {
                 const sc: Record<string, string> = { RESEARCH: "var(--c2h)", COMPLETE: "var(--c3h)", ACTIVE: "var(--c1h)", BETA: "var(--c4h)" };
                 return (
                   <div key={proj.id || proj.name} className={`transition-all duration-300 ${projectsR.visible ? "slide-up-item" : "opacity-0"}`} style={{ animationDelay: `${pidx * 120}ms` }}>
-                  <div className="flex flex-col h-full p-6 transition-all duration-300 will-change-transform"
-                    style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.08)", transform: "translateY(0)", boxShadow: "none" }}
+                  <div className="flex flex-col h-full p-6 pr-7 transition-all duration-300 will-change-transform console-frame"
+                    style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.08)", transform: "translateY(0)", boxShadow: "none", position: "relative", overflow: "hidden" }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.4)"; (e.currentTarget as HTMLElement).style.background = "var(--card-hover)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 18px 40px rgba(0,0,0,0.35), 0 0 24px rgba(var(--c1),0.08)"; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.08)"; (e.currentTarget as HTMLElement).style.background = "var(--card)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}>
+                    <div className="br-tl" />
+                    <div className="br-br" />
+                    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${projHex}, transparent 70%)`, opacity: 0, transition: "opacity 0.3s ease" }} className="proj-accent" />
                     <div className="flex items-center justify-between gap-2 mb-4">
                       <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.1em", color: "var(--fg-d)" }}>{String(pidx + 1).padStart(2, "0")}</span>
                       <div className="flex items-center gap-2.5">
