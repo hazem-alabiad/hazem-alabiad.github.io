@@ -26,6 +26,7 @@
   --card-photo: #0b1020;   /* photo plate */
   --chip: #0f1624;
   --frame: #0a1220;
+  --terminal-bg: #060b16;  /* terminal window */
 
   --fg-a: #e2e8f4;         /* primary text */
   --fg-b: #a9c2d8;         /* soft text */
@@ -550,4 +551,19 @@ html.cz-active [contenteditable] { cursor: text !important; }
 @media (pointer: coarse) {
   .console-frame::before,
   .console-frame::after { opacity: 0.4; }
+}
+
+/* ── macOS-style terminal ──────────────────────────────────────────────── */
+.term-dot-glyph {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.group:hover .term-dot-glyph {
+  opacity: 1;
+}
+.term-dot {
+  transition: box-shadow 0.15s ease;
+}
+@media (hover: none) {
+  .term-dot-glyph { opacity: 0; }
 }

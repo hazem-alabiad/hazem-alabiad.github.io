@@ -1489,7 +1489,9 @@ function EnhancedTerminal({ factLocation }: { factLocation: string }) {
     return (
       <div className="flex items-center gap-2.5 px-4 py-3" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.16)" }}>
         <span style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--red-soft)", opacity: 0.5 }} />
-        <span style={mono(10.5, "var(--fg-c)", { letterSpacing: "0.12em" })}>job-mode</span>
+        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#febc2e", opacity: 0.5 }} />
+        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#28c840", opacity: 0.5 }} />
+        <span style={mono(10.5, "var(--fg-c)", { letterSpacing: "0.12em", marginLeft: 2 })}>job-mode</span>
         <span style={mono(9.5, "var(--fg-d)", { letterSpacing: "0.14em" })}>— hidden</span>
         <button onClick={restore} style={mono(10, "var(--c1h)", { marginLeft: "auto", letterSpacing: "0.16em", padding: "5px 12px", border: "1px solid rgba(var(--c1),0.35)", background: "rgba(var(--c1),0.06)", cursor: "pointer" })}>RESTORE</button>
       </div>
@@ -1497,24 +1499,33 @@ function EnhancedTerminal({ factLocation }: { factLocation: string }) {
   }
 
   return (
-    <div className="group" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.16)", boxShadow: "0 24px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(var(--c1),0.03)" }}>
-      {/* title bar */}
-      <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: "1px solid rgba(var(--c1),0.1)", background: "rgba(var(--c1),0.03)" }}>
-        <button onClick={close} aria-label="Close terminal" title="Close"
-          style={{ width: 12, height: 12, borderRadius: "50%", background: "var(--red-soft)", opacity: 0.95, border: "none", padding: 0, cursor: "pointer", flexShrink: 0, position: "relative" }}
-          onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.boxShadow = "0 0 8px rgba(var(--red-soft),0.35)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.95"; e.currentTarget.style.boxShadow = "none"; }}>
-          <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1218", fontSize: 11, lineHeight: 1, fontWeight: 700 }}>×</span>
-        </button>
-        <span style={{ width: 12, height: 12, borderRadius: "50%", background: "#febc2e", opacity: 0.9, flexShrink: 0 }} />
-        <span style={{ width: 12, height: 12, borderRadius: "50%", background: "var(--c3h)", opacity: 0.9, flexShrink: 0 }} />
-        <span style={mono(10.5, "var(--fg-c)", { marginLeft: 8, letterSpacing: "0.12em" })}>hazem@tübingen — zsh</span>
-        <span style={mono(9.5, "var(--fg-d)", { marginLeft: "auto", letterSpacing: "0.14em", fontStyle: "italic" })}>80×24</span>
+    <div className="group" style={{ background: "var(--terminal-bg)", border: "1px solid rgba(var(--c1),0.14)", boxShadow: "0 24px 60px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.05) inset", borderRadius: 12, overflow: "hidden" }}>
+      {/* macOS-style title bar */}
+      <div className="term-titlebar relative flex items-center" style={{ height: 40, borderBottom: "1px solid rgba(var(--c1),0.09)", background: "linear-gradient(180deg, rgba(255,255,255,0.045), rgba(var(--c1),0.02) 55%, rgba(0,0,0,0.08))" }}>
+        {/* traffic lights */}
+        <div className="flex items-center gap-2" style={{ padding: "0 0 0 14px", flexShrink: 0 }}>
+          <button onClick={close} aria-label="Close terminal" title="Close"
+            className="term-dot term-dot-red"
+            style={{ width: 12, height: 12, borderRadius: "50%", background: "#ff5f57", border: "1px solid rgba(0,0,0,0.2)", borderTopColor: "rgba(255,255,255,0.35)", padding: 0, cursor: "pointer", position: "relative", fontSize: 0 }}
+            onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 0 8px rgba(255,95,87,0.4)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; }}>
+            <span className="term-dot-glyph" style={{ display: "flex", alignItems: "center", justifyContent: "center", position: "absolute", inset: 0, color: "#6b1f1f", fontSize: 9, fontWeight: 800, lineHeight: 1 }}>×</span>
+          </button>
+          <span className="term-dot" style={{ width: 12, height: 12, borderRadius: "50%", background: "#febc2e", border: "1px solid rgba(0,0,0,0.2)", borderTopColor: "rgba(255,255,255,0.35)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+            <span className="term-dot-glyph" style={{ color: "#6d5200", fontSize: 9, fontWeight: 800, lineHeight: 1 }}>−</span>
+          </span>
+          <span className="term-dot" style={{ width: 12, height: 12, borderRadius: "50%", background: "#28c840", border: "1px solid rgba(0,0,0,0.2)", borderTopColor: "rgba(255,255,255,0.35)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+            <span className="term-dot-glyph" style={{ color: "#0f5a1e", fontSize: 9, fontWeight: 800, lineHeight: 1 }}>+</span>
+          </span>
+        </div>
+        {/* centered title */}
+        <span style={{ ...mono(10.5, "rgba(var(--fg-c),0.72)", { letterSpacing: "0.1em" }), position: "absolute", left: "50%", transform: "translateX(-50%)", userSelect: "none", pointerEvents: "none" }}>hazem@tübingen — zsh</span>
+        {/* right spacer */}
+        <span style={mono(9.5, "rgba(var(--fg-d),0.6)", { marginLeft: "auto", letterSpacing: "0.14em", fontStyle: "italic", paddingRight: 14, flexShrink: 0 })}>80×24</span>
       </div>
 
       {/* body */}
-      <div className="px-5 py-5 space-y-4">
-        {/* boot echo */}
+      <div className="px-5 py-5 space-y-4" style={{ minHeight: 264 }}>
         <div style={mono(10.5, "var(--fg-d)", { letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: 8 })}>
           <span style={{ color: "var(--c3h)" }}>✓</span>
           <span>hazem-alabiad.ini loaded — 4 roles, {factLocation}</span>
@@ -1556,6 +1567,15 @@ function EnhancedTerminal({ factLocation }: { factLocation: string }) {
             <span style={{ color: "var(--c2h)" }}>status</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c4h)" }}>"Open to opportunities"</span>
           </div>
         </div>
+      </div>
+
+      {/* macOS-style footer bar */}
+      <div className="flex items-center justify-between gap-3" style={{ height: 32, borderTop: "1px solid rgba(var(--c1),0.09)", background: "linear-gradient(180deg, rgba(var(--c1),0.02), rgba(0,0,0,0.1))", padding: "0 14px" }}>
+        <span className="flex items-center gap-2" style={mono(9, "rgba(var(--fg-c),0.6)", { letterSpacing: "0.12em" })}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#28c840", boxShadow: "0 0 6px rgba(40,200,64,0.6)", display: "inline-block" }} />
+          zsh — working
+        </span>
+        <span style={mono(9, "rgba(var(--fg-d),0.6)", { letterSpacing: "0.12em" })}>UTF-8</span>
       </div>
     </div>
   );
