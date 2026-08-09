@@ -498,45 +498,53 @@ function SectionLabel({ num, label }: { num: string; label: string }) {
     return () => obs.disconnect();
   }, []);
   return (
-    <div ref={ref} className="relative flex items-center gap-4 mb-4">
-      <span className={`neon-flicker ${vis ? "glitch-enter" : ""}`} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.28em", color: "rgba(var(--c1),0.7)", textTransform: "uppercase" as const }}>
-        MODULE_{num}
-      </span>
-      <div className="flex-1 h-px relative overflow-hidden" style={{ background: "linear-gradient(to right, rgba(var(--c1),0.3), transparent)", transform: vis ? "scaleX(1)" : "scaleX(0)", transformOrigin: "left", transition: "transform 1s ease 0.2s" }}>
-        {vis && <span className="neural-scan-line" />}
+    <div ref={ref} className="relative mb-6 overflow-visible">
+      {/* ghost numeral behind everything */}
+      <span className={`ghost-index ${vis ? "" : "opacity-0"}`} style={{ transition: "opacity 1s ease 0.2s" }} aria-hidden>{num.replace(/^0/, "")}</span>
+      <div className="relative flex items-center gap-4 mb-2">
+        <span className={`neon-flicker ${vis ? "glitch-enter" : ""}`} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.28em", color: "rgba(var(--c1),0.7)", textTransform: "uppercase" as const }}>
+          MODULE_{num}
+        </span>
+        <div className="flex-1 h-px relative overflow-hidden" style={{ background: "linear-gradient(to right, rgba(var(--c1),0.3), transparent)", transform: vis ? "scaleX(1)" : "scaleX(0)", transformOrigin: "left", transition: "transform 1s ease 0.2s" }}>
+          {vis && <span className="neural-scan-line" />}
+        </div>
+        <span className="decode-in" style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.2em", color: "rgba(var(--c1),0.5)", textTransform: "uppercase" as const, opacity: vis ? 1 : 0, animation: vis ? "decode-glitch 1.2s steps(8) 0.4s both" : "none", ['--dl' as string]: 16 }}>
+          {label}
+        </span>
       </div>
-      <span className="decode-in" style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.2em", color: "rgba(var(--c1),0.5)", textTransform: "uppercase" as const, opacity: vis ? 1 : 0, animation: vis ? "decode-glitch 1.2s steps(8) 0.4s both" : "none", ['--dl' as string]: 16 }}>
-        {label}
-      </span>
     </div>
   );
 }
 
-function SkillBar({ label, level, visible, delay }: { label: string; level: number; visible: boolean; delay: number }) {
-  const segments = 8;
+function SkillBar({ label, level, visible, delay, index }: { label: string; level: number; visible: boolean; delay: number; index: number }) {
+  const segments = 12;
   const filled = Math.round((level / 100) * segments);
   const tier = level >= 90 ? "EXPERT" : level >= 78 ? "ADVANCED" : level >= 65 ? "PROFICIENT" : "COMPETENT";
   return (
-    <div>
-      <div className="flex justify-between items-baseline">
-        <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: 15, color: "var(--fg-hero)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</span>
-        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ display: "flex", gap: 2.5 }}>
-            {Array.from({ length: segments }).map((_, i) => (
-              <span key={i}
-                style={{
-                  width: 6, height: 10,
-                  background: i < filled && visible ? "linear-gradient(180deg, var(--c1h), var(--c2h))" : "var(--chip)",
-                  transition: "background 0.5s ease, box-shadow 0.5s ease",
-                  transitionDelay: `${delay + i * 70}ms`,
-                  boxShadow: i < filled && visible ? "0 0 6px rgba(var(--c1),0.35)" : "none",
-                  opacity: visible ? 1 : 0,
-                }}
-              />
-            ))}
-          </span>
+    <div className="p-3.5 transition-colors duration-300" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)" }}
+      onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.35)")}
+      onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.07)")}>
+      <div className="flex justify-between items-center mb-2.5">
+        <span className="flex items-center gap-2.5">
+          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.1em", color: "var(--c1h)", opacity: 0.6 }}>{String(index).padStart(2, "0")}</span>
+          <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: 15, color: "var(--fg-hero)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</span>
+        </span>
+        <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.14em", color: "var(--fg-a)" }}>{level}%</span>
           <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 8.5, letterSpacing: "0.16em", color: level >= 78 ? "var(--c1h)" : "var(--fg-c)" }}>{tier}</span>
         </span>
+      </div>
+      <div className="flex gap-1" style={{ height: 6 }}>
+        {Array.from({ length: segments }).map((_, i) => (
+          <span key={i} style={{
+            flex: 1,
+            background: i < filled && visible ? "linear-gradient(180deg, var(--c1h), var(--c2h))" : "var(--chip)",
+            transition: "background 0.5s ease, box-shadow 0.5s ease, opacity 0.5s ease",
+            transitionDelay: `${delay + i * 55}ms`,
+            boxShadow: i < filled && visible ? "0 0 7px rgba(var(--c1),0.3)" : "none",
+            opacity: visible ? 1 : 0,
+          }} />
+        ))}
       </div>
     </div>
   );
@@ -629,6 +637,42 @@ function CountUp({ to, suffix = "", duration = 1400 }: { to: number; suffix?: st
     return () => obs.disconnect();
   }, [to, duration]);
   return <span ref={ref}>{val}{suffix}</span>;
+}
+
+// ─── Impact strip ───────────────────────────────────────────────────────
+
+function ImpactStrip() {
+  const { ref, visible } = useReveal(0.15);
+  const cells = [
+    { to: 6, suffix: "+", label: "YEARS OF ENGINEERING", sub: "Across enterprise & scale-ups" },
+    { to: 2, suffix: ".2M+", label: "USERS SERVED", sub: "GetirJobs, product platform" },
+    { to: 1, suffix: "M+", label: "ENTERPRISE USERS", sub: "IBM Data Quality platform" },
+    { to: 70, suffix: "%+", label: "TEST COVERAGE", sub: "Enforced via Jest / Cypress / Playwright" },
+  ];
+  return (
+    <div ref={ref} className="px-6" style={{ zIndex: 10, position: "relative" }}>
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5" style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(24px)", transition: "opacity 0.9s ease, transform 0.9s ease" }}>
+          {cells.map((c, i) => (
+            <div key={c.label} className="impact-cell relative overflow-hidden"
+              style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.08)", padding: "22px 24px" }}>
+              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 2, background: "linear-gradient(180deg, var(--c1h), var(--c2h))", opacity: 0.55 }} />
+              <div style={{ fontFamily: '"Audiowide", cursive', fontSize: "clamp(2rem,4vw,2.9rem)", color: "var(--c1h)", letterSpacing: "0.02em" }}>
+                {c.suffix.startsWith(".") ? (
+                  <span><CountUp to={c.to} suffix={c.suffix} /></span>
+                ) : (
+                  <CountUp to={c.to} suffix={c.suffix} />
+                )}
+              </div>
+              <div className="mt-1" style={mono(9, "var(--fg-a)", { letterSpacing: "0.18em", textTransform: "uppercase" as const })}>{c.label}</div>
+              <div className="mt-1" style={mono(8.5, "var(--fg-d)", { letterSpacing: "0.1em" })}>{c.sub}</div>
+              <div style={{ position: "absolute", right: -8, bottom: -8, width: 28, height: 28, borderBottom: "1px solid rgba(var(--c1),0.14)", borderRight: "1px solid rgba(var(--c1),0.14)", pointerEvents: "none" }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ─── CV Download Button ────────────────────────────────────────────────────────
@@ -1452,10 +1496,12 @@ function CommandPalette({ open, onClose, content }: { open: boolean; onClose: ()
 function ExpEntry({ exp, idx, visible }: { exp: CmsExperience; idx: number; visible: boolean }) {
   const [open, setOpen] = useState(idx === 0);
   return (
-    <div className={`relative p-4 transition-colors duration-300 ${visible ? "depth-rise" : "opacity-0"} ${exp.current ? "glow-border" : ""}`}
+    <div className={`relative p-5 transition-colors duration-300 ${visible ? "depth-rise" : "opacity-0"} ${exp.current ? "glow-border" : ""}`}
       style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)", animationDelay: `${idx * 110}ms` }}
       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.35)"; (e.currentTarget as HTMLElement).style.background = "var(--card-hover)"; }}
       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = exp.current ? "" : "rgba(var(--c1),0.07)"; (e.currentTarget as HTMLElement).style.background = "var(--card)"; }}>
+      {/* left rail */}
+      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 2.5, background: exp.current ? "linear-gradient(180deg, var(--c1h), var(--c2h))" : "linear-gradient(180deg, rgba(var(--c1),0.3), rgba(var(--c2),0.15))", opacity: exp.current ? 0.9 : 0.35 }} />{/* legacy non-setup placeholder */}
       <button onClick={() => setOpen(!open)} className="w-full text-left" style={{ cursor: "pointer", background: "none", border: "none", padding: 0, fontFamily: "inherit", color: "inherit" }}>
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-3">
           <div>
@@ -1940,9 +1986,10 @@ export default function App() {
         <div className="absolute bottom-20 left-8 w-24 h-24 pointer-events-none" style={{ borderBottom: "1px solid rgba(var(--c2),0.12)", borderLeft: "1px solid rgba(var(--c2),0.12)" }} />
       </section>
 
+      <ImpactStrip />
 
       {/* ── Experience ── */}
-      <section id="experience" className="relative py-8 px-6" style={{ zIndex: 10 }}>
+      <section id="experience" className="relative py-16 lg:py-20 px-6" style={{ zIndex: 10 }}>
         <div ref={expR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="01" label="EXPERIENCE" />
           <div className="transition-all duration-1000" style={{ opacity: expR.visible ? 1 : 0, transform: expR.visible ? "translateY(0)" : "translateY(32px)" }}>
@@ -1956,7 +2003,7 @@ export default function App() {
               </div>
             </div>
 
-            <WipeHeading className="mb-4" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.6rem,4vw,2.5rem)", color: "var(--fg-a)" }}>
+            <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2.1rem,5vw,3.4rem)", color: "var(--fg-a)" }}>
               Work <span style={{ color: "var(--c2h)" }}>History</span>
             </WipeHeading>
             <div className="space-y-3">
@@ -1971,11 +2018,11 @@ export default function App() {
       <SkillTicker />
 
       {/* ── Projects ── */}
-      <section id="projects" className="relative py-8 px-6" style={{ zIndex: 10 }}>
+      <section id="projects" className="relative py-16 lg:py-20 px-6" style={{ zIndex: 10 }}>
         <div ref={projectsR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="02" label="PROJECTS" />
           <div className="transition-all duration-1000" style={{ opacity: projectsR.visible ? 1 : 0, transform: projectsR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-4" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.6rem,4vw,2.5rem)", color: "var(--fg-a)" }}>
+            <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2.1rem,5vw,3.4rem)", color: "var(--fg-a)" }}>
               Research <span style={{ color: "var(--c1h)" }}>& Projects</span>
             </WipeHeading>
             <Spotlight className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -1986,25 +2033,34 @@ export default function App() {
                 const sc: Record<string, string> = { RESEARCH: "var(--c2h)", COMPLETE: "var(--c3h)", ACTIVE: "var(--c1h)", BETA: "var(--c4h)" };
                 return (
                   <TiltCard key={proj.id || proj.name} className={projectsR.visible ? "slide-up-item" : ""} style={{ animationDelay: `${pidx * 120}ms` }}>
-                  <div className="relative p-4 overflow-hidden transition-all duration-300 group"
+                  <div className="relative p-5 overflow-hidden transition-all duration-300 group"
                     style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)", height: "100%", display: "flex", flexDirection: "column" }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.35)"; (e.currentTarget as HTMLElement).style.background = "var(--card-hover)"; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.07)"; (e.currentTarget as HTMLElement).style.background = "var(--card)"; }}>
+                    {/* top accent hairline */}
+                    <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 2, background: `linear-gradient(90deg, ${projHex}, transparent)`, opacity: 0.35, transition: "opacity 0.4s ease" }} />
+                    {/* ghost index */}
+                    <span aria-hidden style={{ position: "absolute", top: 6, right: 10, fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 34, lineHeight: 1, color: "transparent", WebkitTextStroke: "1px rgba(var(--c1),0.15)", userSelect: "none", pointerEvents: "none" }}>
+                      {String(pidx + 1).padStart(2, "0")}
+                    </span>
                     {/* shimmer sweep on hover */}
                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300" style={{ overflow: "hidden" }}>
                       <div style={{ position: "absolute", top: 0, bottom: 0, width: "50%", background: "linear-gradient(90deg, transparent, rgba(var(--c1),0.04), transparent)", animation: "shimmer-sweep 1.2s ease infinite" }} />
                     </div>
-                    <div className="flex items-center gap-3 mb-2.5">
-                      <div className="flex items-center justify-center flex-shrink-0" style={{ width: 32, height: 32, border: `1px solid rgba(${projColor},0.19)`, color: projHex }}>
-                        <ProjIcon size={14} />
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="flex items-center justify-center flex-shrink-0" style={{ width: 34, height: 34, border: `1px solid rgba(${projColor},0.22)`, color: projHex, background: `rgba(${projColor},0.05)` }}>
+                        <ProjIcon size={15} />
                       </div>
-                      <h3 className="flex-1 transition-colors duration-200 leading-tight" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 17, color: "var(--fg-a)" }}
+                      <h3 className="flex-1 transition-colors duration-200 leading-tight" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 18, color: "var(--fg-a)" }}
                         onMouseEnter={(e) => (e.currentTarget.style.color = "var(--c1h)")}
                         onMouseLeave={(e) => (e.currentTarget.style.color = "var(--fg-a)")}>
                         {proj.name}
                       </h3>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span style={mono(9, sc[proj.status] || "var(--c4h)", { padding: "1.5px 7px", border: "1px solid rgba(var(--c1),0.19)", letterSpacing: "0.2em" })}>{proj.status}</span>
+                        <span className="flex items-center gap-1.5" style={mono(9, sc[proj.status] || "var(--c4h)", { padding: "2px 8px", border: "1px solid rgba(var(--c1),0.19)", letterSpacing: "0.2em" })}>
+                          <span style={{ width: 5, height: 5, borderRadius: "50%", background: sc[proj.status] || "var(--c4h)", boxShadow: `0 0 5px ${sc[proj.status] || "var(--c4h)"}`, display: "inline-block" }} />
+                          {proj.status}
+                        </span>
                         <span style={mono(9, "var(--fg-c)")}>{proj.year}</span>
                       </div>
                     </div>
@@ -2033,27 +2089,27 @@ export default function App() {
       </section>
 
       {/* ── Skills ── */}
-      <section id="skills" className="relative py-8 px-6" style={{ zIndex: 10 }}>
+      <section id="skills" className="relative py-16 lg:py-20 px-6" style={{ zIndex: 10 }}>
         <div ref={skillsR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="03" label="PROFICIENCIES" />
           <div className="transition-all duration-1000" style={{ opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-4" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.6rem,4vw,2.5rem)", color: "var(--fg-a)" }}>
+            <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2.1rem,5vw,3.4rem)", color: "var(--fg-a)" }}>
               Technical <span style={{ color: "var(--c2h)" }}>Proficiencies</span>
             </WipeHeading>
             <Spotlight className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
               <div>
                 <div style={mono(9, "rgba(var(--c1),0.45)", { marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>FULL_STACK_ENGINEERING</div>
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {content.skills.filter((s) => s.cat === "stack").map((s, i) => (
-                    <SkillBar key={s.id || s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} />
+                    <SkillBar key={s.id || s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} index={i + 1} />
                   ))}
                 </div>
               </div>
               <div>
                 <div style={mono(9, "rgba(var(--c2),0.45)", { marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>AI_NLP_RESEARCH</div>
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {content.skills.filter((s) => s.cat === "ai").map((s, i) => (
-                    <SkillBar key={s.id || s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} />
+                    <SkillBar key={s.id || s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} index={i + 7} />
                   ))}
                 </div>
               </div>
@@ -2081,18 +2137,31 @@ export default function App() {
                 })}
               </div>
             </div>
+            <div className="mt-6">
+              <div style={mono(9, "rgba(var(--c1),0.45)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>TOOLCHAIN & WORKFLOW</div>
+              <div className="flex flex-wrap gap-2">
+                {["Docker", "Linux", "Git", "CI/CD", "Figma", "REST API", "WebSocket", "GraphQL", "Jest", "Cypress", "Playwright", "Vite", "Next.js", "Elasticsearch", "MySQL", "Redux", "Agile / Scrum", "Code Review", "E2E Testing"].map((t, ti) => (
+                  <span key={t} className="transition-all duration-300"
+                    style={{ ...mono(9, "var(--fg-b)", { padding: "9px 16px", border: "1px solid rgba(var(--c1),0.14)", letterSpacing: "0.14em", background: "var(--card)" }), opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(8px)", transition: `opacity 0.5s ease ${ti * 40}ms, transform 0.5s ease ${ti * 40}ms, border-color 0.3s ease`, cursor: "default" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.6)"; (e.currentTarget as HTMLElement).style.color = "var(--c1h)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.14)"; (e.currentTarget as HTMLElement).style.color = "var(--fg-b)"; }}>
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── Contact ── */}
-      <section id="contact" className="relative py-8 px-6" style={{ zIndex: 10 }}>
+      <section id="contact" className="relative py-16 lg:py-20 px-6" style={{ zIndex: 10 }}>
         <div ref={contactR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="04" label="CONTACT" />
           <div className="transition-all duration-1000" style={{ opacity: contactR.visible ? 1 : 0, transform: contactR.visible ? "translateY(0)" : "translateY(32px)" }}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div>
-                <WipeHeading className="mb-4" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.6rem,4vw,2.5rem)", color: "var(--fg-a)" }}>
+                <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2.1rem,5vw,3.4rem)", color: "var(--fg-a)" }}>
                   Get in <span style={{ color: "var(--c1h)" }}>Touch</span>
                 </WipeHeading>
                 <p className="mb-5" style={body(16)}>{get("contactIntro", DEFAULT_CONTENT.contactIntro)}</p>
