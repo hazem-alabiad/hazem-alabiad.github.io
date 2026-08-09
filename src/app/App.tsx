@@ -1401,9 +1401,17 @@ const TERM_ROLES = [
   { t: "Full-Stack Engineer", p: false },
 ];
 
+const TERM_CLOSED_KEY = "hazem_portfolio_terminal_closed";
+
 function EnhancedTerminal({ factLocation }: { factLocation: string }) {
   const [cmd, setCmd] = useState("");
+  const [closed, setClosed] = useState<boolean>(() => {
+    try { return localStorage.getItem(TERM_CLOSED_KEY) === "1"; } catch { return false; }
+  });
   const CMD = "./job-mode --status";
+
+  const close = () => { setClosed(true); try { localStorage.setItem(TERM_CLOSED_KEY, "1"); } catch {} };
+  const restore = () => { setClosed(false); try { localStorage.removeItem(TERM_CLOSED_KEY); } catch {} };
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1413,11 +1421,25 @@ function EnhancedTerminal({ factLocation }: { factLocation: string }) {
     return () => clearInterval(t);
   }, []);
 
+  if (closed) {
+    return (
+      <div className="flex items-center gap-2.5 px-4 py-3" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.16)" }}>
+        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--red-soft)", opacity: 0.5 }} />
+        <span style={mono(10.5, "var(--fg-c)", { letterSpacing: "0.12em" })}>job-mode</span>
+        <span style={mono(9.5, "var(--fg-d)", { letterSpacing: "0.14em" })}>— hidden</span>
+        <button onClick={restore} style={mono(10, "var(--c1h)", { marginLeft: "auto", letterSpacing: "0.16em", padding: "5px 12px", border: "1px solid rgba(var(--c1),0.35)", background: "rgba(var(--c1),0.06)", cursor: "pointer" })}>RESTORE</button>
+      </div>
+    );
+  }
+
   return (
     <div className="group" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.16)", boxShadow: "0 24px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(var(--c1),0.03)" }}>
       {/* title bar */}
       <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: "1px solid rgba(var(--c1),0.1)", background: "rgba(var(--c1),0.03)" }}>
-        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--red-soft)", opacity: 0.9 }} />
+        <button onClick={close} aria-label="Close terminal" title="Close"
+          style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--red-soft)", opacity: 0.9, border: "none", padding: 0, cursor: "pointer", flexShrink: 0 }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.9")} />
         <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#febc2e", opacity: 0.9 }} />
         <span style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--c3h)", opacity: 0.9 }} />
         <span style={mono(10.5, "var(--fg-c)", { marginLeft: 8, letterSpacing: "0.12em" })}>hazem@tübingen — zsh</span>
