@@ -1501,11 +1501,13 @@ function EnhancedTerminal({ factLocation }: { factLocation: string }) {
       {/* title bar */}
       <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: "1px solid rgba(var(--c1),0.1)", background: "rgba(var(--c1),0.03)" }}>
         <button onClick={close} aria-label="Close terminal" title="Close"
-          style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--red-soft)", opacity: 0.9, border: "none", padding: 0, cursor: "pointer", flexShrink: 0 }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.9")} />
-        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#febc2e", opacity: 0.9 }} />
-        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--c3h)", opacity: 0.9 }} />
+          style={{ width: 12, height: 12, borderRadius: "50%", background: "var(--red-soft)", opacity: 0.95, border: "none", padding: 0, cursor: "pointer", flexShrink: 0, position: "relative" }}
+          onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.boxShadow = "0 0 8px rgba(var(--red-soft),0.35)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.95"; e.currentTarget.style.boxShadow = "none"; }}>
+          <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#1a1218", fontSize: 11, lineHeight: 1, fontWeight: 700 }}>×</span>
+        </button>
+        <span style={{ width: 12, height: 12, borderRadius: "50%", background: "#febc2e", opacity: 0.9, flexShrink: 0 }} />
+        <span style={{ width: 12, height: 12, borderRadius: "50%", background: "var(--c3h)", opacity: 0.9, flexShrink: 0 }} />
         <span style={mono(10.5, "var(--fg-c)", { marginLeft: 8, letterSpacing: "0.12em" })}>hazem@tübingen — zsh</span>
         <span style={mono(9.5, "var(--fg-d)", { marginLeft: "auto", letterSpacing: "0.14em", fontStyle: "italic" })}>80×24</span>
       </div>
@@ -1527,9 +1529,9 @@ function EnhancedTerminal({ factLocation }: { factLocation: string }) {
         </div>
 
         {/* roles */}
-        <div className="space-y-2 pt-1">
+        <div className="space-y-2.5 pt-1">
           {TERM_ROLES.map((r, i) => (
-            <div key={r.t} className="flex items-baseline gap-3">
+            <div key={r.t} className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <span style={mono(11, "var(--fg-d)", { letterSpacing: "0.1em" })}>{String(i + 1).padStart(2, "0")}</span>
               <span style={mono(13, "var(--fg-hero)", { letterSpacing: "0.03em" })}>{r.t}</span>
               {r.p && (
@@ -1540,17 +1542,17 @@ function EnhancedTerminal({ factLocation }: { factLocation: string }) {
         </div>
 
         {/* status key/values */}
-        <div className="pt-3 grid grid-cols-2 gap-x-4 gap-y-2" style={{ borderTop: "1px solid rgba(var(--c1),0.1)" }}>
-          <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", gap: 6, whiteSpace: "nowrap" })}>
+        <div className="pt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-2" style={{ borderTop: "1px solid rgba(var(--c1),0.1)" }}>
+          <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", flexWrap: "wrap", gap: 6, minWidth: 0 })}>
             <span style={{ color: "var(--c2h)" }}>role</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c3h)" }}>"Student Asst. · LLM AI‑Tutor"</span>
           </div>
-          <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", gap: 6, whiteSpace: "nowrap" })}>
+          <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", flexWrap: "wrap", gap: 6, minWidth: 0 })}>
             <span style={{ color: "var(--c2h)" }}>location</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c3h)" }}>"{factLocation}"</span>
           </div>
-          <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", gap: 6, whiteSpace: "nowrap" })}>
+          <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", flexWrap: "wrap", gap: 6, minWidth: 0 })}>
             <span style={{ color: "var(--c2h)" }}>open_to</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c1h)" }}>["Working Student","NLP/AI/LLMs"]</span>
           </div>
-          <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", gap: 6, whiteSpace: "nowrap" })}>
+          <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", flexWrap: "wrap", gap: 6, minWidth: 0 })}>
             <span style={{ color: "var(--c2h)" }}>status</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c4h)" }}>"Open to opportunities"</span>
           </div>
         </div>
