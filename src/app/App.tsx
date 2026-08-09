@@ -287,14 +287,12 @@ function SkillTicker() {
     "Next.js", "Corpus Linguistics", "Fine-tuning", "WebSocket", "Playwright",
   ];
   return (
-    <div style={{ overflow: "hidden", borderTop: "1px solid rgba(var(--c1),0.08)", borderBottom: "1px solid rgba(var(--c1),0.08)", padding: "14px 0", position: "relative", zIndex: 10 }}
+    <div style={{ overflow: "hidden", borderTop: "1px solid rgba(var(--c1),0.08)", borderBottom: "1px solid rgba(var(--c1),0.08)", padding: "12px 0", position: "relative", zIndex: 10 }}
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <div className="ticker-track" style={{ display: "flex", gap: 40, width: "max-content", animation: "ticker 28s linear infinite", animationPlayState: paused ? "paused" : "running" }}>
+      <div className="ticker-track" style={{ display: "flex", gap: 36, width: "max-content", animation: "ticker 40s linear infinite", animationPlayState: paused ? "paused" : "running" }}>
         {items.map((item, i) => (
-          <span key={i} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.25em", color: i % 3 === 0 ? "var(--c1h)" : i % 3 === 1 ? "var(--c2h)" : "var(--fg-d)", textTransform: "uppercase", whiteSpace: "nowrap", userSelect: "none", display: "flex", alignItems: "center", gap: 12, transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), color 0.25s, letter-spacing 0.25s", cursor: "pointer" }}
-            className="ticker-item" onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.28) translateY(-3px)"; e.currentTarget.style.letterSpacing = "0.34em"; (e.currentTarget.children[0] as HTMLElement).style.opacity = "1"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1) translateY(0)"; e.currentTarget.style.letterSpacing = "0.25em"; (e.currentTarget.children[0] as HTMLElement).style.opacity = "0.2"; }}>
-            {item} <span style={{ color: "rgba(var(--c1),0.4)", margin: "0 4px", opacity: 0.2, transition: "opacity 0.25s" }}>◆</span>
+          <span key={i} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.3em", color: i % 3 === 0 ? "var(--c1h)" : "var(--fg-d)", textTransform: "uppercase", whiteSpace: "nowrap", userSelect: "none", display: "flex", alignItems: "center", gap: 12, transition: "color 0.25s", cursor: "default" }}>
+            {item} <span style={{ color: "rgba(var(--c1),0.3)" }}>•</span>
           </span>
         ))}
       </div>
@@ -416,79 +414,6 @@ function MuseBloom() {
   );
 }
 
-function HUDOrbit() {
-  const tokens = ["AI", "NLP", "LLM", "CL", "GPU", "ML", "θ", "07"];
-  return (
-    <div style={{ position: "absolute", left: "100%", top: 20, marginLeft: 12, width: 170, height: 170, pointerEvents: "none", opacity: 0.9 }}>
-      {/* dashed outer orbit */}
-      <div style={{ position: "absolute", inset: 0, border: "1px dashed rgba(var(--c1),0.28)", borderRadius: "50%", animation: "hud-orbit 16s linear infinite" }} />
-      <div style={{ position: "absolute", inset: 14, border: "1px solid rgba(var(--c2),0.18)", borderRadius: "50%", animation: "hud-orbit 11s linear infinite reverse" }} />
-      {/* tokens traveling the orbits */}
-      {tokens.map((tk, i) => {
-        const inner = i % 2 === 1;
-        const dur = inner ? 11 : 16;
-        return (
-          <div key={tk} style={{ position: "absolute", inset: 0, animation: `hud-orbit ${dur}s linear infinite`, animationDelay: `${-i * (dur / tokens.length)}s` }}>
-            <span style={{
-              position: "absolute", top: inner ? 30 : 10, left: "50%",
-              transform: "translate(-50%,-50%) rotate(" + (i * 40) + "deg)",
-              width: inner ? 18 : 22, height: inner ? 18 : 22, borderRadius: "50%",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontFamily: '"JetBrains Mono", monospace', fontSize: 6.5, letterSpacing: "0.06em",
-              color: i % 2 ? "var(--c2h)" : "var(--c1h)",
-              background: i % 2 ? "rgba(var(--c2),0.08)" : "rgba(var(--c1),0.1)",
-              border: `1px solid ${i % 2 ? "rgba(var(--c2),0.5)" : "rgba(var(--c1),0.45)"}`,
-              boxShadow: i % 2 ? "0 0 10px rgba(var(--c2),0.35)" : "0 0 10px rgba(var(--c1),0.35)",
-              backdropFilter: "blur(4px)",
-            }}>
-              {tk}
-            </span>
-          </div>
-        );
-      })}
-      {/* tiny caret readout */}
-      <span style={{ position: "absolute", left: "50%", bottom: -2, transform: "translateX(-50%)", fontFamily: '"JetBrains Mono", monospace', fontSize: 7.5, letterSpacing: "0.3em", color: "rgba(var(--c1),0.5)", whiteSpace: "nowrap" }}>
-        ◉ SYNAPSE_ACTIVE
-      </span>
-    </div>
-  );
-}
-
-function FloatingCode() {
-  const snippets = [
-    "const model = await loadLLM()",
-    "embed(corpus, d=768)",
-    "∇L(θ) → optimize",
-    "SELECT * FROM neurons",
-    "git push origin 2050",
-    "accuracy: 0.9742",
-    "docker run --gpu",
-    "epoch 42/100",
-  ];
-  return (
-    <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 1 }}>
-      {snippets.map((s, i) => {
-        const anims = ["float-a", "float-b", "float-c"];
-        const dur = [16, 22, 18, 26, 20, 24, 14, 28][i];
-        const delay = [0, 4, 8, 2, 12, 6, 10, 14][i];
-        const left = [8, 75, 20, 85, 12, 65, 40, 55][i];
-        const top  = [15, 25, 60, 45, 80, 70, 35, 88][i];
-        return (
-          <div key={i} style={{
-            position: "absolute", left: `${left}%`, top: `${top}%`,
-            fontFamily: '"JetBrains Mono", monospace', fontSize: 10,
-            color: i % 2 === 0 ? "rgba(var(--c1),0.045)" : "rgba(var(--c2),0.045)",
-            letterSpacing: "0.1em", whiteSpace: "nowrap",
-            animation: `${anims[i % 3]} ${dur}s ease-in-out ${delay}s infinite`,
-          }}>
-            {s}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 function SectionLabel({ num, label }: { num: string; label: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [vis, setVis] = useState(false);
@@ -498,53 +423,34 @@ function SectionLabel({ num, label }: { num: string; label: string }) {
     return () => obs.disconnect();
   }, []);
   return (
-    <div ref={ref} className="relative mb-6 overflow-visible">
-      {/* ghost numeral behind everything */}
-      <span className={`ghost-index ${vis ? "" : "opacity-0"}`} style={{ transition: "opacity 1s ease 0.2s" }} aria-hidden>{num.replace(/^0/, "")}</span>
-      <div className="relative flex items-center gap-4 mb-2">
-        <span className={`neon-flicker ${vis ? "glitch-enter" : ""}`} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.28em", color: "rgba(var(--c1),0.7)", textTransform: "uppercase" as const }}>
-          MODULE_{num}
-        </span>
-        <div className="flex-1 h-px relative overflow-hidden" style={{ background: "linear-gradient(to right, rgba(var(--c1),0.3), transparent)", transform: vis ? "scaleX(1)" : "scaleX(0)", transformOrigin: "left", transition: "transform 1s ease 0.2s" }}>
-          {vis && <span className="neural-scan-line" />}
-        </div>
-        <span className="decode-in" style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.2em", color: "rgba(var(--c1),0.5)", textTransform: "uppercase" as const, opacity: vis ? 1 : 0, animation: vis ? "decode-glitch 1.2s steps(8) 0.4s both" : "none", ['--dl' as string]: 16 }}>
-          {label}
-        </span>
-      </div>
+    <div ref={ref} className="relative flex items-center gap-4 mb-4">
+      <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 15, fontWeight: 700, color: "var(--c1h)", letterSpacing: "0.08em", opacity: vis ? 1 : 0, transition: "opacity 0.6s ease" }}>
+        {num}
+      </span>
+      <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.28em", color: "var(--fg-hero)", textTransform: "uppercase", opacity: vis ? 1 : 0, transform: vis ? "translateY(0)" : "translateY(6px)", transition: "opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s" }}>
+        {label}
+      </span>
+      <div className="module-rule" style={{ transform: vis ? "scaleX(1)" : "scaleX(0)", transition: "transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.15s" }} />
     </div>
   );
 }
 
 function SkillBar({ label, level, visible, delay, index }: { label: string; level: number; visible: boolean; delay: number; index: number }) {
-  const segments = 12;
-  const filled = Math.round((level / 100) * segments);
   const tier = level >= 90 ? "EXPERT" : level >= 78 ? "ADVANCED" : level >= 65 ? "PROFICIENT" : "COMPETENT";
   return (
-    <div className="p-3.5 transition-colors duration-300" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)" }}
-      onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.35)")}
-      onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.07)")}>
-      <div className="flex justify-between items-center mb-2.5">
+    <div className="pb-3" style={{ borderBottom: "1px solid rgba(var(--c1),0.08)" }}>
+      <div className="flex justify-between items-center mb-2">
         <span className="flex items-center gap-2.5">
-          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.1em", color: "var(--c1h)", opacity: 0.6 }}>{String(index).padStart(2, "0")}</span>
-          <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: 15, color: "var(--fg-hero)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</span>
+          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.1em", color: "var(--c1h)", opacity: 0.7 }}>{String(index).padStart(2, "0")}</span>
+          <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: 16, color: "var(--fg-hero)" }}>{label}</span>
         </span>
         <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.14em", color: "var(--fg-a)" }}>{level}%</span>
-          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 8.5, letterSpacing: "0.16em", color: level >= 78 ? "var(--c1h)" : "var(--fg-c)" }}>{tier}</span>
+          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-a)" }}>{level}%</span>
+          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.16em", color: level >= 78 ? "var(--c1h)" : "var(--fg-c)", opacity: level >= 78 ? 1 : 0.7 }}>{tier}</span>
         </span>
       </div>
-      <div className="flex gap-1" style={{ height: 6 }}>
-        {Array.from({ length: segments }).map((_, i) => (
-          <span key={i} style={{
-            flex: 1,
-            background: i < filled && visible ? "linear-gradient(180deg, var(--c1h), var(--c2h))" : "var(--chip)",
-            transition: "background 0.5s ease, box-shadow 0.5s ease, opacity 0.5s ease",
-            transitionDelay: `${delay + i * 55}ms`,
-            boxShadow: i < filled && visible ? "0 0 7px rgba(var(--c1),0.3)" : "none",
-            opacity: visible ? 1 : 0,
-          }} />
-        ))}
+      <div className="skill-track" aria-hidden>
+        <i data-lvl={level} className={visible ? "now" : ""} style={{ width: visible ? `${level}%` : 0, transitionDelay: `${delay}ms` }} />
       </div>
     </div>
   );
@@ -553,67 +459,6 @@ function SkillBar({ label, level, visible, delay, index }: { label: string; leve
 // ─── Focus chips ─────────────────────────────────────────────────────────────
 
 const FOCUS_ITEMS = ["NLP", "LLMs", "ML / Deep Learning", "Comp. Linguistics", "Multilingual AI", "AI Research"];
-
-function FocusStrip() {
-  const { ref, visible } = useReveal(0.15);
-  const bg = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c1)", "var(--c2)", "var(--c4)"];
-  const hexs = ["var(--c1h)", "var(--c2h)", "var(--c3h)", "var(--c1h)", "var(--c2h)", "var(--c4h)"];
-  return (
-    <div ref={ref} className="flex flex-wrap items-center gap-3" style={{ margin: "0 0 36px", maxWidth: 800 }}>
-      <span className={visible ? "wipe-in" : ""} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(var(--c1),0.5)" }}>FOCUS://</span>
-      {FOCUS_ITEMS.map((t, i) => (
-        <span key={t} className={visible ? "badge-in" : ""}
-          style={{
-            fontFamily: '"JetBrains Mono", monospace', fontWeight: 500, fontSize: 10,
-            letterSpacing: "0.18em", textTransform: "uppercase", padding: "6px 12px",
-            color: hexs[i % hexs.length],
-            background: `rgba(${bg[i % bg.length]},0.05)`, animationDelay: `${i * 120}ms`, opacity: visible ? 1 : 0,
-            cursor: "default", transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s, background 0.25s, opacity 0.5s",
-          }}
-          onMouseEnter={(e) => { const el = e.currentTarget; el.style.transform = "translateY(-3px)"; el.style.background = `rgba(${bg[i % bg.length]},0.12)`; }}
-          onMouseLeave={(e) => { const el = e.currentTarget; el.style.transform = "translateY(0)"; el.style.background = `rgba(${bg[i % bg.length]},0.05)`; }}>
-          {t}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-// ─── Tilt Card ────────────────────────────────────────────────────────────────
-
-function TiltCard({ children, style, className }: { children: React.ReactNode; style?: React.CSSProperties; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const raf = useRef(0);
-
-  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const el = ref.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width - 0.5;
-    const y = (e.clientY - r.top) / r.height - 0.5;
-    cancelAnimationFrame(raf.current);
-    raf.current = requestAnimationFrame(() => {
-      el.style.transform = `perspective(700px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg) scale(1.02)`;
-      el.style.transition = "transform 0.08s ease";
-    });
-  };
-
-  const onLeave = () => {
-    cancelAnimationFrame(raf.current);
-    if (ref.current) {
-      ref.current.style.transform = "perspective(700px) rotateY(0deg) rotateX(0deg) scale(1)";
-      ref.current.style.transition = "transform 0.5s ease";
-    }
-  };
-
-  return (
-    <div ref={ref} onMouseMove={onMove} onMouseLeave={onLeave}
-      style={{ transformStyle: "preserve-3d", willChange: "transform", ...style }}
-      className={className}>
-      {children}
-    </div>
-  );
-}
 
 // ─── Count Up ─────────────────────────────────────────────────────────────────
 
@@ -650,23 +495,21 @@ function ImpactStrip() {
     { to: 70, suffix: "%+", label: "TEST COVERAGE", sub: "Enforced via Jest / Cypress / Playwright" },
   ];
   return (
-    <div ref={ref} className="px-6" style={{ zIndex: 10, position: "relative" }}>
+    <div ref={ref} className="px-6 py-12" style={{ zIndex: 10, position: "relative", borderTop: "1px solid rgba(var(--c1),0.08)", borderBottom: "1px solid rgba(var(--c1),0.08)" }}>
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5" style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(24px)", transition: "opacity 0.9s ease, transform 0.9s ease" }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-8 gap-y-8"
+          style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(24px)", transition: "opacity 0.9s ease, transform 0.9s ease" }}>
           {cells.map((c, i) => (
-            <div key={c.label} className="impact-cell relative overflow-hidden"
-              style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.08)", padding: "22px 24px" }}>
-              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 2, background: "linear-gradient(180deg, var(--c1h), var(--c2h))", opacity: 0.55 }} />
-              <div style={{ fontFamily: '"Audiowide", cursive', fontSize: "clamp(2rem,4vw,2.9rem)", color: "var(--c1h)", letterSpacing: "0.02em" }}>
+            <div key={c.label} className={i > 0 ? "xl:border-l xl:border-[rgba(var(--c1),0.09)] xl:pl-8" : ""}>
+              <div style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2.6rem,5vw,3.6rem)", color: "var(--c1h)", letterSpacing: "0.01em", lineHeight: 1 }}>
                 {c.suffix.startsWith(".") ? (
                   <span><CountUp to={c.to} suffix={c.suffix} /></span>
                 ) : (
                   <CountUp to={c.to} suffix={c.suffix} />
                 )}
               </div>
-              <div className="mt-1" style={mono(9, "var(--fg-a)", { letterSpacing: "0.18em", textTransform: "uppercase" as const })}>{c.label}</div>
-              <div className="mt-1" style={mono(8.5, "var(--fg-d)", { letterSpacing: "0.1em" })}>{c.sub}</div>
-              <div style={{ position: "absolute", right: -8, bottom: -8, width: 28, height: 28, borderBottom: "1px solid rgba(var(--c1),0.14)", borderRight: "1px solid rgba(var(--c1),0.14)", pointerEvents: "none" }} />
+              <div className="mt-2" style={mono(10, "var(--fg-a)", { letterSpacing: "0.18em", textTransform: "uppercase" as const })}>{c.label}</div>
+              <div className="mt-1" style={mono(9.5, "var(--fg-d)", { letterSpacing: "0.1em" })}>{c.sub}</div>
             </div>
           ))}
         </div>
@@ -1496,43 +1339,41 @@ function CommandPalette({ open, onClose, content }: { open: boolean; onClose: ()
 function ExpEntry({ exp, idx, visible }: { exp: CmsExperience; idx: number; visible: boolean }) {
   const [open, setOpen] = useState(idx === 0);
   return (
-    <div className={`relative p-5 transition-colors duration-300 ${visible ? "depth-rise" : "opacity-0"} ${exp.current ? "glow-border" : ""}`}
-      style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)", animationDelay: `${idx * 110}ms` }}
-      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.35)"; (e.currentTarget as HTMLElement).style.background = "var(--card-hover)"; }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = exp.current ? "" : "rgba(var(--c1),0.07)"; (e.currentTarget as HTMLElement).style.background = "var(--card)"; }}>
-      {/* left rail */}
-      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 2.5, background: exp.current ? "linear-gradient(180deg, var(--c1h), var(--c2h))" : "linear-gradient(180deg, rgba(var(--c1),0.3), rgba(var(--c2),0.15))", opacity: exp.current ? 0.9 : 0.35 }} />{/* legacy non-setup placeholder */}
-      <button onClick={() => setOpen(!open)} className="w-full text-left" style={{ cursor: "pointer", background: "none", border: "none", padding: 0, fontFamily: "inherit", color: "inherit" }}>
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-3">
-          <div>
-            <h3 style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 17, color: "var(--fg-a)", marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
-              {exp.role}
-              <span style={{ color: "var(--c1h)", fontSize: 11, flexShrink: 0, transition: "transform 0.3s ease", transform: open ? "rotate(90deg)" : "rotate(0deg)" }}>▶</span>
-            </h3>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span style={mono(10, "var(--c2h)", { letterSpacing: "0.12em" })}>{exp.company}</span>
-              {exp.location && <span style={mono(10, "var(--fg-c)")}>// {exp.location}</span>}
+    <div className={`tl-row ${visible ? "depth-rise" : "opacity-0"}`}
+      style={{ animationDelay: `${idx * 100}ms`, opacity: visible ? 1 : 0 }}>
+      <button onClick={() => setOpen(!open)} className="w-full text-left flex items-start gap-4 py-4"
+        style={{ cursor: "pointer", background: "none", border: "none", padding: "16px 0", fontFamily: "inherit", color: "inherit" }}>
+        <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.1em", color: "var(--c1h)", opacity: 0.75, paddingTop: 3, flexShrink: 0 }}>
+          {String(idx + 1).padStart(2, "0")}
+        </span>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-1.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h3 style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 19, color: "var(--fg-a)" }}>{exp.role}</h3>
+              <span className="transition-opacity" style={mono(10, "var(--c2h)", { letterSpacing: "0.12em" })}>{exp.company}</span>
+              {exp.location && <span style={mono(10, "var(--fg-d)")}>// {exp.location}</span>}
             </div>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {exp.current && <span style={mono(9, "var(--c1h)", { padding: "2px 8px", border: "1px solid rgba(var(--c1),0.3)", letterSpacing: "0.2em" })}>CURRENT</span>}
-            <span style={mono(9, "var(--fg-c)")}>{exp.period}</span>
+            <span className="flex items-center gap-2 flex-shrink-0">
+              {exp.current && <span style={mono(9, "var(--c1h)", { padding: "2px 8px", border: "1px solid rgba(var(--c1),0.3)", letterSpacing: "0.2em" })}>CURRENT</span>}
+              <span style={mono(10, "var(--fg-c)", { letterSpacing: "0.12em" })}>{exp.period}</span>
+              <span style={{ color: "var(--c1h)", fontSize: 10, transition: "transform 0.3s ease", transform: open ? "rotate(90deg)" : "rotate(0deg)", flexShrink: 0 }}>▶</span>
+            </span>
           </div>
         </div>
       </button>
-      <div style={{ display: "grid", gridTemplateRows: open ? "1fr" : "0fr", transition: "grid-template-rows 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+      <div style={{ display: "grid", gridTemplateRows: open ? "1fr" : "0fr", transition: "grid-template-rows 0.35s cubic-bezier(0.16,1,0.3,1)", maxWidth: 820 }}>
         <div style={{ overflow: "hidden" }}>
-          <ul className="space-y-1 mb-3">
+          <ul className="space-y-1.5 pb-3 pl-8">
             {exp.bullets.map((b, i) => (
-              <li key={i} className="flex gap-2 items-start">
-                <span style={{ color: "var(--c1h)", marginTop: 7, flexShrink: 0, fontSize: 5 }}>◆</span>
-                <span style={body(15)}>{b}</span>
+              <li key={i} className="flex gap-2.5 items-start">
+                <span style={{ color: "var(--c1h)", marginTop: 8, flexShrink: 0, fontSize: 6 }}>▎</span>
+                <span style={body(15, "var(--fg-b)")}>{b}</span>
               </li>
             ))}
           </ul>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5 pl-8 pb-4">
             {exp.tags.map((tag) => (
-              <span key={tag} style={mono(9, "var(--c2h)", { padding: "2px 8px", border: "1px solid rgba(var(--c2),0.25)" })}>{tag}</span>
+              <span key={tag} style={mono(9, "var(--fg-c)", { padding: "3px 9px", border: "1px solid rgba(var(--c1),0.14)", letterSpacing: "0.08em" })}>{tag}</span>
             ))}
           </div>
         </div>
@@ -1545,24 +1386,22 @@ function ExpEntry({ exp, idx, visible }: { exp: CmsExperience; idx: number; visi
 
 function EduEntry({ edu, idx, visible }: { edu: CmsEducation; idx: number; visible: boolean }) {
   return (
-    <div className={`relative p-5 transition-colors duration-300 ${visible ? "depth-rise" : "opacity-0"}`}
-      style={{ background: "var(--card)", border: "1px solid rgba(var(--c2),0.1)", animationDelay: `${idx * 110}ms` }}
-      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c2),0.35)"; (e.currentTarget as HTMLElement).style.background = "var(--card-hover)"; }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c2),0.1)"; (e.currentTarget as HTMLElement).style.background = "var(--card)"; }}>
+    <div className={`tl-row ${visible ? "depth-rise" : "opacity-0"}`}
+      style={{ animationDelay: `${idx * 100}ms`, opacity: visible ? 1 : 0, borderBottom: "1px solid rgba(var(--c1),0.08)", padding: "16px 0" }}>
       <p className="flex items-center gap-2 mb-2">
-        <span style={{ color: "var(--c2h)", flexShrink: 0 }}><GraduationCap size={15} /></span>
-        <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 17, color: "var(--fg-a)" }}>{edu.degree}</span>
-        {edu.current && <span style={mono(9, "var(--c2h)", { padding: "2px 8px", border: "1px solid rgba(var(--c2),0.3)", letterSpacing: "0.2em" })}>CURRENT</span>}
-        <span style={mono(9, "var(--fg-c)", { marginLeft: "auto", flexShrink: 0 })}>{edu.period}</span>
+        <span style={{ color: "var(--c2h)", flexShrink: 0 }}><GraduationCap size={16} /></span>
+        <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 19, color: "var(--fg-a)" }}>{edu.degree}</span>
+        {edu.current && <span style={mono(9, "var(--c1h)", { padding: "2px 8px", border: "1px solid rgba(var(--c1),0.3)", letterSpacing: "0.2em" })}>CURRENT</span>}
+        <span style={mono(10, "var(--fg-c)", { marginLeft: "auto", flexShrink: 0, letterSpacing: "0.12em" })}>{edu.period}</span>
       </p>
-      <p className="mb-2" style={{ ...mono(10, "var(--c1h)", { letterSpacing: "0.12em" }) }}>
+      <p className="mb-2" style={mono(10, "var(--c2h)", { letterSpacing: "0.12em" })}>
         {edu.school}
         {edu.location && <span style={{ color: "var(--fg-c)" }}> // {edu.location}</span>}
       </p>
-      <p className="mb-3" style={body(15)}>{edu.detail}</p>
+      <p className="mb-3" style={body(15, "var(--fg-b)", { maxWidth: 720 })}>{edu.detail}</p>
       <div className="flex flex-wrap gap-1.5">
         {edu.badges.map((b) => (
-          <span key={b} style={mono(9, "var(--c2h)", { padding: "2px 8px", border: "1px solid rgba(var(--c2),0.25)" })}>{b}</span>
+          <span key={b} style={mono(9, "var(--fg-c)", { padding: "3px 9px", border: "1px solid rgba(var(--c1),0.14)", letterSpacing: "0.08em" })}>{b}</span>
         ))}
       </div>
     </div>
@@ -1718,7 +1557,7 @@ export default function App() {
   const scrollTo = (id: string) => { document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); setMenuOpen(false); };
 
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ background: "var(--bg-page)", color: "var(--fg-a)", cursor: "pointer" }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ background: "var(--bg-page)", color: "var(--fg-a)" }}>
       {!booted && <BootScreen onDone={() => setBooted(true)} />}
       {/* Ambient background (static, no scroll re-renders) */}
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, background: "radial-gradient(70% 60% at 78% 22%, rgba(var(--c2),0.05), transparent 60%)" }} aria-hidden="true" />
@@ -1773,217 +1612,164 @@ export default function App() {
       </nav>
 
       {/* ── Hero ── */}
-      <section id="home" className="relative min-h-screen flex flex-col justify-center px-6 pt-20" style={{ zIndex: 10 }}>
-        <FloatingCode />
+      <section id="home" className="relative min-h-screen flex flex-col justify-center px-6 pt-24 lg:pt-20" style={{ zIndex: 10 }}>
         <div className="max-w-7xl mx-auto w-full">
-          <div className="flex items-center gap-3 mb-6 flex-wrap">
-            <span style={mono(9, "rgba(var(--c1),0.45)", { letterSpacing: "0.35em" })}>NEURAL_ID::HAZ-2026-ALA-TBN</span>
-            <div className="w-16 h-px" style={{ background: "rgba(var(--c1),0.18)" }} />
-            <span style={mono(9, "rgba(var(--c2),0.45)", { letterSpacing: "0.3em" })}>2026.08.01</span>
-            <div className="flex-1" />
-            <span className="flex items-center gap-2" style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.22em", color: "var(--c3h)", border: "1px solid rgba(var(--c3),0.35)", background: "rgba(var(--c3),0.06)", padding: "6px 12px", animation: "badge-in 0.8s cubic-bezier(0.16,1,0.3,1) 0.6s both" }}>
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--c3h)] pulse-dot" />
-              OPEN TO ROLES — NLP · LLM · AI
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16">
             {/* Left — identity, role, bio, CTAs, stats */}
             <div className="lg:col-span-7">
-              <div className="relative inline-block">
-              <h1 ref={heroNameRef} className="hero-name relative leading-none tracking-tight mb-4 select-none"
-                style={{ fontFamily: '"Orbitron", sans-serif', fontWeight: 700, fontSize: "clamp(2.2rem,7.6vw,6.4rem)", letterSpacing: "0.04em" }}>
-                <span className="name-hazem" style={{ color: "var(--fg-a)", textShadow: "0 0 10px rgba(255,255,255,0.45), 0 0 34px rgba(var(--c1),0.35)" }}>HAZEM</span><br />
-                <span className="name-hover">
-                  {"ALABIAD".split("").map((ch, i) => (
-                    <span key={i} className="name-letter" style={{ ['--i' as string]: i, ['--glass' as string]: `${18 + (i * 41) % 56}%` }}>{ch}</span>
-                  ))}
-                  <span className="name-underline"><span className="name-wave" /></span>
-                  <span className="name-caret" />
-                </span>
-                <span className="hero-name-scan" aria-hidden />
-                <span className="hero-name-scan hero-name-scan2" aria-hidden />
+              <div className="flex items-center gap-3 mb-8 flex-wrap">
+                <span style={mono(9.5, "rgba(var(--c1),0.5)", { letterSpacing: "0.3em" })}>NEURAL_ID::HAZ-2026</span>
+                <div className="w-12 h-px" style={{ background: "rgba(var(--c1),0.18)" }} />
+                <span style={mono(9.5, "var(--fg-d)", { letterSpacing: "0.28em" })}>2026.08</span>
+              </div>
+
+              <h1 ref={heroNameRef} className="relative leading-[1.02] tracking-tight mb-6 select-none"
+                style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(3.2rem,9vw,6.8rem)", letterSpacing: "0.01em" }}>
+                <span style={{ color: "var(--fg-a)" }}>Hazem</span>{" "}
+                <span style={{ color: "var(--c1h)" }}>Alabiad</span>
               </h1>
-              <div className="hidden md:block"><HUDOrbit /></div>
+
+              <div className="flex items-center gap-2.5 mb-6">
+                <span className="blink w-2 h-4" style={{ background: "var(--c1h)" }} />
+                <p style={{ ...mono(14, "var(--fg-hero)", { letterSpacing: "0.14em" }), fontSize: "clamp(14px,1.9vw,19px)" }}>{typeText}</p>
               </div>
 
-              <div className="flex items-center gap-2 mb-6">
-                <div className="blink w-2 h-5 bg-[var(--c1h)]" />
-                <p style={mono(14, "var(--fg-hero)", { letterSpacing: "0.14em", fontSize: "clamp(14px,1.9vw,19px)" })}>{typeText}</p>
-              </div>
-
-              <p ref={heroTagRef} {...ep("heroTagline", DEFAULTS.heroTagline, { ...body(21, "var(--fg-hero)"), maxWidth: 760, marginBottom: 20 })}>
+              <p ref={heroTagRef} {...ep("heroTagline", DEFAULTS.heroTagline, { ...body(19, "var(--fg-hero)"), maxWidth: 640, marginBottom: 18 })}>
                 {get("heroTagline", DEFAULTS.heroTagline)}
               </p>
 
-              <p {...ep("bio1", DEFAULTS.bio1, { ...body(16, "var(--fg-b)"), maxWidth: 720, marginBottom: 32 })}>
+              <p {...ep("bio1", DEFAULTS.bio1, { ...body(16, "var(--fg-b)"), maxWidth: 640, marginBottom: 12 })}>
                 {get("bio1", DEFAULTS.bio1)}
               </p>
+              <p {...ep("bio2", DEFAULTS.bio2, { ...body(16, "var(--fg-b)"), maxWidth: 640, marginBottom: 28 })}>
+                {get("bio2", DEFAULTS.bio2)}
+              </p>
 
-              <FocusStrip />
+              <div className="flex flex-wrap items-center gap-3 mb-8" style={{ maxWidth: 600 }}>
+                <span style={mono(9, "rgba(var(--c1),0.5)", { letterSpacing: "0.25em", textTransform: "uppercase" })}>FOCUS://</span>
+                {FOCUS_ITEMS.map((t, i) => (
+                  <span key={t} className="badge-in"
+                    style={{
+                      fontFamily: '"JetBrains Mono", monospace', fontSize: 10,
+                      letterSpacing: "0.16em", textTransform: "uppercase", padding: "5px 11px",
+                      color: "var(--fg-c)", background: "var(--chip)",
+                      animationDelay: `${i * 80}ms`, transition: "color 0.2s, background 0.2s, border-color 0.2s",
+                      border: "1px solid rgba(var(--c1),0.1)", cursor: "default",
+                    }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--c1h)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.4)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--fg-c)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.1)"; }}>
+                    {t}
+                  </span>
+                ))}
+              </div>
 
-              <div className="flex flex-wrap gap-4 mb-6">
+              <div className="flex flex-wrap gap-3.5 mb-10">
                 <MagneticWrap>
-                  <button onClick={() => scrollTo("experience")} className="flex items-center gap-3 transition-all duration-300"
-                    style={mono(10, "var(--c1h)", { padding: "12px 24px", border: "1px solid var(--c1h)", letterSpacing: "0.2em", cursor: "pointer" })}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--c1h)"; (e.currentTarget as HTMLElement).style.color = "var(--bg-page)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--c1h)"; }}>
+                  <button onClick={() => scrollTo("experience")} className="flex items-center gap-2.5 transition-all duration-300"
+                    style={mono(10, "var(--c1h)", { padding: "13px 26px", border: "1px solid rgba(var(--c1),0.55)", letterSpacing: "0.2em", cursor: "pointer" })}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(var(--c1),0.1)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--c1h)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.55)"; }}>
                     VIEW EXPERIENCE <ArrowUpRight size={13} />
                   </button>
                 </MagneticWrap>
                 <MagneticWrap>
-                  <button onClick={() => scrollTo("contact")} className="flex items-center gap-3 transition-all duration-300"
-                    style={mono(10, "var(--c2h)", { padding: "12px 24px", border: "1px solid rgba(var(--c2),0.5)", letterSpacing: "0.2em", cursor: "pointer" })}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--c2h)"; (e.currentTarget as HTMLElement).style.color = "#fff"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--c2h)"; }}>
-                    CONTACT <Mail size={13} />
+                  <button onClick={() => scrollTo("contact")} className="flex items-center gap-2.5 transition-all duration-300"
+                    style={mono(10, "var(--fg-hero)", { padding: "13px 26px", border: "1px solid rgba(var(--c1),0.22)", letterSpacing: "0.2em", cursor: "pointer" })}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.6)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.22)"; }}>
+                    CONTACT ME
                   </button>
                 </MagneticWrap>
                 <CVDownloadButton cvUrl={content.cvDataUrl} />
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-5 max-w-2xl">
                 {content.stats.map(({ to, suffix, label }) => (
-                  <div key={label} className="pl-4" style={{ borderLeft: "2px solid rgba(var(--c1),0.2)" }}>
-                    <div style={{ fontFamily: '"Audiowide", cursive', fontSize: "1.6rem", color: "var(--c1h)" }}>
+                  <div key={label} className="pl-4" style={{ borderLeft: "1px solid rgba(var(--c1),0.22)" }}>
+                    <div style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.7rem,3vw,2.2rem)", color: "var(--c1h)", lineHeight: 1 }}>
                       {suffix.startsWith("2.2") ? suffix : <CountUp to={to} suffix={suffix} />}
                     </div>
-                    <div style={mono(9, "var(--fg-c)", { letterSpacing: "0.16em", marginTop: 4, textTransform: "uppercase" as const })}>{label}</div>
+                    <div style={mono(9, "var(--fg-c)", { letterSpacing: "0.16em", marginTop: 6, textTransform: "uppercase" as const })}>{label}</div>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Right — Photo + quick facts, merged from About */}
-            <div className="lg:col-span-5 space-y-4">
-              <div className="flex justify-center lg:justify-end">
-                <div className="group relative inline-block cursor-pointer"
-                  style={{ filter: "drop-shadow(0 0 26px rgba(var(--c1),0.16))" }}>
-                  <div className="group-hover:opacity-100" style={{
-                    position: "absolute", inset: -12, borderRadius: "28px",
-                    background: "radial-gradient(circle, rgba(var(--c1),0.26) 0%, rgba(var(--c2),0.16) 45%, transparent 70%)",
-                    zIndex: 0, opacity: 0.55, transition: "opacity 0.4s ease", filter: "blur(3px)",
-                  }} />
-                  <div style={{
-                    width: 148, height: 148, borderRadius: 16, overflow: "hidden",
-                    border: "2px solid var(--bg-page)", position: "relative", zIndex: 1,
-                    background: "var(--card-photo)", transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)",
-                  }} className="group-hover:scale-105">
-                    <img
-                      src={content.photo || hazemPhoto}
-                      alt="Hazem Alabiad"
-                      loading="lazy"
-                      decoding="async"
-                      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 40%", display: "block" }}
-                    />
-                    {/* elegant blend — quiet the photo background, focus the centre */}
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(var(--bg-rgb),0.10) 0%, transparent 42%, rgba(var(--bg-rgb),0.62) 100%), radial-gradient(ellipse 78% 72% at 50% 42%, transparent 52%, rgba(var(--bg-rgb),0.5) 100%)", pointerEvents: "none" }} />
-                    {/* RGB-split glitch fringes */}
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(105deg, rgba(var(--c1),0.16), transparent 45%, transparent 55%, rgba(var(--c2),0.20))", mixBlendMode: "screen" }} />
-                    {/* CRT halftone scanlines */}
-                    <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, rgba(0,0,0,0.22) 2px, rgba(0,0,0,0.22) 3px)", mixBlendMode: "multiply" }} />
-                    {/* moving scan sweep */}
-                    <div style={{ position: "absolute", left: 0, right: 0, height: "55%", top: "-60%", background: "linear-gradient(to bottom, transparent, rgba(var(--c1),0.14) 50%, transparent)", animation: "scan-cv 5.5s linear infinite" }} />
-                    {/* targeting reticle */}
-                    <div style={{ position: "absolute", left: "50%", top: "50%", width: 44, height: 44, transform: "translate(-50%,-50%)", opacity: 0.5, pointerEvents: "none" }}>
-                      <span style={{ position: "absolute", left: 0, top: "50%", width: 8, height: 1, background: "var(--c1h)", boxShadow: "0 0 6px var(--c1h)" }} />
-                      <span style={{ position: "absolute", right: 0, top: "50%", width: 8, height: 1, background: "var(--c1h)", boxShadow: "0 0 6px var(--c1h)" }} />
-                      <span style={{ position: "absolute", top: 6, left: "50%", width: 1, height: 8, background: "var(--c1h)", boxShadow: "0 0 6px var(--c1h)" }} />
-                      <span style={{ position: "absolute", bottom: 6, left: "50%", width: 1, height: 8, background: "var(--c1h)", boxShadow: "0 0 6px var(--c1h)" }} />
+            <div className="lg:col-span-5 space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {[
+                  { Icon: MapPin, label: "Location", value: get("factLocation", DEFAULT_CONTENT.factLocation) },
+                  { Icon: GraduationCap, label: "Degree", value: get("factDegree", DEFAULT_CONTENT.factDegree) },
+                  { Icon: Briefcase, label: "Current", value: get("factCurrent", DEFAULT_CONTENT.factCurrent) },
+                  { Icon: Globe, label: "Open To", value: get("factAvailable", DEFAULT_CONTENT.factAvailable) },
+                ].map(({ Icon, label, value }) => (
+                  <div key={label} className="flex gap-3 p-4 items-start"
+                    style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.08)" }}>
+                    <Icon size={15} color="var(--c1h)" style={{ opacity: 0.8, marginTop: 1, flexShrink: 0 }} />
+                    <div>
+                      <div style={mono(8.5, "var(--fg-c)", { textTransform: "uppercase" as const, letterSpacing: "0.16em", marginBottom: 2 })}>{label}</div>
+                      <div style={body(14, "var(--fg-a)")}>{value}</div>
                     </div>
-                    {/* corner HUD brackets */}
-                    {[{ t: 6, l: 6, w: 16, h: 16, br: "4px 0 0 0", bd: "2px solid rgba(var(--c1),0.85)" },
-                      { t: 6, l: "auto", r: 6, w: 16, h: 16, br: "0 6px 0 0", bd: "2px solid rgba(var(--c2),0.85)" },
-                      { t: "auto", b: 6, l: 6, w: 16, h: 16, br: "0 0 0 4px", bd: "2px solid rgba(var(--c2),0.85)" },
-                      { t: "auto", b: 6, r: 6, w: 16, h: 16, br: "0 0 4px 0", bd: "2px solid rgba(var(--c1),0.85)" }].map((c, i) => (
-                      <span key={i} style={{ position: "absolute", top: c.t, bottom: c.b, left: c.l, right: c.r, width: c.w, height: c.h, borderTopLeftRadius: i === 0 ? 4 : 0, borderTopRightRadius: i === 1 ? 4 : 0, borderBottomLeftRadius: i === 2 ? 4 : 0, borderBottomRightRadius: i === 3 ? 4 : 0, borderTop: /top/.test(Object.keys(c).join("")) ? "none" : undefined, ...{} }} />
-                  ))}
                   </div>
-                  {/* readout strip */}
-                  <div style={{
-                    position: "absolute", left: 8, right: 8, bottom: 8, zIndex: 2, padding: "3px 7px",
-                    background: "rgba(var(--bg-rgb),0.72)", borderLeft: "1px solid rgba(var(--c1),0.5)",
-                    backdropFilter: "blur(6px)", pointerEvents: "none",
-                  }}>
-                    <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 7.5, letterSpacing: "0.18em", color: "var(--fg-b)" }}>
-                      ID:<span style={{ color: "var(--c1h)" }}>HAZ-2026</span>
-                      <span className="blink" style={{ color: "var(--c3h)", margin: "0 4px" }}>█</span>
-                      <span style={{ color: "rgba(var(--c1),0.6)" }}>SIG_OK</span>
-                    </span>
+                ))}
+              </div>
+
+              <div className="group relative cursor-pointer" style={{ filter: "drop-shadow(0 12px 40px rgba(var(--c1),0.14))" }}>
+                <div style={{
+                  width: "100%", aspectRatio: "16/10", overflow: "hidden", position: "relative",
+                  border: "1px solid rgba(var(--c1),0.18)", background: "var(--card-photo)",
+                }}>
+                  <img
+                    src={content.photo || hazemPhoto}
+                    alt="Hazem Alabiad"
+                    loading="lazy"
+                    decoding="async"
+                    style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 38%", display: "block" }}
+                  />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(var(--bg-rgb),0.06) 0%, transparent 45%, rgba(var(--bg-rgb),0.72) 100%)", pointerEvents: "none" }} />
+                  <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(0,0,0,0.16) 3px, rgba(0,0,0,0.16) 4px)", opacity: 0.5, pointerEvents: "none" }} />
+                  <div className="flex items-center gap-2" style={{ position: "absolute", left: 14, bottom: 12, zIndex: 2 }}>
+                    <span className="w-2 h-2 rounded-full" style={{ background: "var(--c3h)", boxShadow: "0 0 8px var(--c3h)", display: "inline-block" }} />
+                    <span style={mono(9, "var(--fg-a)", { letterSpacing: "0.16em" })}>HAZEM ALABIAD · ONLINE</span>
                   </div>
-                  <span style={{
-                    position: "absolute", bottom: 34, right: 6, zIndex: 2, width: 14, height: 14,
-                    borderRadius: "50%", background: "var(--c3h)", border: "3px solid var(--bg-page)",
-                    boxShadow: "0 0 10px rgba(var(--c3),0.9)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <span style={{ position: "absolute", inset: -3, borderRadius: "50%", background: "rgba(var(--c3),0.5)", animation: "pulse-dot 2s ease-out infinite" }} />
-                  </span>
                 </div>
               </div>
 
-              {/* ── Terminal / job-mode card — right under the photo ── */}
-              <div className="p-5 relative overflow-hidden" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.15)", fontFamily: '"JetBrains Mono", monospace', fontSize: 11, boxShadow: "0 0 26px rgba(var(--c1),0.06)" }}>
-                <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 2, background: "linear-gradient(90deg, transparent, rgba(var(--c1),0.28), transparent)", animation: "term-beam 7s linear infinite", pointerEvents: "none" }} />
-                <div className="flex gap-2 mb-3 items-center">
-                  <div className="w-2 h-2 rounded-full" style={{ background: "var(--red-soft)" }} />
-                  <div className="w-2 h-2 rounded-full" style={{ background: "var(--c4h)" }} />
-                  <div className="w-2 h-2 rounded-full" style={{ background: "var(--c3h)" }} />
-                  <span style={{ color: "var(--fg-c)", fontSize: 9, letterSpacing: "0.15em", marginLeft: 8 }}>
-                    hazem@tübingen:~$ <span style={{ color: "var(--c3h)" }}>./job-mode --targets</span><span className="blink" style={{ color: "var(--c1h)" }}>▌</span>
-                  </span>
+              {/* ── Job mode / availability readout ── */}
+              <div className="p-5" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.12)" }}>
+                <div className="flex items-center gap-3 mb-4 pb-3" style={{ borderBottom: "1px solid rgba(var(--c1),0.08)" }}>
+                  <span style={{ color: "var(--fg-c)", fontSize: 9.5, letterSpacing: "0.18em" }}>hazem@tübingen</span>
+                  <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9.5, color: "var(--c3h)", letterSpacing: "0.15em" }}>./job-mode --status</span>
                 </div>
-                <div style={{ lineHeight: 2 }}>
-                  <div style={{ color: "rgba(var(--c1),0.75)", letterSpacing: "0.22em", fontSize: 9, marginBottom: 3 }}>ROLES_LOOKING_FOR:</div>
+                <div className="space-y-2.5">
                   {[
                     { t: "NLP Engineer", p: true },
                     { t: "LLM / AI Engineer", p: false },
                     { t: "Research Engineer · AI/CompLing", p: false },
                     { t: "Full-Stack Engineer", p: false },
                   ].map((r, i) => (
-                    <div key={r.t} style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
-                      <span style={{ color: "var(--c2h)" }}>[{i + 1}]</span>
-                      <span style={{ color: "var(--fg-a)" }}>{r.t}</span>
-                      {r.p && <span style={{ color: "var(--c3h)" }}>← priority</span>}
+                    <div key={r.t} className="flex items-center gap-2.5">
+                      <span style={mono(9.5, "var(--fg-d)", { letterSpacing: "0.1em" })}>{String(i + 1).padStart(2, "0")}</span>
+                      <span style={mono(11.5, "var(--fg-hero)", { lineHeight: 1.6 })}>{r.t}</span>
+                      {r.p && <span style={mono(9, "var(--c3h)", { letterSpacing: "0.14em", marginLeft: "auto" })}>← PRIORITY</span>}
                     </div>
                   ))}
-                  <div style={{ marginTop: 8 }}>
-                    <div><span style={{ color: "var(--c2h)" }}>availability</span> <span style={{ color: "var(--fg-a)" }}>=</span> <span style={{ color: "var(--c3h)" }}>"Immediately"</span></div>
-                    <div><span style={{ color: "var(--c2h)" }}>location</span> <span style={{ color: "var(--fg-a)" }}>=</span> <span style={{ color: "var(--c3h)" }}>"{get("factLocation", DEFAULT_CONTENT.factLocation)}"</span></div>
-                    <div><span style={{ color: "var(--c2h)" }}>open_to</span> <span style={{ color: "var(--fg-a)" }}>=</span> <span style={{ color: "var(--c1h)" }}>["Full-time", "Working Student", "Remote"]</span></div>
-                    <div><span style={{ color: "var(--c2h)" }}>status</span> <span style={{ color: "var(--fg-a)" }}>=</span> <span style={{ color: "var(--c4h)" }}>"Open to opportunities"</span></div>
-                  </div>
                 </div>
-              </div>
-
-<div className="grid grid-cols-2 gap-3">
-                {[
-                  { Icon: MapPin, label: "Location", value: get("factLocation", DEFAULT_CONTENT.factLocation) },
-                  { Icon: GraduationCap, label: "Degree", value: get("factDegree", DEFAULT_CONTENT.factDegree) },
-                  { Icon: Briefcase, label: "Current Role", value: get("factCurrent", DEFAULT_CONTENT.factCurrent) },
-                  { Icon: Globe, label: "Available", value: get("factAvailable", DEFAULT_CONTENT.factAvailable) },
-                ].map(({ Icon, label, value }) => (
-                  <div key={label} className="grid grid-cols-1 gap-1 p-3 transition-all duration-300"
-                    style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.28)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(var(--c1),0.07)")}>
-                    <div className="flex items-center gap-1.5" style={{ color: "var(--fg-d)" }}>
-                      <Icon size={11} style={{ color: "var(--c1h)", opacity: 0.7 }} />
-                      <div style={mono(8.5, "var(--fg-c)", { textTransform: "uppercase" as const, letterSpacing: "0.16em" })}>{label}</div>
-                    </div>
-                    <div style={body(13.5, "var(--fg-a)")}>{value}</div>
-                  </div>
-                ))}
+                <div className="mt-4 pt-3 grid grid-cols-2 gap-x-4 gap-y-1.5" style={{ borderTop: "1px solid rgba(var(--c1),0.08)" }}>
+                  <div style={mono(9.5, "var(--fg-b)", { letterSpacing: "0.1em" })}><span style={{ color: "var(--c2h)" }}>availability</span><span style={{ color: "var(--fg-a)" }}> = </span><span style={{ color: "var(--c3h)" }}>"Immediately"</span></div>
+                  <div style={mono(9.5, "var(--fg-b)", { letterSpacing: "0.1em" })}><span style={{ color: "var(--c2h)" }}>location</span><span style={{ color: "var(--fg-a)" }}> = </span><span style={{ color: "var(--c3h)" }}>"{get("factLocation", DEFAULT_CONTENT.factLocation)}"</span></div>
+                  <div style={mono(9.5, "var(--fg-b)", { letterSpacing: "0.1em" })}><span style={{ color: "var(--c2h)" }}>open_to</span><span style={{ color: "var(--fg-a)" }}> = </span><span style={{ color: "var(--c1h)" }}>["Full-time","Remote"]</span></div>
+                  <div style={mono(9.5, "var(--fg-b)", { letterSpacing: "0.1em" })}><span style={{ color: "var(--c2h)" }}>status</span><span style={{ color: "var(--fg-a)" }}> = </span><span style={{ color: "var(--c4h)" }}>"Open to opportunities"</span></div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <div className="float absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2" style={{ color: "rgba(var(--c1),0.35)" }}>
+        <div className="flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-1.5" style={{ color: "rgba(var(--c1),0.35)" }}>
           <span style={mono(9, "rgba(var(--c1),0.35)", { letterSpacing: "0.3em" })}>SCROLL</span>
           <ChevronDown size={14} />
         </div>
-        <div className="absolute top-24 right-8 w-24 h-24 pointer-events-none" style={{ borderTop: "1px solid rgba(var(--c1),0.12)", borderRight: "1px solid rgba(var(--c1),0.12)" }} />
-        <div className="absolute bottom-20 left-8 w-24 h-24 pointer-events-none" style={{ borderBottom: "1px solid rgba(var(--c2),0.12)", borderLeft: "1px solid rgba(var(--c2),0.12)" }} />
       </section>
 
       <ImpactStrip />
@@ -2025,62 +1811,44 @@ export default function App() {
             <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2.1rem,5vw,3.4rem)", color: "var(--fg-a)" }}>
               Research <span style={{ color: "var(--c1h)" }}>& Projects</span>
             </WipeHeading>
-            <Spotlight className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <Spotlight className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 {content.projects.map((proj, pidx) => {
                 const ProjIcon = [Brain, Code2, Database, GraduationCap, Globe, Briefcase][pidx % 6];
                 const projColor = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)"][pidx % 4];
                 const projHex = ["var(--c1h)", "var(--c2h)", "var(--c3h)", "var(--c4h)"][pidx % 4];
                 const sc: Record<string, string> = { RESEARCH: "var(--c2h)", COMPLETE: "var(--c3h)", ACTIVE: "var(--c1h)", BETA: "var(--c4h)" };
                 return (
-                  <TiltCard key={proj.id || proj.name} className={projectsR.visible ? "slide-up-item" : ""} style={{ animationDelay: `${pidx * 120}ms` }}>
-                  <div className="relative p-5 overflow-hidden transition-all duration-300 group"
-                    style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)", height: "100%", display: "flex", flexDirection: "column" }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.35)"; (e.currentTarget as HTMLElement).style.background = "var(--card-hover)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.07)"; (e.currentTarget as HTMLElement).style.background = "var(--card)"; }}>
-                    {/* top accent hairline */}
-                    <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 2, background: `linear-gradient(90deg, ${projHex}, transparent)`, opacity: 0.35, transition: "opacity 0.4s ease" }} />
-                    {/* ghost index */}
-                    <span aria-hidden style={{ position: "absolute", top: 6, right: 10, fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 34, lineHeight: 1, color: "transparent", WebkitTextStroke: "1px rgba(var(--c1),0.15)", userSelect: "none", pointerEvents: "none" }}>
-                      {String(pidx + 1).padStart(2, "0")}
-                    </span>
-                    {/* shimmer sweep on hover */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300" style={{ overflow: "hidden" }}>
-                      <div style={{ position: "absolute", top: 0, bottom: 0, width: "50%", background: "linear-gradient(90deg, transparent, rgba(var(--c1),0.04), transparent)", animation: "shimmer-sweep 1.2s ease infinite" }} />
-                    </div>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="flex items-center justify-center flex-shrink-0" style={{ width: 34, height: 34, border: `1px solid rgba(${projColor},0.22)`, color: projHex, background: `rgba(${projColor},0.05)` }}>
-                        <ProjIcon size={15} />
-                      </div>
-                      <h3 className="flex-1 transition-colors duration-200 leading-tight" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 18, color: "var(--fg-a)" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--c1h)")}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--fg-a)")}>
-                        {proj.name}
-                      </h3>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="flex items-center gap-1.5" style={mono(9, sc[proj.status] || "var(--c4h)", { padding: "2px 8px", border: "1px solid rgba(var(--c1),0.19)", letterSpacing: "0.2em" })}>
-                          <span style={{ width: 5, height: 5, borderRadius: "50%", background: sc[proj.status] || "var(--c4h)", boxShadow: `0 0 5px ${sc[proj.status] || "var(--c4h)"}`, display: "inline-block" }} />
-                          {proj.status}
-                        </span>
+                  <div key={proj.id || proj.name} className={`transition-all duration-300 ${projectsR.visible ? "slide-up-item" : "opacity-0"}`} style={{ animationDelay: `${pidx * 120}ms` }}>
+                  <div className="flex flex-col h-full p-5 transition-colors duration-300"
+                    style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.08)" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.4)"; (e.currentTarget as HTMLElement).style.background = "var(--card-hover)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.08)"; (e.currentTarget as HTMLElement).style.background = "var(--card)"; }}>
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.1em", color: "var(--fg-d)" }}>{String(pidx + 1).padStart(2, "0")}</span>
+                      <div className="flex items-center gap-2">
+                        <span style={mono(9, sc[proj.status] || "var(--c4h)", { padding: "2px 8px", border: "1px solid rgba(var(--c1),0.14)", letterSpacing: "0.18em" })}>{proj.status}</span>
                         <span style={mono(9, "var(--fg-c)")}>{proj.year}</span>
                       </div>
                     </div>
-                    <p className="mb-3" style={{ ...body(14), flex: 1 }}>{proj.desc}</p>
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div className="flex flex-wrap gap-1.5">
-                        {proj.tags.map((tag) => (
-                          <span key={tag} style={mono(9, "var(--fg-c)", { padding: "2px 7px", background: "var(--chip)" })}>{tag}</span>
-                        ))}
-                      </div>
-                      <a href={proj.link} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 transition-opacity hover:opacity-100"
-                        style={mono(9, "var(--c1h)", { opacity: 0.5, textDecoration: "none", letterSpacing: "0.15em", whiteSpace: "nowrap", flexShrink: 0 })}>
-                        <Github size={11} /> VIEW ON GITHUB
-                      </a>
+                    <div className="flex items-center gap-2.5 mb-3">
+                      <span style={{ color: projHex }}><ProjIcon size={15} strokeWidth={1.6} /></span>
+                      <h3 style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: 17.5, color: "var(--fg-a)", letterSpacing: "0.02em" }}>{proj.name}</h3>
                     </div>
-                    <div className="absolute bottom-0 right-0 w-8 h-8 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderBottom: "1px solid rgba(var(--c1),0.18)", borderRight: "1px solid rgba(var(--c1),0.18)" }} />
-                    <div className="absolute top-0 left-0 w-8 h-8 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderTop: "1px solid rgba(var(--c1),0.18)", borderLeft: "1px solid rgba(var(--c1),0.18)" }} />
+                    <p className="mb-4 flex-1" style={body(14, "var(--fg-b)", { lineHeight: 1.6 })}>{proj.desc}</p>
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {proj.tags.slice(0, 5).map((tag) => (
+                        <span key={tag} style={mono(9, "var(--fg-c)", { padding: "2px 7px", background: "var(--chip)" })}>{tag}</span>
+                      ))}
+                    </div>
+                    <a href={proj.link} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 transition-opacity"
+                      style={mono(9, "var(--c1h)", { textDecoration: "none", letterSpacing: "0.14em", opacity: 0.7 })}
+                      onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                      onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.7")}>
+                      <Github size={11} /> VIEW ON GITHUB
+                    </a>
                   </div>
-                  </TiltCard>
+                  </div>
                 );
               })}
             </Spotlight>
@@ -2114,37 +1882,34 @@ export default function App() {
                 </div>
               </div>
             </Spotlight>
-            <div className="mt-6 pt-4" style={{ borderTop: "1px solid rgba(var(--c1),0.08)" }}>
-              <div style={mono(9, "rgba(var(--c1),0.45)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>SPOKEN_LANGUAGES</div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="mt-8">
+              <div style={mono(9, "rgba(var(--c1),0.5)", { marginBottom: 16, textTransform: "uppercase" as const, letterSpacing: "0.26em" })}>SPOKEN_LANGUAGES</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-6">
                 {content.languages.map((lang, i) => {
                   const L = lang.level.toLowerCase();
                   const pct = L.includes("native") ? 100 : L.includes("profic") ? 75 : L.includes("fluent") ? 85 : L.includes("beginner") ? 40 : 60;
-                  const filled = Math.round((pct / 100) * 8);
                   return (
-                    <div key={lang.id} className="px-4 py-2.5" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.1)" }}>
+                    <div key={lang.id}>
                       <div className="flex items-center justify-between mb-2">
-                        <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 19, color: "var(--fg-a)" }}>{lang.name}</span>
-                        <span style={mono(8.5, pct >= 75 ? "var(--c1h)" : "var(--fg-c)", { letterSpacing: "0.14em" })}>{lang.level.toUpperCase()}</span>
+                        <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 18, color: "var(--fg-a)" }}>{lang.name}</span>
+                        <span style={mono(9, pct >= 75 ? "var(--c1h)" : "var(--fg-c)", { letterSpacing: "0.14em" })}>{lang.level.toUpperCase()}</span>
                       </div>
-                      <div className="flex gap-1" style={{ opacity: skillsR.visible ? 1 : 0, transition: "opacity 0.5s ease", transitionDelay: `${i * 90}ms` }}>
-                        {Array.from({ length: 8 }).map((_, k) => (
-                          <span key={k} style={{ flex: 1, height: 3, background: k < filled ? "linear-gradient(90deg, var(--c1h), var(--c2h))" : "var(--chip)", transition: "background 0.5s ease", transitionDelay: `${i * 90 + k * 50}ms`, boxShadow: k < filled ? "0 0 5px rgba(var(--c1),0.3)" : "none" }} />
-                        ))}
+                      <div className="skill-track" aria-hidden>
+                        <i style={{ width: skillsR.visible ? `${pct}%` : 0, transition: `width 0.9s cubic-bezier(0.16,1,0.3,1) ${i * 90}ms` }} />
                       </div>
                     </div>
                   );
                 })}
               </div>
             </div>
-            <div className="mt-6">
-              <div style={mono(9, "rgba(var(--c1),0.45)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>TOOLCHAIN & WORKFLOW</div>
+            <div className="mt-8">
+              <div style={mono(9, "rgba(var(--c1),0.5)", { marginBottom: 16, textTransform: "uppercase" as const, letterSpacing: "0.26em" })}>TOOLCHAIN & WORKFLOW</div>
               <div className="flex flex-wrap gap-2">
                 {["Docker", "Linux", "Git", "CI/CD", "Figma", "REST API", "WebSocket", "GraphQL", "Jest", "Cypress", "Playwright", "Vite", "Next.js", "Elasticsearch", "MySQL", "Redux", "Agile / Scrum", "Code Review", "E2E Testing"].map((t, ti) => (
-                  <span key={t} className="transition-all duration-300"
-                    style={{ ...mono(9, "var(--fg-b)", { padding: "9px 16px", border: "1px solid rgba(var(--c1),0.14)", letterSpacing: "0.14em", background: "var(--card)" }), opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(8px)", transition: `opacity 0.5s ease ${ti * 40}ms, transform 0.5s ease ${ti * 40}ms, border-color 0.3s ease`, cursor: "default" }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.6)"; (e.currentTarget as HTMLElement).style.color = "var(--c1h)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.14)"; (e.currentTarget as HTMLElement).style.color = "var(--fg-b)"; }}>
+                  <span key={t}
+                    style={{ ...mono(9.5, "var(--fg-b)", { padding: "8px 15px", border: "1px solid rgba(var(--c1),0.12)", letterSpacing: "0.12em", background: "var(--card)" }), opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(8px)", transition: `opacity 0.5s ease ${ti * 40}ms, transform 0.5s ease ${ti * 40}ms, border-color 0.25s ease, color 0.25s ease`, cursor: "default" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.45)"; (e.currentTarget as HTMLElement).style.color = "var(--c1h)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.12)"; (e.currentTarget as HTMLElement).style.color = "var(--fg-b)"; }}>
                     {t}
                   </span>
                 ))}

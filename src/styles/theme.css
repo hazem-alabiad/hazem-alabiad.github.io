@@ -305,66 +305,64 @@
   }
 }
 
-/* ─── Design lift: ghost section numerals, framed sections, band cells ─────── */
+/* ─── Calm-precision console system ─────────────────────────────────────────
+ * Rebuild after readability review. Keeps the OS/terminal DNA (mono microcopy,
+ * module numbering, accent tokens) but drops overlapping decorative layers:
+ * ghost numerals, floating code, HUD orbits, 3D tilt cards, per-card sparkle.
+ */
 
-.section-shell {
-  position: relative;
+button,
+[role="button"] {
+  cursor: pointer;
 }
-.section-shell::before {
+
+/* Section label rule — a plain hairline that grows in on reveal. */
+.module-rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(var(--c1), 0.4), rgba(var(--c1), 0.06) 70%, transparent);
+  transform-origin: left;
+}
+
+/* Console frame — hero identity panel. One offset hairline, no glow spray. */
+.console-frame {
+  position: relative;
+  background: linear-gradient(180deg, rgba(var(--c1), 0.03), transparent 26%), var(--card);
+  border: 1px solid rgba(var(--c1), 0.16);
+}
+.console-frame::before {
   content: "";
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  border: 1px solid rgba(var(--c1), 0.06);
-  border-radius: 4px;
-  transform: translate(-14px, 14px);
-}
-
-.ghost-index {
-  position: absolute;
-  top: -1.6rem;
-  right: -0.25rem;
-  z-index: 0;
-  font-family: "Rajdhani", sans-serif;
-  font-weight: 700;
-  font-size: clamp(6rem, 16vw, 15rem);
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(var(--c1), 0.14);
-  user-select: none;
-  pointer-events: none;
-}
-[data-theme="light"] .ghost-index {
-  -webkit-text-stroke: 1px rgba(12, 108, 255, 0.16);
-}
-
-.section-frame {
-  position: relative;
-  border: 1px solid rgba(var(--c1), 0.08);
-  background: linear-gradient(180deg, rgba(var(--c1), 0.03), transparent 40%);
-  padding: 1px;
-}
-.section-frame > .sf-corner {
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  border-color: rgba(var(--c1), 0.5);
-  border-style: solid;
+  border: 1px solid rgba(var(--c1), 0.07);
+  transform: translate(7px, 7px);
   pointer-events: none;
 }
 
-.impact-cell {
-  position: relative;
-  border-left: 2px solid rgba(var(--c1), 0.18);
-  padding: 0.4rem 1rem 0.4rem 1.25rem;
-  transition: border-color 0.3s ease, background 0.3s ease;
+/* Timeline-style rows (experience) — hover nudges, no boxed cards. */
+.tl-row {
+  transition: background 0.25s ease, padding-left 0.25s ease, opacity 0.8s ease, transform 0.8s ease;
 }
-.impact-cell:hover {
-  border-left-color: rgba(var(--c1), 0.85);
-  background: linear-gradient(90deg, rgba(var(--c1), 0.06), transparent);
+.tl-row:hover {
+  background: rgba(var(--c1), 0.035);
+  padding-left: 6px;
+}
+
+/* Single skill track — filled by width, not masked segments. */
+.skill-track {
+  height: 7px;
+  background: var(--chip);
+  overflow: hidden;
+}
+.skill-track > i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--c1h), var(--c2h));
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ghost-index { animation: none; }
+  .console-frame::before { display: none; }
+  .tl-row { transition: none; }
 }
