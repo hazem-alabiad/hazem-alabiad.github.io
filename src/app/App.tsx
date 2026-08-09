@@ -1401,7 +1401,7 @@ function Spotlight({ children, className, style }: { children: React.ReactNode; 
           transition: "opacity 0.2s",
         }} />
       )}
-      <div style={{ position: "relative", zIndex: 1 }}>{children}</div>
+      <div style={{ position: "relative", zIndex: 1, display: "contents" }}>{children}</div>
     </div>
   );
 }
@@ -1730,42 +1730,44 @@ export default function App() {
             <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2.1rem,5vw,3.4rem)", color: "var(--fg-a)" }}>
               Research <span style={{ color: "var(--c1h)" }}>& Projects</span>
             </WipeHeading>
-            <Spotlight className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-{content.projects.map((proj, pidx) => {
+            <Spotlight className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {content.projects.map((proj, pidx) => {
                 const ProjIcon = [Brain, Code2, Database, GraduationCap, Globe, Briefcase][pidx % 6];
                 const projColor = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)"][pidx % 4];
                 const projHex = ["var(--c1h)", "var(--c2h)", "var(--c3h)", "var(--c4h)"][pidx % 4];
                 const sc: Record<string, string> = { RESEARCH: "var(--c2h)", COMPLETE: "var(--c3h)", ACTIVE: "var(--c1h)", BETA: "var(--c4h)" };
                 return (
                   <div key={proj.id || proj.name} className={`transition-all duration-300 ${projectsR.visible ? "slide-up-item" : "opacity-0"}`} style={{ animationDelay: `${pidx * 120}ms` }}>
-                  <div className="flex flex-col h-full p-5 transition-colors duration-300"
+                  <div className="flex flex-col h-full p-6 transition-colors duration-300"
                     style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.08)" }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.4)"; (e.currentTarget as HTMLElement).style.background = "var(--card-hover)"; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.08)"; (e.currentTarget as HTMLElement).style.background = "var(--card)"; }}>
-                    <div className="flex items-start justify-between gap-2 mb-3">
+                    <div className="flex items-center justify-between gap-2 mb-4">
                       <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.1em", color: "var(--fg-d)" }}>{String(pidx + 1).padStart(2, "0")}</span>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
                         <span style={mono(9, sc[proj.status] || "var(--c4h)", { padding: "2px 8px", border: "1px solid rgba(var(--c1),0.14)", letterSpacing: "0.18em" })}>{proj.status}</span>
                         <span style={mono(9, "var(--fg-c)")}>{proj.year}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2.5 mb-3">
-                      <span style={{ color: projHex }}><ProjIcon size={15} strokeWidth={1.6} /></span>
-                      <h3 style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: 17.5, color: "var(--fg-a)", letterSpacing: "0.02em" }}>{proj.name}</h3>
+                    <div className="flex items-center gap-3 mb-3.5">
+                      <span className="flex-shrink-0" style={{ color: projHex }}><ProjIcon size={16} strokeWidth={1.6} /></span>
+                      <h3 style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: 18, color: "var(--fg-a)", letterSpacing: "0.02em" }}>{proj.name}</h3>
                     </div>
-                    <p className="mb-4 flex-1" style={body(14, "var(--fg-b)", { lineHeight: 1.6 })}>{proj.desc}</p>
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {proj.tags.slice(0, 5).map((tag) => (
-                        <span key={tag} style={mono(9, "var(--fg-c)", { padding: "2px 7px", background: "var(--chip)" })}>{tag}</span>
-                      ))}
+                    <p className="mb-5 flex-1" style={{ ...body(14, "var(--fg-b)", { lineHeight: 1.6 }), minHeight: 0 }}>{proj.desc}</p>
+                    <div className="flex items-end justify-between gap-3">
+                      <div className="flex flex-wrap gap-1.5">
+                        {proj.tags.slice(0, 5).map((tag) => (
+                          <span key={tag} style={mono(9, "var(--fg-c)", { padding: "2px 7px", background: "var(--chip)" })}>{tag}</span>
+                        ))}
+                      </div>
+                      <a href={proj.link} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 transition-opacity flex-shrink-0"
+                        style={mono(9, "var(--c1h)", { textDecoration: "none", letterSpacing: "0.14em", opacity: 0.7 })}
+                        onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                        onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.7")}>
+                        <Github size={11} /> VIEW ON GITHUB
+                      </a>
                     </div>
-                    <a href={proj.link} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 transition-opacity"
-                      style={mono(9, "var(--c1h)", { textDecoration: "none", letterSpacing: "0.14em", opacity: 0.7 })}
-                      onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-                      onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.7")}>
-                      <Github size={11} /> VIEW ON GITHUB
-                    </a>
                   </div>
                   </div>
                 );
