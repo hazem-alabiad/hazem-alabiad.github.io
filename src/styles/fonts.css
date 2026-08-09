@@ -63,6 +63,22 @@
 }
 .slide-up-item { animation: slide-up 0.6s ease both; }
 
+/* ── Marquee keyword strip (single, under hero) ── */
+@keyframes marquee-x {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.kicker-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+.kicker-track > * { flex-shrink: 0; }
+.kicker-wrap:hover .kicker-track { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .kicker-track { animation: none !important; }
+}
+
 /* ── Scroll progress bar ── */
 @keyframes none {}
 

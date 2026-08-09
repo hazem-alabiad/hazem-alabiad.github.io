@@ -356,9 +356,13 @@ function SectionLabel({ num, label }: { num: string; label: string }) {
   }, []);
   return (
     <div ref={ref} className="relative flex items-center gap-4 mb-4">
-      <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 15, fontWeight: 700, color: "var(--c1h)", letterSpacing: "0.08em", opacity: vis ? 1 : 0, transition: "opacity 0.6s ease" }}>
-        {num}
-      </span>
+      <div className="console-frame flex items-center" style={{ position: "relative" }}>
+        <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 15, fontWeight: 700, color: "var(--c1h)", letterSpacing: "0.08em", opacity: vis ? 1 : 0, transition: "opacity 0.6s ease" }}>
+          {num}
+        </span>
+        <span className="br-tl" />
+        <span className="br-br" />
+      </div>
       <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.28em", color: "var(--fg-hero)", textTransform: "uppercase", opacity: vis ? 1 : 0, transform: vis ? "translateY(0)" : "translateY(6px)", transition: "opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s" }}>
         {label}
       </span>
@@ -402,6 +406,32 @@ function CountUp({ to, suffix = "", duration = 1400 }: { to: number; suffix?: st
 
 // ─── Impact strip ───────────────────────────────────────────────────────
 
+// ─── CV keyword marquee (single; one per page, under hero) ─────────────────────
+
+const KICKER_WORDS = [
+  "NLP", "LLMs", "React", "TypeScript", "GraphQL", "Node.js", "Elasticsearch",
+  "Python", "TensorFlow", "Docker", "Cypress", "Puppeteer", "Playwright", "Jest",
+  "Computational Linguistics", "Machine Learning", "Data Engineering", "Apollo Federation",
+];
+
+function KeywordMarquee() {
+  const pair = [...KICKER_WORDS, ...KICKER_WORDS];
+  return (
+    <div className="kicker-wrap relative overflow-hidden" style={{
+      borderTop: "1px solid rgba(var(--c1),0.07)", borderBottom: "1px solid rgba(var(--c1),0.07)",
+      background: "linear-gradient(180deg, rgba(var(--c1),0.03), transparent 55%)",
+    }} aria-hidden="true">
+      <div className="kicker-track" style={{ animation: `marquee-x 38s linear infinite` }}>
+        {pair.map((w, i) => (
+          <span key={i} style={{ ...mono(11, i % 2 === 0 ? "var(--fg-c)" : "var(--c1h)", { letterSpacing: "0.26em" }), padding: "14px 34px", whiteSpace: "nowrap" }}>
+            {w}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ImpactStrip() {
   const { ref, visible } = useReveal(0.15);
   const cells = [
@@ -411,12 +441,16 @@ function ImpactStrip() {
     { to: 70, suffix: "%+", label: "TEST COVERAGE", sub: "Enforced via Jest / Cypress / Playwright" },
   ];
   return (
-    <div ref={ref} className="px-6 py-12" style={{ zIndex: 10, position: "relative", borderTop: "1px solid rgba(var(--c1),0.08)", borderBottom: "1px solid rgba(var(--c1),0.08)" }}>
+    <div ref={ref} className="px-6 py-12" style={{ zIndex: 10, position: "relative", borderTop: "1px solid rgba(var(--c1),0.08)", borderBottom: "1px solid rgba(var(--c1),0.08)", background: "linear-gradient(180deg, rgba(var(--c1),0.02), transparent 60%)" }}>
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-8 gap-y-8"
           style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(24px)", transition: "opacity 0.9s ease, transform 0.9s ease" }}>
           {cells.map((c, i) => (
             <div key={c.label} className={i > 0 ? "xl:border-l xl:border-[rgba(var(--c1),0.09)] xl:pl-8" : ""}>
+              <div className="flex items-center gap-2 mb-3">
+                <span style={mono(9, "var(--fg-d)", { letterSpacing: "0.24em" })}>{String(i + 1).padStart(2, "0")}/{String(cells.length).padStart(2, "0")}</span>
+                <span style={{ height: 1, width: 18, background: `var(${["--c1", "--c2", "--c3", "--c4"][i]})`, opacity: 0.5, display: "inline-block" }} />
+              </div>
               <div style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2.6rem,5vw,3.6rem)", color: "var(--c1h)", letterSpacing: "0.01em", lineHeight: 1 }}>
                 {c.suffix.startsWith(".") ? (
                   <span><CountUp to={c.to} suffix={c.suffix} /></span>
@@ -1255,12 +1289,11 @@ function ExpEntry({ exp, idx, visible }: { exp: CmsExperience; idx: number; visi
   const [open, setOpen] = useState(idx === 0);
   return (
     <div className={`tl-row ${visible ? "depth-rise" : "opacity-0"}`}
-      style={{ animationDelay: `${idx * 100}ms`, opacity: visible ? 1 : 0 }}>
+      style={{ animationDelay: `${idx * 100}ms`, opacity: visible ? 1 : 0, position: "relative", paddingLeft: 28 }}>
+      <span style={{ position: "absolute", left: 0, top: 22, bottom: 6, width: 1, background: "linear-gradient(180deg, var(--c1h), rgba(var(--c1),0.08))", opacity: 0.5 }} />
+      <span style={{ position: "absolute", left: -3, top: 24, width: 7, height: 7, borderRadius: "50%", background: "var(--bg-page)", border: "1.5px solid var(--c1h)", boxShadow: "0 0 8px rgba(var(--c1),0.4)" }} />
       <button onClick={() => setOpen(!open)} className="w-full text-left flex items-start gap-4 py-4"
         style={{ cursor: "pointer", background: "none", border: "none", padding: "16px 0", fontFamily: "inherit", color: "inherit" }}>
-        <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.1em", color: "var(--c1h)", opacity: 0.75, paddingTop: 3, flexShrink: 0 }}>
-          {String(idx + 1).padStart(2, "0")}
-        </span>
         <div className="flex-1 min-w-0">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-1.5">
             <div className="flex items-center gap-2.5 flex-wrap">
@@ -1702,14 +1735,14 @@ export default function App() {
             {/* Right — Photo + Enhanced Terminal */}
             <div className="lg:col-span-5 space-y-5">
               {/* Photo — smaller, professional frame */}
-              <div className="group relative cursor-pointer console-frame" style={{ filter: "drop-shadow(0 16px 48px rgba(0,0,0,0.35))" }}>
-                <div className="br-tl" />
-                <div className="br-br" />
-                <div style={{
+              <div className="group relative cursor-pointer" style={{ filter: "drop-shadow(0 16px 48px rgba(0,0,0,0.35))" }}>
+                <div className="console-frame" style={{
                   width: "100%", aspectRatio: "4/5", maxWidth: 320, margin: "0 auto", overflow: "hidden", position: "relative",
                   border: "1px solid rgba(var(--c1),0.18)", background: "var(--card-photo)",
                   borderRadius: 2,
                 }}>
+                  <div className="br-tl" />
+                  <div className="br-br" />
                   <img
                     src={content.photo || hazemPhoto}
                     alt="Hazem Alabiad"
@@ -1738,6 +1771,7 @@ export default function App() {
       </section>
 
       <ImpactStrip />
+      <KeywordMarquee />
 
       {/* ── Experience ── */}
       <section id="experience" className="relative py-16 lg:py-20 px-6" style={{ zIndex: 10 }}>
@@ -1833,7 +1867,7 @@ export default function App() {
               Technical <span style={{ color: "var(--c2h)" }}>Proficiencies</span>
             </WipeHeading>
             <Spotlight className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12">
-              <div>
+              <div className="console-frame p-6" style={{ border: "1px solid rgba(var(--c1),0.1)", background: "var(--card)" }}>
                 <div style={mono(9, "rgba(var(--c1),0.45)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>FULL_STACK_ENGINEERING</div>
                 <div>
                   {content.skills.filter((s) => s.cat === "stack").map((s, i) => (
@@ -1841,7 +1875,7 @@ export default function App() {
                   ))}
                 </div>
               </div>
-              <div>
+              <div className="console-frame p-6" style={{ border: "1px solid rgba(var(--c1),0.1)", background: "var(--card)" }}>
                 <div style={mono(9, "rgba(var(--c2),0.45)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>AI_NLP_RESEARCH</div>
                 <div>
                   {content.skills.filter((s) => s.cat === "ai").map((s, i) => (
