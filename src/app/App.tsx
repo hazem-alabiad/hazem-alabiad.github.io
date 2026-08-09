@@ -3,7 +3,7 @@ import hazemPhoto from "@/imports/ADB3B9AC-C855-4126-A54C-3D6BF8705288.jpeg";
 // @ts-ignore
 import cvPdf from "@/imports/Hazem-Alabiad-CV.pdf";
 import CmsEditor from "@/CmsEditor";
-import { loadContent, saveContent, resetContent, DEFAULT_CONTENT, type CmsContent, type CmsExperience } from "@/cms";
+import { loadContent, saveContent, resetContent, DEFAULT_CONTENT, type CmsContent, type CmsExperience, type CmsEducation } from "@/cms";
 import {
   Github,
   Mail,
@@ -36,18 +36,7 @@ import {
 
 // ─── Scroll hooks ─────────────────────────────────────────────────────────────
 
-function useScrollProgress() {
-  const [p, setP] = useState(0);
-  useEffect(() => {
-    const fn = () => {
-      const h = document.documentElement.scrollHeight - window.innerHeight;
-      setP(h > 0 ? window.scrollY / h : 0);
-    };
-    window.addEventListener("scroll", fn, { passive: true });
-    return () => window.removeEventListener("scroll", fn);
-  }, []);
-  return p;
-}
+
 
 function useActiveSection(ids: readonly string[]) {
   const [active, setActive] = useState(ids[0] ?? "");
@@ -61,86 +50,38 @@ function useActiveSection(ids: readonly string[]) {
   return active;
 }
 
-function useScrollVelocity() {
-  const vel = useRef(0);
-  const last = useRef(0);
-  const raf  = useRef(0);
-  useEffect(() => {
-    const fn = () => {
-      vel.current = window.scrollY - last.current;
-      last.current = window.scrollY;
-    };
-    window.addEventListener("scroll", fn, { passive: true });
-    const decay = () => { vel.current *= 0.85; raf.current = requestAnimationFrame(decay); };
-    raf.current = requestAnimationFrame(decay);
-    return () => { window.removeEventListener("scroll", fn); cancelAnimationFrame(raf.current); };
-  }, []);
-  return vel;
-}
-
-// ─── Custom cursor ─────────────────────────────────────────────────────────────
-
-function CustomCursor() {
-  const dotRef  = useRef<HTMLDivElement>(null);
-  const ringRef = useRef<HTMLDivElement>(null);
-  const pos  = useRef({ x: -200, y: -200 });
-  const lag  = useRef({ x: -200, y: -200 });
-  const vel  = useRef({ x: 0, y: 0 });
-  const prev = useRef({ x: -200, y: -200 });
-  const raf  = useRef(0);
-  const [hovered, setHovered] = useState(false);
-
-  useEffect(() => {
-    const move = (e: MouseEvent) => {
-      pos.current = { x: e.clientX, y: e.clientY };
-      const t = e.target as HTMLElement;
-      setHovered(!!(t.closest("button, a, [data-magnetic]")));
-    };
-    window.addEventListener("mousemove", move);
-
-    const tick = () => {
-      vel.current.x = pos.current.x - prev.current.x;
-      vel.current.y = pos.current.y - prev.current.y;
-      prev.current = { ...pos.current };
-
-      lag.current.x += (pos.current.x - lag.current.x) * 0.1;
-      lag.current.y += (pos.current.y - lag.current.y) * 0.1;
-
-      const speed = Math.sqrt(vel.current.x ** 2 + vel.current.y ** 2);
-      const angle = Math.atan2(vel.current.y, vel.current.x) * (180 / Math.PI);
-      const scaleX = 1 + Math.min(speed * 0.06, 1.4);
-      const scaleY = 1 / scaleX;
-
-      if (dotRef.current) {
-        dotRef.current.style.transform = `translate(${pos.current.x - 3}px, ${pos.current.y - 3}px)`;
-      }
-      if (ringRef.current) {
-        const s = hovered ? 1.8 : 1;
-        ringRef.current.style.transform =
-          `translate(${lag.current.x - 18}px, ${lag.current.y - 18}px) rotate(${angle}deg) scaleX(${scaleX * s}) scaleY(${scaleY * s})`;
-        ringRef.current.style.borderColor = hovered ? "rgba(var(--c2),0.8)" : "rgba(var(--c1),0.5)";
-      }
-      raf.current = requestAnimationFrame(tick);
-    };
-    raf.current = requestAnimationFrame(tick);
-    return () => { window.removeEventListener("mousemove", move); cancelAnimationFrame(raf.current); };
-  }, [hovered]);
-
-  return (
-    <>
-      <div ref={dotRef} style={{ position: "fixed", top: 0, left: 0, width: 6, height: 6, borderRadius: "50%", background: "var(--c1h)", pointerEvents: "none", zIndex: 100000, mixBlendMode: "screen", transition: "transform 0.05s linear" }} />
-      <div ref={ringRef} style={{ position: "fixed", top: 0, left: 0, width: 36, height: 36, borderRadius: "50%", border: "1px solid rgba(var(--c1),0.5)", pointerEvents: "none", zIndex: 100000, transition: "border-color 0.2s" }} />
-    </>
-  );
-}
+// ─── System cursor (custom cursor removed: hides native pointer, a11y + perf win) ──
 
 // ─── Scroll progress bar ───────────────────────────────────────────────────────
 
 function ScrollProgressBar() {
-  const p = useScrollProgress();
+  const barRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const bar = barRef.current;
+    if (!bar) return;
+    let raf = 0;
+    let last = -1;
+    const update = () => {
+      raf = 0;
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      const p = h > 0 ? window.scrollY / h : 0;
+      if (p === last) return;
+      last = p;
+      bar.style.transform = `scaleX(${p})`;
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 2, zIndex: 9990, background: "rgba(var(--c1),0.07)" }}>
-      <div style={{ height: "100%", width: `${p * 100}%`, background: "linear-gradient(90deg, var(--c1h), var(--c2h))", transition: "width 0.05s linear", boxShadow: "0 0 8px rgba(var(--c1),0.6)" }} />
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 2, zIndex: 9990, background: "rgba(var(--c1),0.07)", pointerEvents: "none" }} aria-hidden="true">
+      <div ref={barRef} style={{ height: "100%", width: "100%", transformOrigin: "left", transform: "scaleX(0)", background: "linear-gradient(90deg, var(--c1h), var(--c2h))", boxShadow: "0 0 8px rgba(var(--c1),0.6)" }} />
     </div>
   );
 }
@@ -316,9 +257,9 @@ const DEFAULTS = {
   heroTagline:
     "Software Engineer with 6+ years of experience, M.A. student in Computational Linguistics at Tübingen. Bridging production-grade full-stack engineering with AI, NLP, and LLM research.",
   bio1:
-    "Software Engineer with 6+ years of experience building production-ready, maintainable systems and pixel-perfect UIs using React, Next.js, TypeScript, and modern tooling. Experienced in leading cross-functional teams, improving developer experience, and delivering design-driven applications at scale.",
+    "Software Engineer with 6+ years of experience building production-ready systems and pixel-perfect UIs with React, Next.js, TypeScript, and modern tooling. Led cross-functional teams, improved developer experience, and delivered design-driven applications at scale.",
   bio2:
-    "Currently pursuing an M.A. in Computational Linguistics at the University of Tübingen and working as a Student Assistant at IWM & the Autonomous Learning Lab (Uni Tübingen), focusing on AI, ML, LLMs, NLP, and Cognitive Science — bridging software engineering and intelligent systems. Open to Working Student & internship roles in NLP, AI/ML, and LLMs — Tübingen, Stuttgart, or remote.",
+    "Currently pursuing an M.A. in Computational Linguistics at the University of Tübingen (Student Assistant at IWM & the Autonomous Learning Lab). Research focus: AI, ML, LLMs, NLP, and Cognitive Science. Open to Working Student & internship roles in NLP, AI/ML, and LLMs — Tübingen, Stuttgart, or remote.",
 };
 
 // ─── Style helpers (module-level so all components can use them) ──────────────
@@ -330,7 +271,7 @@ const raj = (sz: number, color = "var(--fg-a)"): React.CSSProperties => ({
   fontFamily: '"Rajdhani", sans-serif', fontSize: sz, fontWeight: 700, color,
 });
 const body = (sz: number, color = "var(--fg-b)"): React.CSSProperties => ({
-  fontFamily: '"Outfit", sans-serif', fontSize: `clamp(${Math.max(13, Math.round(sz * 0.72))}px, ${((sz * 100) / 1280).toFixed(2)}vw, ${sz}px)`, color, lineHeight: 1.8,
+  fontFamily: '"Outfit", sans-serif', fontSize: `clamp(${Math.max(12, Math.round(sz * 0.72))}px, ${((sz * 100) / 1280).toFixed(2)}vw, ${sz}px)`, color, lineHeight: 1.6,
 });
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -674,7 +615,7 @@ function SectionLabel({ num, label }: { num: string; label: string }) {
     return () => obs.disconnect();
   }, []);
   return (
-    <div ref={ref} className="relative flex items-center gap-4 mb-6">
+    <div ref={ref} className="relative flex items-center gap-4 mb-4">
       <span className={`neon-flicker ${vis ? "glitch-enter" : ""}`} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.28em", color: "rgba(var(--c1),0.7)", textTransform: "uppercase" as const }}>
         MODULE_{num}
       </span>
@@ -1363,7 +1304,7 @@ function BootScreen({ onDone }: { onDone: () => void }) {
           {/* desktop icons */}
           <div className="welcome-icons" style={{ position: "absolute", top: 40, left: 40, display: "flex", flexDirection: "column", gap: 22, zIndex: 2 }}>
             {APPS.map(({ Icon, label, color }, i) => (
-              <div key={label} className="welcome-icon" style={{ animationDelay: `${i * 90}ms`, cursor: "none", zIndex: 2 }}>
+              <div key={label} className="welcome-icon" style={{ animationDelay: `${i * 90}ms`, cursor: "pointer", zIndex: 2 }}>
                 <div style={{ width: 40, height: 40, border: `1px solid rgba(var(--c1),0.25)`, background: "var(--chip)", color, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}><Icon size={19} /></div>
                 <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 8, letterSpacing: "0.18em", color: "var(--fg-b)", textAlign: "center", marginTop: 4 }}>{label}</span>
               </div>
@@ -1383,7 +1324,7 @@ function BootScreen({ onDone }: { onDone: () => void }) {
             <div style={{ fontFamily: '"Outfit", sans-serif', fontSize: 15, color: "var(--fg-b)", marginTop: 18, maxWidth: 460, marginLeft: "auto", marginRight: "auto", lineHeight: 1.7 }}>
               Neural interface online · NLP / LLMs / Computational Linguistics · Full-stack engineering
             </div>
-            <div className="blink" style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.35em", color: "rgba(var(--c1),0.6)", marginTop: 26, cursor: "none" }}>
+            <div className="blink" style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.35em", color: "rgba(var(--c1),0.6)", marginTop: 26, cursor: "pointer" }}>
               [ TAP ANYWHERE / ENTER ↵ ] LAUNCH PORTFOLIO
             </div>
           </div>
@@ -1397,7 +1338,7 @@ function BootScreen({ onDone }: { onDone: () => void }) {
               <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.2em", color: "var(--fg-b)", marginRight: 8 }}>
                 {new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
               </span>
-              <button onClick={launch} className="welcome-start" style={{ cursor: "none", display: "flex", alignItems: "center", gap: 10, padding: "9px 22px", border: "1px solid rgba(var(--c1),0.6)", background: "rgba(var(--c1),0.12)", fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.25em", fontWeight: 700 }}>
+              <button onClick={launch} className="welcome-start" style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10, padding: "9px 22px", border: "1px solid rgba(var(--c1),0.6)", background: "rgba(var(--c1),0.12)", fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.25em", fontWeight: 700 }}>
                 <Terminal size={14} /> START ▸ PORTFOLIO
               </button>
             </div>
@@ -1478,7 +1419,7 @@ function SideNavDots() {
         return (
           <button key={id} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })}
             title={id.toUpperCase()}
-            style={{ cursor: "none", display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", padding: 0 }}>
+            style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", padding: 0 }}>
             {isActive && (
               <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, color: "var(--c1h)", letterSpacing: "0.2em", textTransform: "uppercase", opacity: 0.7, animation: "fade-rise 0.3s ease" }}>
                 {id}
@@ -1508,7 +1449,7 @@ const THEME_LABEL: Record<string, string> = {
   violet: "NEON_VIOLET",
   matrix: "MATRIX",
   ember: "EMBER",
-  light: "DAYLIGHT",
+  light: "LIGHT",
 };
 
 function getStoredTheme(): string {
@@ -1628,7 +1569,7 @@ function CommandPalette({ open, onClose, content }: { open: boolean; onClose: ()
 function ExpEntry({ exp, idx, visible }: { exp: CmsExperience; idx: number; visible: boolean }) {
   const [open, setOpen] = useState(idx === 0);
   return (
-    <div className={`relative p-5 transition-colors duration-300 ${visible ? "depth-rise" : "opacity-0"} ${exp.current ? "glow-border" : ""}`}
+    <div className={`relative p-4 transition-colors duration-300 ${visible ? "depth-rise" : "opacity-0"} ${exp.current ? "glow-border" : ""}`}
       style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)", animationDelay: `${idx * 110}ms` }}
       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.35)"; (e.currentTarget as HTMLElement).style.background = "var(--card-hover)"; }}
       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = exp.current ? "" : "rgba(var(--c1),0.07)"; (e.currentTarget as HTMLElement).style.background = "var(--card)"; }}>
@@ -1652,7 +1593,7 @@ function ExpEntry({ exp, idx, visible }: { exp: CmsExperience; idx: number; visi
       </button>
       <div style={{ display: "grid", gridTemplateRows: open ? "1fr" : "0fr", transition: "grid-template-rows 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
         <div style={{ overflow: "hidden" }}>
-          <ul className="space-y-1 mb-4">
+          <ul className="space-y-1 mb-3">
             {exp.bullets.map((b, i) => (
               <li key={i} className="flex gap-2 items-start">
                 <span style={{ color: "var(--c1h)", marginTop: 7, flexShrink: 0, fontSize: 5 }}>◆</span>
@@ -1666,6 +1607,34 @@ function ExpEntry({ exp, idx, visible }: { exp: CmsExperience; idx: number; visi
             ))}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Education entry ─────────────────────────────────────────────────────────────
+
+function EduEntry({ edu, idx, visible }: { edu: CmsEducation; idx: number; visible: boolean }) {
+  return (
+    <div className={`relative p-5 transition-colors duration-300 ${visible ? "depth-rise" : "opacity-0"}`}
+      style={{ background: "var(--card)", border: "1px solid rgba(var(--c2),0.1)", animationDelay: `${idx * 110}ms` }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c2),0.35)"; (e.currentTarget as HTMLElement).style.background = "var(--card-hover)"; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c2),0.1)"; (e.currentTarget as HTMLElement).style.background = "var(--card)"; }}>
+      <p className="flex items-center gap-2 mb-2">
+        <span style={{ color: "var(--c2h)", flexShrink: 0 }}><GraduationCap size={15} /></span>
+        <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 17, color: "var(--fg-a)" }}>{edu.degree}</span>
+        {edu.current && <span style={mono(9, "var(--c2h)", { padding: "2px 8px", border: "1px solid rgba(var(--c2),0.3)", letterSpacing: "0.2em" })}>CURRENT</span>}
+        <span style={mono(9, "var(--fg-c)", { marginLeft: "auto", flexShrink: 0 })}>{edu.period}</span>
+      </p>
+      <p className="mb-2" style={{ ...mono(10, "var(--c1h)", { letterSpacing: "0.12em" }) }}>
+        {edu.school}
+        {edu.location && <span style={{ color: "var(--fg-c)" }}> // {edu.location}</span>}
+      </p>
+      <p className="mb-3" style={body(15)}>{edu.detail}</p>
+      <div className="flex flex-wrap gap-1.5">
+        {edu.badges.map((b) => (
+          <span key={b} style={mono(9, "var(--c2h)", { padding: "2px 8px", border: "1px solid rgba(var(--c2),0.25)" })}>{b}</span>
+        ))}
       </div>
     </div>
   );
@@ -1732,19 +1701,22 @@ export default function App() {
   const heroNameRef = useRef<HTMLHeadingElement>(null);
   const heroTagRef = useRef<HTMLParagraphElement>(null);
 
-  // parallax without React re-renders — direct rAF writes to the DOM
+  // parallax without React re-renders — passive scroll listener, only updates while hero visible
   useEffect(() => {
-    let raf = 0;
-    if (heroNameRef.current) heroNameRef.current.style.willChange = "transform";
-    if (heroTagRef.current) heroTagRef.current.style.willChange = "transform";
+    const name = heroNameRef.current;
+    const tag = heroTagRef.current;
+    if (!name || !tag) return;
     const upd = () => {
       const y = window.scrollY;
-      if (heroNameRef.current) heroNameRef.current.style.transform = `translateY(${y * 0.18}px)`;
-      if (heroTagRef.current) heroTagRef.current.style.transform = `translateY(${y * 0.09}px)`;
-      raf = requestAnimationFrame(upd);
+      const inHero = y < window.innerHeight;
+      name.style.transform = inHero ? `translateY(${(y * 0.18).toFixed(2)}px)` : "";
+      tag.style.transform = inHero ? `translateY(${(y * 0.09).toFixed(2)}px)` : "";
     };
-    raf = requestAnimationFrame(upd);
-    return () => cancelAnimationFrame(raf);
+    let raf = 0;
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; upd(); }); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    upd();
+    return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
   }, []);
 
   useLayoutEffect(() => {
@@ -1816,22 +1788,14 @@ export default function App() {
 
   const scrollTo = (id: string) => { document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); setMenuOpen(false); };
 
-
-  const progress = useScrollProgress();
-  // Subtle hue shift: cyan tint near top, violet near bottom
-  const bgHue = `radial-gradient(ellipse at ${50 + progress * 20}% ${50 + progress * 30}%, rgba(${Math.round(157 * progress)},${Math.round(78 * progress)},${Math.round(221 * progress)},0.04) 0%, transparent 70%)`;
-
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ background: "var(--bg-page)", color: "var(--fg-a)", cursor: "none" }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ background: "var(--bg-page)", color: "var(--fg-a)", cursor: "pointer" }}>
       {!booted && <BootScreen onDone={() => setBooted(true)} />}
-      {/* Scroll-reactive ambient background */}
-      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, background: bgHue, transition: "background 0.3s ease" }} />
-      <CustomCursor />
-      <MouseTrail />
+      {/* Ambient background (static, no scroll re-renders) */}
+      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, background: "radial-gradient(70% 60% at 78% 22%, rgba(var(--c2),0.05), transparent 60%)" }} aria-hidden="true" />
       <ScrollProgressBar />
       <SideNavDots />
-      <CRTOverlay />
-      <ParticleField />
+      {/* deco layers removed: CustomCursor, MouseTrail, CRTOverlay, ParticleField — rAF + canvas cost, no functional value */}
       <StarTrace />
 
       {/* ── Nav ── */}
@@ -1894,7 +1858,7 @@ export default function App() {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
             {/* Left — identity, role, bio, CTAs, stats */}
             <div className="lg:col-span-7">
               <div className="relative inline-block">
@@ -1929,10 +1893,10 @@ export default function App() {
 
               <FocusStrip />
 
-              <div className="flex flex-wrap gap-4 mb-8">
+              <div className="flex flex-wrap gap-4 mb-6">
                 <MagneticWrap>
                   <button onClick={() => scrollTo("experience")} className="flex items-center gap-3 transition-all duration-300"
-                    style={mono(10, "var(--c1h)", { padding: "12px 24px", border: "1px solid var(--c1h)", letterSpacing: "0.2em", cursor: "none" })}
+                    style={mono(10, "var(--c1h)", { padding: "12px 24px", border: "1px solid var(--c1h)", letterSpacing: "0.2em", cursor: "pointer" })}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--c1h)"; (e.currentTarget as HTMLElement).style.color = "var(--bg-page)"; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--c1h)"; }}>
                     VIEW EXPERIENCE <ArrowUpRight size={13} />
@@ -1940,7 +1904,7 @@ export default function App() {
                 </MagneticWrap>
                 <MagneticWrap>
                   <button onClick={() => scrollTo("contact")} className="flex items-center gap-3 transition-all duration-300"
-                    style={mono(10, "var(--c2h)", { padding: "12px 24px", border: "1px solid rgba(var(--c2),0.5)", letterSpacing: "0.2em", cursor: "none" })}
+                    style={mono(10, "var(--c2h)", { padding: "12px 24px", border: "1px solid rgba(var(--c2),0.5)", letterSpacing: "0.2em", cursor: "pointer" })}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--c2h)"; (e.currentTarget as HTMLElement).style.color = "#fff"; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--c2h)"; }}>
                     CONTACT <Mail size={13} />
@@ -2095,14 +2059,24 @@ export default function App() {
 
 
       {/* ── Experience ── */}
-      <section id="experience" className="relative py-10 px-6" style={{ zIndex: 10 }}>
+      <section id="experience" className="relative py-8 px-6" style={{ zIndex: 10 }}>
         <div ref={expR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="01" label="EXPERIENCE" />
           <div className="transition-all duration-1000" style={{ opacity: expR.visible ? 1 : 0, transform: expR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--fg-a)" }}>
+            {/* ── Education ── */}
+            <div className="mb-8">
+              <div style={mono(9, "rgba(var(--c2),0.45)", { marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>EDUCATION</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {content.education.map((edu, idx) => (
+                  <EduEntry key={edu.id || idx} edu={edu} idx={idx} visible={expR.visible} />
+                ))}
+              </div>
+            </div>
+
+            <WipeHeading className="mb-4" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.6rem,4vw,2.5rem)", color: "var(--fg-a)" }}>
               Work <span style={{ color: "var(--c2h)" }}>History</span>
             </WipeHeading>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {content.experience.map((exp, idx) => (
                 <ExpEntry key={exp.id || idx} exp={exp} idx={idx} visible={expR.visible} />
               ))}
@@ -2114,14 +2088,14 @@ export default function App() {
       <SkillTicker />
 
       {/* ── Projects ── */}
-      <section id="projects" className="relative py-10 px-6" style={{ zIndex: 10 }}>
+      <section id="projects" className="relative py-8 px-6" style={{ zIndex: 10 }}>
         <div ref={projectsR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="02" label="PROJECTS" />
           <div className="transition-all duration-1000" style={{ opacity: projectsR.visible ? 1 : 0, transform: projectsR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--fg-a)" }}>
+            <WipeHeading className="mb-4" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.6rem,4vw,2.5rem)", color: "var(--fg-a)" }}>
               Research <span style={{ color: "var(--c1h)" }}>& Projects</span>
             </WipeHeading>
-            <Spotlight className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Spotlight className="grid grid-cols-1 md:grid-cols-2 gap-4">
 {content.projects.map((proj, pidx) => {
                 const ProjIcon = [Brain, Code2, Database, GraduationCap, Globe, Briefcase][pidx % 6];
                 const projColor = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)"][pidx % 4];
@@ -2129,39 +2103,41 @@ export default function App() {
                 const sc: Record<string, string> = { RESEARCH: "var(--c2h)", COMPLETE: "var(--c3h)", ACTIVE: "var(--c1h)", BETA: "var(--c4h)" };
                 return (
                   <TiltCard key={proj.id || proj.name} className={projectsR.visible ? "slide-up-item" : ""} style={{ animationDelay: `${pidx * 120}ms` }}>
-                  <div className="relative p-6 overflow-hidden transition-all duration-300 group"
-                    style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)", height: "100%" }}
+                  <div className="relative p-4 overflow-hidden transition-all duration-300 group"
+                    style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)", height: "100%", display: "flex", flexDirection: "column" }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.35)"; (e.currentTarget as HTMLElement).style.background = "var(--card-hover)"; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.07)"; (e.currentTarget as HTMLElement).style.background = "var(--card)"; }}>
                     {/* shimmer sweep on hover */}
                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300" style={{ overflow: "hidden" }}>
                       <div style={{ position: "absolute", top: 0, bottom: 0, width: "50%", background: "linear-gradient(90deg, transparent, rgba(var(--c1),0.04), transparent)", animation: "shimmer-sweep 1.2s ease infinite" }} />
                     </div>
-                    <div className="flex items-start justify-between mb-5">
-                      <div className="flex items-center justify-center" style={{ width: 40, height: 40, border: `1px solid rgba(${projColor},0.19)`, color: projHex }}>
-                        <ProjIcon size={17} />
+                    <div className="flex items-center gap-3 mb-2.5">
+                      <div className="flex items-center justify-center flex-shrink-0" style={{ width: 32, height: 32, border: `1px solid rgba(${projColor},0.19)`, color: projHex }}>
+                        <ProjIcon size={14} />
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span style={mono(9, sc[proj.status] || "var(--c4h)", { padding: "2px 8px", border: "1px solid rgba(var(--c1),0.19)", letterSpacing: "0.2em" })}>{proj.status}</span>
+                      <h3 className="flex-1 transition-colors duration-200 leading-tight" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 17, color: "var(--fg-a)" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--c1h)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--fg-a)")}>
+                        {proj.name}
+                      </h3>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span style={mono(9, sc[proj.status] || "var(--c4h)", { padding: "1.5px 7px", border: "1px solid rgba(var(--c1),0.19)", letterSpacing: "0.2em" })}>{proj.status}</span>
                         <span style={mono(9, "var(--fg-c)")}>{proj.year}</span>
                       </div>
                     </div>
-                    <h3 className="mb-2 transition-colors duration-200" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 18, color: "var(--fg-a)" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = "var(--c1h)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = "var(--fg-a)")}>
-                      {proj.name}
-                    </h3>
-                    <p className="mb-5" style={body(15)}>{proj.desc}</p>
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {proj.tags.map((tag) => (
-                        <span key={tag} style={mono(9, "var(--fg-c)", { padding: "2px 7px", background: "var(--chip)" })}>{tag}</span>
-                      ))}
+                    <p className="mb-3" style={{ ...body(14), flex: 1 }}>{proj.desc}</p>
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex flex-wrap gap-1.5">
+                        {proj.tags.map((tag) => (
+                          <span key={tag} style={mono(9, "var(--fg-c)", { padding: "2px 7px", background: "var(--chip)" })}>{tag}</span>
+                        ))}
+                      </div>
+                      <a href={proj.link} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 transition-opacity hover:opacity-100"
+                        style={mono(9, "var(--c1h)", { opacity: 0.5, textDecoration: "none", letterSpacing: "0.15em", whiteSpace: "nowrap", flexShrink: 0 })}>
+                        <Github size={11} /> VIEW ON GITHUB
+                      </a>
                     </div>
-                    <a href={proj.link} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 transition-opacity hover:opacity-100"
-                      style={mono(9, "var(--c1h)", { opacity: 0.45, textDecoration: "none", letterSpacing: "0.15em" })}>
-                      <Github size={11} /> VIEW ON GITHUB
-                    </a>
                     <div className="absolute bottom-0 right-0 w-8 h-8 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderBottom: "1px solid rgba(var(--c1),0.18)", borderRight: "1px solid rgba(var(--c1),0.18)" }} />
                     <div className="absolute top-0 left-0 w-8 h-8 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" style={{ borderTop: "1px solid rgba(var(--c1),0.18)", borderLeft: "1px solid rgba(var(--c1),0.18)" }} />
                   </div>
@@ -2174,17 +2150,17 @@ export default function App() {
       </section>
 
       {/* ── Skills ── */}
-      <section id="skills" className="relative py-10 px-6" style={{ zIndex: 10 }}>
+      <section id="skills" className="relative py-8 px-6" style={{ zIndex: 10 }}>
         <div ref={skillsR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="03" label="PROFICIENCIES" />
           <div className="transition-all duration-1000" style={{ opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--fg-a)" }}>
+            <WipeHeading className="mb-4" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.6rem,4vw,2.5rem)", color: "var(--fg-a)" }}>
               Technical <span style={{ color: "var(--c2h)" }}>Proficiencies</span>
             </WipeHeading>
-            <Spotlight className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+            <Spotlight className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
               <div>
                 <div style={mono(9, "rgba(var(--c1),0.45)", { marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>FULL_STACK_ENGINEERING</div>
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   {content.skills.filter((s) => s.cat === "stack").map((s, i) => (
                     <SkillBar key={s.id || s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} />
                   ))}
@@ -2192,14 +2168,14 @@ export default function App() {
               </div>
               <div>
                 <div style={mono(9, "rgba(var(--c2),0.45)", { marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>AI_NLP_RESEARCH</div>
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   {content.skills.filter((s) => s.cat === "ai").map((s, i) => (
                     <SkillBar key={s.id || s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} />
                   ))}
                 </div>
               </div>
             </Spotlight>
-            <div className="mt-8 pt-5" style={{ borderTop: "1px solid rgba(var(--c1),0.08)" }}>
+            <div className="mt-6 pt-4" style={{ borderTop: "1px solid rgba(var(--c1),0.08)" }}>
               <div style={mono(9, "rgba(var(--c1),0.45)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>SPOKEN_LANGUAGES</div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {content.languages.map((lang, i) => {
@@ -2207,7 +2183,7 @@ export default function App() {
                   const pct = L.includes("native") ? 100 : L.includes("profic") ? 75 : L.includes("fluent") ? 85 : L.includes("beginner") ? 40 : 60;
                   const filled = Math.round((pct / 100) * 8);
                   return (
-                    <div key={lang.id} className="px-4 py-3" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.1)" }}>
+                    <div key={lang.id} className="px-4 py-2.5" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.1)" }}>
                       <div className="flex items-center justify-between mb-2">
                         <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 19, color: "var(--fg-a)" }}>{lang.name}</span>
                         <span style={mono(8.5, pct >= 75 ? "var(--c1h)" : "var(--fg-c)", { letterSpacing: "0.14em" })}>{lang.level.toUpperCase()}</span>
@@ -2227,17 +2203,17 @@ export default function App() {
       </section>
 
       {/* ── Contact ── */}
-      <section id="contact" className="relative py-10 px-6" style={{ zIndex: 10 }}>
+      <section id="contact" className="relative py-8 px-6" style={{ zIndex: 10 }}>
         <div ref={contactR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="04" label="CONTACT" />
           <div className="transition-all duration-1000" style={{ opacity: contactR.visible ? 1 : 0, transform: contactR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div>
-                <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2rem,5vw,3.2rem)", color: "var(--fg-a)" }}>
+                <WipeHeading className="mb-4" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.6rem,4vw,2.5rem)", color: "var(--fg-a)" }}>
                   Get in <span style={{ color: "var(--c1h)" }}>Touch</span>
                 </WipeHeading>
-                <p className="mb-6" style={body(17)}>{get("contactIntro", DEFAULT_CONTENT.contactIntro)}</p>
-                <div className="space-y-3">
+                <p className="mb-5" style={body(16)}>{get("contactIntro", DEFAULT_CONTENT.contactIntro)}</p>
+                <div className="space-y-2.5">
                   {content.links.map((link) => {
                     const iconKey = (link.label || "").toUpperCase();
                     const isMail = iconKey.includes("EMAIL") || iconKey.includes("MAIL");
@@ -2259,7 +2235,7 @@ export default function App() {
                         </span>
                       </>
                     );
-                    const base = "flex items-center gap-4 p-4 transition-all duration-300";
+                    const base = "flex items-center gap-3.5 p-3.5 transition-all duration-300";
                     const box = { background: "var(--card)", border: "1px solid rgba(var(--c1),0.07)" };
                     if (isMail) {
                       return (

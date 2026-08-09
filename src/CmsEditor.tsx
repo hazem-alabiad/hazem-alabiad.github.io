@@ -6,6 +6,7 @@ import {
   type CmsExperience,
   type CmsProject,
   type CmsSkill,
+  type CmsEducation,
   type CmsLanguage,
   type CmsContactLink,
 } from "./cms";
@@ -210,6 +211,38 @@ export default function CmsEditor({
           <AddButton onClick={() => set("experience", [...draft.experience, { id: uid(), role: "", company: "", location: "", period: "", bullets: [""], tags: [], current: false }])} />
         </Section>
 
+        {/* Education */}
+        <Section title="EDUCATION">
+          {draft.education.map((edu, i) => (
+            <div key={edu.id} style={{ border: "1px solid rgba(0,240,255,0.15)", padding: 14, position: "relative" }}>
+              <button onClick={() => set("education", draft.education.filter((_, j) => j !== i))}
+                style={{ position: "absolute", top: 10, right: 10, background: "none", border: "none", color: "#ff4757", cursor: "pointer" }}>
+                <Trash2 size={14} />
+              </button>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                <div><Label>DEGREE</Label><input value={edu.degree} onChange={(e) => updEdu(i, { degree: e.target.value })} style={inputStyle("100%")} /></div>
+                <div><Label>SCHOOL</Label><input value={edu.school} onChange={(e) => updEdu(i, { school: e.target.value })} style={inputStyle("100%")} /></div>
+                <div><Label>LOCATION</Label><input value={edu.location} onChange={(e) => updEdu(i, { location: e.target.value })} style={inputStyle("100%")} /></div>
+                <div><Label>PERIOD</Label><input value={edu.period} onChange={(e) => updEdu(i, { period: e.target.value })} style={inputStyle("100%")} /></div>
+                <div style={{ display: "flex", alignItems: "flex-end" }}>
+                  <label style={{ ...MONO, fontSize: 10, color: "#00f0ff", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+                    <input type="checkbox" checked={edu.current} onChange={(e) => updEdu(i, { current: e.target.checked })} /> CURRENT
+                  </label>
+                </div>
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <Label>DETAIL</Label>
+                <textarea value={edu.detail} onChange={(e) => updEdu(i, { detail: e.target.value })} rows={2} style={inputStyle("100%")} />
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <Label>BADGES (comma-separated)</Label>
+                <input value={edu.badges.join(", ")} onChange={(e) => updEdu(i, { badges: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })} style={inputStyle("100%")} />
+              </div>
+            </div>
+          ))}
+          <AddButton onClick={() => set("education", [...draft.education, { id: uid(), degree: "", school: "", location: "", period: "", detail: "", badges: [], current: false }])} />
+        </Section>
+
         {/* Projects */}
         <Section title="PROJECTS">
           {draft.projects.map((p, i) => (
@@ -306,6 +339,9 @@ export default function CmsEditor({
 
   function updExp(i: number, patch: Partial<CmsExperience>) {
     set("experience", draft.experience.map((e, j) => (j === i ? { ...e, ...patch } : e)));
+  }
+  function updEdu(i: number, patch: Partial<CmsEducation>) {
+    set("education", draft.education.map((e, j) => (j === i ? { ...e, ...patch } : e)));
   }
   function updProj(i: number, patch: Partial<CmsProject>) {
     set("projects", draft.projects.map((e, j) => (j === i ? { ...e, ...patch } : e)));

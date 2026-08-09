@@ -16,6 +16,17 @@ export interface CmsExperience {
   current: boolean;
 }
 
+export interface CmsEducation {
+  id: string;
+  degree: string;
+  school: string;
+  location: string;
+  period: string;
+  detail: string;
+  badges: string[];
+  current: boolean;
+}
+
 export interface CmsProject {
   id: string;
   name: string;
@@ -60,6 +71,7 @@ export interface CmsContent {
   cvName: string;
   cvDataUrl: string | null;  // data URL (pdf)
   experience: CmsExperience[];
+  education: CmsEducation[];
   projects: CmsProject[];
   skills: CmsSkill[];
   languages: CmsLanguage[];
@@ -71,9 +83,9 @@ export const DEFAULT_CONTENT: CmsContent = {
   heroTagline:
     "Software Engineer with 6+ years of experience, M.A. student in Computational Linguistics at Tübingen. Bridging production-grade full-stack engineering with AI, NLP, and LLM research.",
   bio1:
-    "Software Engineer with 6+ years of experience building production-ready, maintainable systems and pixel-perfect UIs using React, Next.js, TypeScript, and modern tooling. Experienced in leading cross-functional teams, improving developer experience, and delivering design-driven applications at scale.",
+    "Software Engineer with 6+ years of experience building production-ready systems and pixel-perfect UIs with React, Next.js, TypeScript, and modern tooling. Led cross-functional teams, improved developer experience, and delivered design-driven applications at scale.",
   bio2:
-    "Currently pursuing an M.A. in Computational Linguistics at the University of Tübingen and working as a Student Assistant at IWM & the Autonomous Learning Lab (Uni Tübingen), focusing on AI, ML, LLMs, NLP, and Cognitive Science — bridging software engineering and intelligent systems. Open to Working Student & internship roles in NLP, AI/ML, and LLMs — Tübingen, Stuttgart, or remote.",
+    "Currently pursuing an M.A. in Computational Linguistics at the University of Tübingen (Student Assistant at IWM & the Autonomous Learning Lab). Research focus: AI, ML, LLMs, NLP, and Cognitive Science. Open to Working Student & internship roles in NLP, AI/ML, and LLMs — Tübingen, Stuttgart, or remote.",
   factLocation: "Tübingen, Germany",
   factDegree: "M.A. Computational Linguistics",
   factCurrent: "Student Asst. · IWM & Auto. Learning Lab",
@@ -92,6 +104,30 @@ export const DEFAULT_CONTENT: CmsContent = {
     { id: "e6", role: "Full-Stack Developer", company: "Arianna Suisse Sa", location: "Remote (Switzerland)", period: "May 2021 – Jun 2022", bullets: ["Built custom Elasticsearch search engine; enabled real-time multi-user editing via WebSocket.", "~90% Jest test coverage across React components and GraphQL server."], tags: ["React", "GraphQL", "Elasticsearch", "WebSocket", "Node.js"], current: false },
     { id: "e7", role: "Freelance Software Developer", company: "Remote (US)", location: "", period: "Feb 2020 – Feb 2021", bullets: ["Built pixel-perfect React UIs and integrated third-party APIs for 3 international clients.", "Developed Python web crawlers publishing to RabbitMQ queues for backend AI pipelines."], tags: ["React", "Python", "RabbitMQ", "API Integration"], current: false },
     { id: "e8", role: "QA Automation Engineer", company: "Bayzat", location: "Remote (UAE)", period: "Jan 2019 – Nov 2019", bullets: ["Built Cypress regression and E2E suites from scratch for Bayzat's Time-off feature, covering core HR workflows."], tags: ["Cypress", "QA Automation", "E2E Testing"], current: false },
+  ],
+  education: [
+    {
+      id: "edu-1",
+      degree: "M.A. in Computational Linguistics",
+      school: "University of Tübingen",
+      location: "Tübingen",
+      period: "Oct 2023 – Present",
+      detail:
+        "Focus: Corpus Linguistics, Large Language Models (LLMs), Cognitive Science, NLP and Data Science.",
+      badges: ["NLP", "LLMs", "Cognitive Science"],
+      current: true,
+    },
+    {
+      id: "edu-2",
+      degree: "B.Sc. in Computer Engineering",
+      school: "Hacettepe University",
+      location: "Ankara",
+      period: "Sep 2015 – Jun 2019",
+      detail:
+        "Honor student, top 10% of the class (GPA 3.41). Received the YTB Scholarship for high performance.",
+      badges: ["Honor Student", "Top 10%"],
+      current: false,
+    },
   ],
   projects: [
     { id: "p1", name: "Multiword Expressions in Arabic", desc: "LLM extraction of Arabic verbal multiword expressions for computational linguistics research. Exploring cross-lingual transfer for low-resource MWE detection.", tags: ["LLMs", "NLP", "Arabic", "Python"], status: "RESEARCH", year: "2026", link: "https://github.com/hazem-alabiad" },
