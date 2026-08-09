@@ -81,9 +81,8 @@ export interface CmsContent {
 
 export const DEFAULT_CONTENT: CmsContent = {
   heroTagline:
-    "I make language models useful — engineering production-grade systems on one side, researching how they learn on the other.",
-  bio1:
-    "My path runs from a B.Sc. in computer engineering to an M.A. in computational linguistics: I've led full-stack teams and shipped products to millions of users at Getir and IBM, then moved into NLP research. Today I split my time between building and studying language technology — from LLM tutoring systems to the cognitive science of social media.",
+    "I make language models useful — engineering production-grade systems on one side, researching how they learn on the other. My path runs from a B.Sc. in computer engineering to an M.A. in computational linguistics: I've led full-stack teams and shipped products to millions at Getir and IBM, then moved into NLP research. Today I split my time between building and studying language technology — from LLM tutoring systems to the cognitive science of social media.",
+  bio1: "",
   bio2:
     "Open to NLP/AI/full-stack roles and research collaborations — Tübingen, Stuttgart, or remote.",
   factLocation: "Tübingen, Germany",
@@ -136,18 +135,17 @@ export const DEFAULT_CONTENT: CmsContent = {
     { id: "p4", name: "Automated Essay Grading", desc: "LSTM-based automated essay grading pipeline with multi-trait scoring, NLP preprocessing, and attention mechanisms for feature extraction.", tags: ["LSTM", "NLP", "Python", "TensorFlow"], status: "COMPLETE", year: "2019", link: "https://github.com/hazem-alabiad" },
   ],
   skills: [
-    { id: "s1", label: "React.js / Next.js / TypeScript", level: 97, cat: "stack" },
-    { id: "s2", label: "GraphQL / Apollo Federation", level: 88, cat: "stack" },
-    { id: "s3", label: "Node.js / REST APIs / WebSocket", level: 85, cat: "stack" },
-    { id: "s4", label: "Testing (Jest / Cypress / Playwright)", level: 90, cat: "stack" },
-    { id: "s5", label: "Docker / DevOps / Linux", level: 76, cat: "stack" },
-    { id: "s6", label: "Elasticsearch / MySQL", level: 80, cat: "stack" },
-    { id: "s7", label: "Python / LLMs / NLP", level: 88, cat: "ai" },
-    { id: "s8", label: "TensorFlow / Deep Learning", level: 80, cat: "ai" },
-    { id: "s9", label: "Transfer Learning / Fine-tuning", level: 82, cat: "ai" },
-    { id: "s10", label: "Corpus Linguistics", level: 83, cat: "ai" },
-    { id: "s11", label: "Data Engineering / Pandas / R", level: 78, cat: "ai" },
-    { id: "s12", label: "Machine Learning Pipelines", level: 85, cat: "ai" },
+    { id: "s1", label: "React.js / Next.js / TypeScript / JavaScript (ES6+)", level: 98, cat: "stack" },
+    { id: "s2", label: "GraphQL / Apollo Federation", level: 90, cat: "stack" },
+    { id: "s3", label: "Node.js / WebSocket", level: 87, cat: "stack" },
+    { id: "s4", label: "Redux", level: 86, cat: "stack" },
+    { id: "s5", label: "Elasticsearch", level: 82, cat: "stack" },
+    { id: "s6", label: "Python", level: 96, cat: "ai" },
+    { id: "s7", label: "LLMs / NLP", level: 93, cat: "ai" },
+    { id: "s8", label: "TensorFlow / Transfer Learning", level: 86, cat: "ai" },
+    { id: "s9", label: "Data Engineering", level: 84, cat: "ai" },
+    { id: "s10", label: "R / Pandas", level: 82, cat: "ai" },
+    { id: "s11", label: "Machine Learning Pipelines", level: 85, cat: "ai" },
   ],
   languages: [
     { id: "l1", name: "Arabic", level: "Native" },
@@ -159,7 +157,7 @@ export const DEFAULT_CONTENT: CmsContent = {
     { id: "c1", label: "EMAIL", value: "hazem.alabiad@icloud.com", href: "mailto:hazem.alabiad@icloud.com" },
     { id: "c2", label: "GITHUB", value: "github.com/hazem-alabiad", href: "https://github.com/hazem-alabiad" },
     { id: "c3", label: "LINKEDIN", value: "linkedin.com/in/hazemalabiad", href: "https://linkedin.com/in/hazemalabiad" },
-    { id: "c4", label: "SCHOLAR", value: "scholar.google.com/hazem", href: "https://scholar.google.com/hazem" },
+    { id: "c4", label: "SCHOLAR", value: "scholar.google.com", href: "https://scholar.google.com/citations?hl=en&user=UYsJxDYAAAAJ" },
   ],
   stats: [
     { to: 6, suffix: "+", label: "Years Experience" },

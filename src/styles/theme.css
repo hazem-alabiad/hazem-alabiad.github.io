@@ -28,11 +28,11 @@
   --frame: #0a1220;
 
   --fg-a: #e2e8f4;         /* primary text */
-  --fg-b: #9ab8d0;         /* soft text */
-  --fg-c: #6b8fab;         /* muted text */
-  --fg-d: #4d6b8a;         /* faint text */
+  --fg-b: #a9c2d8;         /* soft text */
+  --fg-c: #7d99b4;         /* muted text */
+  --fg-d: #627f9c;         /* faint text */
   --fg-nav: #b0cede;
-  --fg-hero: #c6d8ec;
+  --fg-hero: #cdddf0;
 }
 
 [data-theme="violet"] {

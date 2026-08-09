@@ -254,9 +254,9 @@ function useReveal(threshold = 0.1) {
 
 const DEFAULTS = {
   heroTagline:
-    "I make language models useful — engineering production-grade systems on one side, researching how they learn on the other.",
+    "I make language models useful — engineering production-grade systems on one side, researching how they learn on the other. My path runs from a B.Sc. in computer engineering to an M.A. in computational linguistics: I've led full-stack teams and shipped products to millions at Getir and IBM, then moved into NLP research. Today I split my time between building and studying language technology — from LLM tutoring systems to the cognitive science of social media.",
   bio1:
-    "My path runs from a B.Sc. in computer engineering to an M.A. in computational linguistics: I've led full-stack teams and shipped products to millions of users at Getir and IBM, then moved into NLP research. Today I split my time between building and studying language technology — from LLM tutoring systems to the cognitive science of social media.",
+    "",
   bio2:
     "Open to NLP/AI/full-stack roles and research collaborations — Tübingen, Stuttgart, or remote.",
 };
@@ -264,130 +264,20 @@ const DEFAULTS = {
 // ─── Style helpers (module-level so all components can use them) ──────────────
 
 const mono = (sz: number, color = "var(--fg-b)", extra: React.CSSProperties = {}): React.CSSProperties => ({
-  fontFamily: '"JetBrains Mono", monospace', fontSize: `clamp(${Math.max(9, Math.round(sz * 0.78))}px, ${((sz * 100) / 1280).toFixed(2)}vw, ${sz}px)`, color, ...extra,
+  fontFamily: '"JetBrains Mono", monospace',
+  fontSize: `clamp(${Math.max(10.5, Math.round(sz * 0.82))}px, ${((sz * 105) / 1280).toFixed(2)}vw, ${Math.max(sz + 1, 12)}px)`,
+  color, ...extra,
 });
 const raj = (sz: number, color = "var(--fg-a)"): React.CSSProperties => ({
   fontFamily: '"Rajdhani", sans-serif', fontSize: sz, fontWeight: 700, color,
 });
 const body = (sz: number, color = "var(--fg-b)"): React.CSSProperties => ({
-  fontFamily: '"Outfit", sans-serif', fontSize: `clamp(${Math.max(12, Math.round(sz * 0.72))}px, ${((sz * 100) / 1280).toFixed(2)}vw, ${sz}px)`, color, lineHeight: 1.6,
+  fontFamily: '"Outfit", sans-serif',
+  fontSize: `clamp(${Math.max(14, Math.round(sz * 0.74))}px, ${((sz * 104) / 1280).toFixed(2)}vw, ${Math.max(sz, 15)}px)`,
+  color, lineHeight: 1.65,
 });
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-
-// ─── Muse Bloom (ambient joy, no game) ──────────────────────────────────────
-
-let bloomCtx: AudioContext | null = null;
-function getBloomCtx() {
-  if (typeof window === "undefined") return null;
-  const AC = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!AC) return null;
-  if (!bloomCtx) bloomCtx = new AC();
-  if (bloomCtx.state === "suspended") bloomCtx.resume();
-  return bloomCtx;
-}
-
-function playBloomChord() {
-  const ctx = getBloomCtx();
-  if (!ctx) return;
-  const now = ctx.currentTime;
-  const notes = [523.25, 783.99, 1046.5, 1567.98]; // C5 G5 C6 G6
-  notes.forEach((fr, i) => {
-    const o = ctx.createOscillator();
-    o.type = "sine";
-    o.frequency.value = fr;
-    const g = ctx.createGain();
-    const t0 = now + i * 0.09;
-    g.gain.setValueAtTime(0.0004, t0);
-    g.gain.linearRampToValueAtTime(0.07, t0 + 0.05);
-    g.gain.exponentialRampToValueAtTime(0.0004, t0 + 1.4);
-    o.connect(g).connect(ctx.destination);
-    o.start(t0); o.stop(t0 + 1.6);
-  });
-}
-
-const MUSE_WHISPERS = [
-  "the corpus dreams in vectors…",
-  "attention is all you need — literally",
-  "parsing moonlight since 2019",
-  "every word, a coordinate",
-  "gradients of delight",
-  "let me embed that thought",
-  "∇L of a good day → 0",
-];
-
-function MuseBloom() {
-  const [burst, setBurst] = useState<Array<{ id: number; x: number; y: number; c: string; pvx: number; pvy: number }>>([]);
-  const [ring, setRing] = useState(false);
-  const [whisper, setWhisper] = useState<string | null>(null);
-  const seq = useRef(0);
-  const whispers = useRef([...MUSE_WHISPERS]);
-
-  const bloom = () => {
-    playBloomChord();
-    const colors = ["var(--c1h)", "var(--c2h)", "var(--c3h)", "var(--c4h)"];
-    const next: typeof burst = [];
-    for (let i = 0; i < 18; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const r = 46 + Math.random() * 86;
-      next.push({
-        id: ++seq.current,
-        x: 50 + Math.cos(a) * r,
-        y: 50 + Math.sin(a) * r,
-        c: colors[Math.floor(Math.random() * colors.length)],
-        pvx: (Math.random() - 0.5) * 60,
-        pvy: -(40 + Math.random() * 90),
-      });
-    }
-    setBurst(next);
-    setRing(true);
-    setTimeout(() => setRing(false), 1200);
-    setWhisper(whispers.current[Math.floor(Math.random() * whispers.current.length)]);
-    setTimeout(() => setWhisper(null), 3600);
-    setTimeout(() => setBurst([]), 1100);
-  };
-
-  return (
-    <>
-      <div style={{ position: "fixed", left: 18, bottom: 18, zIndex: 8500, display: "flex", alignItems: "center" }}>
-        {/* whisper readout */}
-        <div style={{
-          position: "absolute", left: 68, bottom: 14, pointerEvents: "none", whiteSpace: "nowrap",
-          opacity: whisper ? 1 : 0, transform: whisper ? "translateX(0)" : "translateX(-6px)",
-          transition: "opacity 0.5s ease, transform 0.5s ease",
-          fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.12em",
-          color: "rgba(var(--c2),0.8)", fontStyle: "italic",
-        }}>
-          {whisper && `→ ${whisper}`}
-        </div>
-        <button onClick={bloom} aria-label="Bloom a spark of joy"
-          style={{
-            cursor: "pointer", position: "relative", width: 52, height: 52, borderRadius: "50%",
-            background: "linear-gradient(135deg, rgba(var(--c1),0.22), rgba(var(--c2),0.14))",
-            border: "1px solid rgba(var(--c1),0.35)", backdropFilter: "blur(10px)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 8px 24px rgba(var(--c1),0.18), inset 0 1px 0 rgba(255,255,255,0.12)",
-            transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s, border-color 0.25s",
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 14px 30px rgba(var(--c1),0.3)"; e.currentTarget.style.borderColor = "rgba(var(--c1),0.7)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(var(--c1),0.18)"; e.currentTarget.style.borderColor = "rgba(var(--c1),0.35)"; }}>
-          {/* expanding halo ring */}
-          {ring && <span style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "1px solid rgba(var(--c2),0.55)", animation: "bloom-ring 1.1s cubic-bezier(0.16,1,0.3,1) forwards" }} />}
-          <Sparkles size={19} strokeWidth={2} style={{ color: "var(--c1h)", filter: "drop-shadow(0 0 6px rgba(var(--c1),0.6))" }} />
-          {/* particle burst */}
-          {burst.map((p) => (
-            <span key={p.id} style={{
-              position: "absolute", left: "50%", top: "50%", width: 5, height: 5, borderRadius: "50%",
-              background: p.c, boxShadow: "0 0 8px rgba(var(--c1),0.7)",
-              animation: "bloom-particle 1s cubic-bezier(0.16,1,0.3,1) forwards",
-              ['--pvx' as string]: `${p.pvx}px`, ['--pvy' as string]: `${p.pvy}px`,
-            }} />
-          ))}
-        </button>
-      </div>
-    </>
-  );
-}
 
 // ─── Ambient cursor (precise dot + elastic ring; fine pointers only) ─────────
 
@@ -477,23 +367,11 @@ function SectionLabel({ num, label }: { num: string; label: string }) {
   );
 }
 
-function SkillBar({ label, level, visible, delay, index }: { label: string; level: number; visible: boolean; delay: number; index: number }) {
-  const tier = level >= 90 ? "EXPERT" : level >= 78 ? "ADVANCED" : level >= 65 ? "PROFICIENT" : "COMPETENT";
+function SkillListItem({ label, index, visible, delay }: { label: string; index: number; visible: boolean; delay: number }) {
   return (
-    <div className="pb-3" style={{ borderBottom: "1px solid rgba(var(--c1),0.08)" }}>
-      <div className="flex justify-between items-center mb-2">
-        <span className="flex items-center gap-2.5">
-          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.1em", color: "var(--c1h)", opacity: 0.7 }}>{String(index).padStart(2, "0")}</span>
-          <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: 16, color: "var(--fg-hero)" }}>{label}</span>
-        </span>
-        <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.14em", color: "var(--fg-a)" }}>{level}%</span>
-          <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.16em", color: level >= 78 ? "var(--c1h)" : "var(--fg-c)", opacity: level >= 78 ? 1 : 0.7 }}>{tier}</span>
-        </span>
-      </div>
-      <div className="skill-track" aria-hidden>
-        <i data-lvl={level} className={visible ? "now" : ""} style={{ width: visible ? `${level}%` : 0, transitionDelay: `${delay}ms` }} />
-      </div>
+    <div className="flex items-baseline gap-3 py-2.5" style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(8px)", transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`, borderBottom: "1px solid rgba(var(--c1),0.07)" }}>
+      <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.1em", color: "var(--c1h)", opacity: 0.7 }}>{String(index).padStart(2, "0")}</span>
+      <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 600, fontSize: 18.5, color: "var(--fg-hero)", letterSpacing: "0.01em" }}>{label}</span>
     </div>
   );
 }
@@ -1475,26 +1353,123 @@ function Spotlight({ children, className, style }: { children: React.ReactNode; 
 // ─── App ─────────────────────────────────────────────────────────────────────
 
 const VISIT_KEY = "hazem_portfolio_couter_v1";
+const OWNER_KEY = "hazem_portfolio_owner_v1";
 const VISIT_URL = "https://countapi.mileshilliard.com/api/v1";
+const VISIT_ID = "hazemalabiad_portfolio_visits";
 
+// Count a visit only when we're fairly sure it's not the owner:
+//  * Skip if the browser has ever unlocked the CMS (owner flag persisted).
+//  * Skip on localhost / dev / the GitHub Pages preview of the owner.
+//  * Skip repeat visits in the same session (counted already).
 function countVisits() {
+  const readOnly = (): Promise<number | null> =>
+    fetch(`${VISIT_URL}/get/${VISIT_ID}`).then((r) => r.json()).then((d) => d.value).catch(() => null);
+
   try {
-    const owner = !!localStorage.getItem(CMS_TOKEN_KEY);
+    const owner = !!localStorage.getItem(OWNER_KEY) || !!localStorage.getItem(CMS_TOKEN_KEY);
     const counted = sessionStorage.getItem(VISIT_KEY);
-    if (owner || counted) {
-      return fetch(`${VISIT_URL}/get/hazemalabiad_portfolio_visits`).then((r) => r.json()).then((d) => d.value).catch(() => null);
+    const dev =
+      location.hostname === "localhost" ||
+      location.hostname === "127.0.0.1" ||
+      location.hostname.startsWith("dev.") ||
+      location.hostname.endsWith(".preview.app.github.dev") ||
+      location.hostname.endsWith(".githubpreview.dev");
+    if (owner || counted || dev) {
+      return readOnly();
     }
     sessionStorage.setItem(VISIT_KEY, "1");
-    return fetch(`${VISIT_URL}/hit/hazemalabiad_portfolio_visits`).then((r) => r.json()).then((d) => d.value).catch(() => null);
+    return fetch(`${VISIT_URL}/hit/${VISIT_ID}`).then((r) => r.json()).then((d) => d.value).catch(() => null);
   } catch {
     return Promise.resolve(null);
   }
 }
 
+// Sets the persistent owner flag so the owner's own browser is never counted.
+export function markOwner() {
+  try { localStorage.setItem(OWNER_KEY, "1"); } catch {}
+}
+
+// ─── Enhanced Terminal (hero right rail) ───────────────────────────────────────
+// A real terminal window: traffic-light title bar, typed command, role listing
+// with a PRIORITY marker, and a key/value status readout. Bigger mono type than
+// the old inline job-mode panel, calmer chrome, movable around the site language.
+
+const TERM_ROLES = [
+  { t: "NLP Engineer", p: true },
+  { t: "LLM / AI Engineer", p: false },
+  { t: "Research Engineer · AI/CompLing", p: false },
+  { t: "Full-Stack Engineer", p: false },
+];
+
+function EnhancedTerminal({ factLocation }: { factLocation: string }) {
+  const [cmd, setCmd] = useState("");
+  const CMD = "./job-mode --status";
+
+  useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let i = 0;
+    if (reduce) { setCmd(CMD); return; }
+    const t = setInterval(() => { i++; setCmd(CMD.slice(0, i)); if (i >= CMD.length) clearInterval(t); }, 34);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div className="group" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.16)", boxShadow: "0 24px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(var(--c1),0.03)" }}>
+      {/* title bar */}
+      <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: "1px solid rgba(var(--c1),0.1)", background: "rgba(var(--c1),0.03)" }}>
+        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--red-soft)", opacity: 0.9 }} />
+        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#febc2e", opacity: 0.9 }} />
+        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--c3h)", opacity: 0.9 }} />
+        <span style={mono(10.5, "var(--fg-c)", { marginLeft: 8, letterSpacing: "0.12em" })}>hazem@tübingen — zsh</span>
+        <span style={mono(9.5, "var(--fg-d)", { marginLeft: "auto", letterSpacing: "0.14em", fontStyle: "italic" })}>80×24</span>
+      </div>
+
+      {/* body */}
+      <div className="px-5 py-5 space-y-4">
+        {/* typed command */}
+        <div style={mono(13, "var(--fg-hero)", { display: "flex", alignItems: "center", gap: 8, letterSpacing: "0.04em" })}>
+          <span style={{ color: "var(--c3h)" }}>➜</span>
+          <span style={{ color: "var(--c1h)", fontWeight: 500 }}>~/portfolio</span>
+          <span>{cmd}</span>
+          <span className="blink" style={{ display: "inline-block", width: 7, height: 14, background: "var(--c1h)", boxShadow: "0 0 8px rgba(var(--c1),0.7)" }} />
+        </div>
+
+        {/* roles */}
+        <div className="space-y-2 pt-1">
+          {TERM_ROLES.map((r, i) => (
+            <div key={r.t} className="flex items-baseline gap-3">
+              <span style={mono(11, "var(--fg-d)", { letterSpacing: "0.1em" })}>{String(i + 1).padStart(2, "0")}</span>
+              <span style={mono(13, "var(--fg-hero)", { letterSpacing: "0.03em" })}>{r.t}</span>
+              {r.p && (
+                <span className="blink" style={mono(10, "var(--c3h)", { marginLeft: "auto", letterSpacing: "0.14em" })}>◀ PRIORITY</span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* status key/values */}
+        <div className="pt-3 grid grid-cols-2 gap-x-4 gap-y-2" style={{ borderTop: "1px solid rgba(var(--c1),0.1)" }}>
+          <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", gap: 6, whiteSpace: "nowrap" })}>
+            <span style={{ color: "var(--c2h)" }}>availability</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c3h)" }}>"Immediately"</span>
+          </div>
+          <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", gap: 6, whiteSpace: "nowrap" })}>
+            <span style={{ color: "var(--c2h)" }}>location</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c3h)" }}>"{factLocation}"</span>
+          </div>
+          <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", gap: 6, whiteSpace: "nowrap" })}>
+            <span style={{ color: "var(--c2h)" }}>open_to</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c1h)" }}>["Full‑time","Remote"]</span>
+          </div>
+          <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", gap: 6, whiteSpace: "nowrap" })}>
+            <span style={{ color: "var(--c2h)" }}>status</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c4h)" }}>"Open to opportunities"</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [booted, setBooted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [typeText, setTypeText] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [cmsEnabled, setCmsEnabled] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -1544,8 +1519,6 @@ export default function App() {
   const skillsR = useReveal();
   const contactR = useReveal();
 
-  const FULL = "FULL-STACK ENGINEER // AI & NLP // M.A. COMP. LINGUISTICS";
-
   const get = (key: keyof CmsContent, fallback: string) =>
     typeof content[key] === "string" && (content[key] as string).trim() !== ""
       ? (content[key] as string)
@@ -1569,12 +1542,6 @@ export default function App() {
           title: `CMS: edit "${key}"`,
         }
       : { style: base };
-
-  useEffect(() => {
-    let i = 0;
-    const t = setInterval(() => { setTypeText(FULL.slice(0, i)); i++; if (i > FULL.length) clearInterval(t); }, 46);
-    return () => clearInterval(t);
-  }, []);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 60);
@@ -1604,9 +1571,8 @@ export default function App() {
       </div>
       <ScrollProgressBar />
       <SideNavDots />
-      {/* deco layers removed: CustomCursor, MouseTrail, CRTOverlay, ParticleField — rAF + canvas cost, no functional value */}
+      {/* deco layers removed: CustomCursor, MouseTrail, CRTOverlay, ParticleField, MuseBloom — rAF + canvas cost, no functional value */}
       <AmbientCursor />
-      <MuseBloom />
 
       {/* ── Nav ── */}
       <nav className="fixed top-0 w-full z-50 transition-all duration-500"
@@ -1656,105 +1622,78 @@ export default function App() {
       {/* ── Hero ── */}
       <section id="home" className="relative min-h-screen flex flex-col justify-center px-6 pt-24 lg:pt-20" style={{ zIndex: 10 }}>
         <div className="max-w-7xl mx-auto w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16">
-            {/* Left — identity, role, bio, CTAs, stats */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
+            {/* Left — identity, role, bio, CTAs */}
             <div className="lg:col-span-7">
-              <div className="flex items-center gap-3 mb-8 flex-wrap">
-                <span style={mono(9.5, "rgba(var(--c1),0.5)", { letterSpacing: "0.3em" })}>NEURAL_ID::HAZ-2026</span>
-                <div className="w-12 h-px" style={{ background: "rgba(var(--c1),0.18)" }} />
-                <span style={mono(9.5, "var(--fg-d)", { letterSpacing: "0.28em" })}>2026.08</span>
-              </div>
-
-              <h1 ref={heroNameRef} className="relative leading-[1.02] tracking-tight mb-6 select-none"
-                style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(3.2rem,9vw,6.8rem)", letterSpacing: "0.01em" }}>
-                <span style={{ color: "var(--fg-a)" }}>Hazem</span>{" "}
-                <span style={{ color: "var(--c1h)" }}>Alabiad</span>
+              <h1 ref={heroNameRef} className="relative leading-[1.02] tracking-tight mb-4 select-none"
+                style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(3rem,8vw,6.2rem)", letterSpacing: "-0.02em", color: "var(--fg-a)" }}>
+                Hazem Alabiad
               </h1>
 
-              <div className="flex items-center gap-2.5 mb-6">
-                <span className="blink w-2 h-4" style={{ background: "var(--c1h)" }} />
-                <p style={{ ...mono(14, "var(--fg-hero)", { letterSpacing: "0.14em" }), fontSize: "clamp(14px,1.9vw,19px)" }}>{typeText}</p>
-              </div>
+              <p className="mb-6" style={{ ...mono(13, "var(--c1h)", { letterSpacing: "0.12em" }), fontSize: "clamp(12px,1.6vw,16px)" }}>
+                FULL-STACK ENGINEER & AI/NLP RESEARCHER · M.A. COMPUTATIONAL LINGUISTICS
+              </p>
 
-              <p ref={heroTagRef} {...ep("heroTagline", DEFAULTS.heroTagline, { ...body(19, "var(--fg-hero)"), maxWidth: 640, marginBottom: 18 })}>
+              <p ref={heroTagRef} {...ep("heroTagline", DEFAULTS.heroTagline, { ...body(17, "var(--fg-hero)"), maxWidth: 600, marginBottom: 24 })}>
                 {get("heroTagline", DEFAULTS.heroTagline)}
               </p>
 
-              <p {...ep("bio1", DEFAULTS.bio1, { ...body(16, "var(--fg-b)"), maxWidth: 640, marginBottom: 28 })}>
-                {get("bio1", DEFAULTS.bio1)}
-              </p>
-
-              <div className="flex flex-wrap gap-3.5 mb-10">
+              <div className="flex flex-wrap gap-3.5 mb-12">
                 <MagneticWrap>
                   <button onClick={() => scrollTo("experience")} className="flex items-center gap-2.5 transition-all duration-300"
-                    style={mono(10, "var(--c1h)", { padding: "13px 26px", border: "1px solid rgba(var(--c1),0.55)", letterSpacing: "0.2em", cursor: "pointer" })}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(var(--c1),0.1)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--c1h)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.55)"; }}>
+                    style={mono(10, "var(--c1h)", { padding: "14px 28px", border: "1px solid rgba(var(--c1),0.55)", letterSpacing: "0.18em", cursor: "pointer" })}
+                    onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = "rgba(var(--c1),0.15)"; el.style.borderColor = "var(--c1h)"; el.style.boxShadow = "0 0 28px rgba(var(--c1),0.28)"; }}
+                    onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = "transparent"; el.style.borderColor = "rgba(var(--c1),0.55)"; el.style.boxShadow = "none"; }}>
                     VIEW EXPERIENCE <ArrowUpRight size={13} />
                   </button>
                 </MagneticWrap>
                 <MagneticWrap>
                   <button onClick={() => scrollTo("contact")} className="flex items-center gap-2.5 transition-all duration-300"
-                    style={mono(10, "var(--fg-hero)", { padding: "13px 26px", border: "1px solid rgba(var(--c1),0.22)", letterSpacing: "0.2em", cursor: "pointer" })}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.6)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.22)"; }}>
+                    style={mono(10, "var(--c2h)", { padding: "14px 28px", border: "1px solid rgba(var(--c2),0.4)", letterSpacing: "0.18em", cursor: "pointer", color: "var(--c2h)" })}
+                    onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = "rgba(var(--c2),0.12)"; el.style.borderColor = "var(--c2h)"; el.style.boxShadow = "0 0 28px rgba(var(--c2),0.25)"; }}
+                    onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = "transparent"; el.style.borderColor = "rgba(var(--c2),0.4)"; el.style.boxShadow = "none"; }}>
                     CONTACT ME
                   </button>
                 </MagneticWrap>
                 <CVDownloadButton cvUrl={content.cvDataUrl} />
               </div>
+
+              {/* Quick availability pills */}
+              <div className="flex flex-wrap items-center gap-2.5" style={{ maxWidth: 600 }}>
+                <span style={mono(9, "rgba(var(--c1),0.5)", { letterSpacing: "0.2em", textTransform: "uppercase" })}>AVAILABLE</span>
+                <span style={mono(10, "var(--c3h)", { padding: "4px 12px", border: "1px solid rgba(var(--c3),0.35)", letterSpacing: "0.12em", background: "rgba(var(--c3),0.06)" })}>Immediately</span>
+                <span style={mono(10, "var(--fg-c)", { padding: "4px 12px", border: "1px solid rgba(var(--c1),0.2)", letterSpacing: "0.12em", background: "var(--chip)" })}>Remote · On-site</span>
+                <span style={mono(10, "var(--c1h)", { padding: "4px 12px", border: "1px solid rgba(var(--c1),0.35)", letterSpacing: "0.12em", background: "rgba(var(--c1),0.06)" })}>Full-time · Contract</span>
+              </div>
             </div>
 
-            {/* Right — Photo + job-mode readout */}
+            {/* Right — Photo + Enhanced Terminal */}
             <div className="lg:col-span-5 space-y-5">
-              <div className="group relative cursor-pointer" style={{ filter: "drop-shadow(0 12px 40px rgba(var(--c1),0.14))" }}>
+              {/* Photo — smaller, professional frame */}
+              <div className="group relative cursor-pointer" style={{ filter: "drop-shadow(0 16px 48px rgba(0,0,0,0.35))" }}>
                 <div style={{
-                  width: "100%", aspectRatio: "16/10", overflow: "hidden", position: "relative",
+                  width: "100%", aspectRatio: "4/5", maxWidth: 320, margin: "0 auto", overflow: "hidden", position: "relative",
                   border: "1px solid rgba(var(--c1),0.18)", background: "var(--card-photo)",
+                  borderRadius: 2,
                 }}>
                   <img
                     src={content.photo || hazemPhoto}
                     alt="Hazem Alabiad"
                     loading="lazy"
                     decoding="async"
-                    style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 38%", display: "block" }}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 30%", display: "block" }}
                   />
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(var(--bg-rgb),0.06) 0%, transparent 45%, rgba(var(--bg-rgb),0.72) 100%)", pointerEvents: "none" }} />
-                  <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(0,0,0,0.16) 3px, rgba(0,0,0,0.16) 4px)", opacity: 0.5, pointerEvents: "none" }} />
-                  <div className="flex items-center gap-2" style={{ position: "absolute", left: 14, bottom: 12, zIndex: 2 }}>
-                    <span className="w-2 h-2 rounded-full" style={{ background: "var(--c3h)", boxShadow: "0 0 8px var(--c3h)", display: "inline-block" }} />
-                    <span style={mono(9, "var(--fg-a)", { letterSpacing: "0.16em" })}>HAZEM ALABIAD · ONLINE</span>
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 55%, rgba(var(--bg-rgb),0.85) 100%)", pointerEvents: "none" }} />
+                  <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px)", opacity: 0.4, pointerEvents: "none" }} />
+                  <div className="flex items-center gap-2" style={{ position: "absolute", left: 12, bottom: 10, zIndex: 2 }}>
+                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--c3h)", boxShadow: "0 0 6px var(--c3h)" }} />
+                    <span style={mono(8.5, "var(--fg-a)", { letterSpacing: "0.14em" })}>HAZEM ALABIAD · ONLINE</span>
                   </div>
                 </div>
               </div>
 
-              {/* ── Job mode / availability readout ── */}
-              <div className="p-5" style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.12)" }}>
-                <div className="flex items-center gap-3 mb-4 pb-3" style={{ borderBottom: "1px solid rgba(var(--c1),0.08)" }}>
-                  <span style={{ color: "var(--fg-c)", fontSize: 9.5, letterSpacing: "0.18em" }}>hazem@tübingen</span>
-                  <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 9.5, color: "var(--c3h)", letterSpacing: "0.15em" }}>./job-mode --status</span>
-                </div>
-                <div className="space-y-2.5">
-                  {[
-                    { t: "NLP Engineer", p: true },
-                    { t: "LLM / AI Engineer", p: false },
-                    { t: "Research Engineer · AI/CompLing", p: false },
-                    { t: "Full-Stack Engineer", p: false },
-                  ].map((r, i) => (
-                    <div key={r.t} className="flex items-center gap-2.5">
-                      <span style={mono(9.5, "var(--fg-d)", { letterSpacing: "0.1em" })}>{String(i + 1).padStart(2, "0")}</span>
-                      <span style={mono(11.5, "var(--fg-hero)", { lineHeight: 1.6 })}>{r.t}</span>
-                      {r.p && <span style={mono(9, "var(--c3h)", { letterSpacing: "0.14em", marginLeft: "auto" })}>← PRIORITY</span>}
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 pt-3 grid grid-cols-2 gap-x-4 gap-y-1.5" style={{ borderTop: "1px solid rgba(var(--c1),0.08)" }}>
-                  <div style={mono(9.5, "var(--fg-b)", { letterSpacing: "0.1em" })}><span style={{ color: "var(--c2h)" }}>availability</span><span style={{ color: "var(--fg-a)" }}> = </span><span style={{ color: "var(--c3h)" }}>"Immediately"</span></div>
-                  <div style={mono(9.5, "var(--fg-b)", { letterSpacing: "0.1em" })}><span style={{ color: "var(--c2h)" }}>location</span><span style={{ color: "var(--fg-a)" }}> = </span><span style={{ color: "var(--c3h)" }}>"{get("factLocation", DEFAULT_CONTENT.factLocation)}"</span></div>
-                  <div style={mono(9.5, "var(--fg-b)", { letterSpacing: "0.1em" })}><span style={{ color: "var(--c2h)" }}>open_to</span><span style={{ color: "var(--fg-a)" }}> = </span><span style={{ color: "var(--c1h)" }}>["Full-time","Remote"]</span></div>
-                  <div style={mono(9.5, "var(--fg-b)", { letterSpacing: "0.1em" })}><span style={{ color: "var(--c2h)" }}>status</span><span style={{ color: "var(--fg-a)" }}> = </span><span style={{ color: "var(--c4h)" }}>"Open to opportunities"</span></div>
-                </div>
-              </div>
+              {/* ── Enhanced Terminal ── */}
+              <EnhancedTerminal factLocation={get("factLocation", DEFAULT_CONTENT.factLocation)} />
             </div>
           </div>
         </div>
@@ -1856,48 +1795,39 @@ export default function App() {
             <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2.1rem,5vw,3.4rem)", color: "var(--fg-a)" }}>
               Technical <span style={{ color: "var(--c2h)" }}>Proficiencies</span>
             </WipeHeading>
-            <Spotlight className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+            <Spotlight className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12">
               <div>
-                <div style={mono(9, "rgba(var(--c1),0.45)", { marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>FULL_STACK_ENGINEERING</div>
-                <div className="space-y-2.5">
+                <div style={mono(9, "rgba(var(--c1),0.45)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>FULL_STACK_ENGINEERING</div>
+                <div>
                   {content.skills.filter((s) => s.cat === "stack").map((s, i) => (
-                    <SkillBar key={s.id || s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} index={i + 1} />
+                    <SkillListItem key={s.id || s.label} label={s.label} index={i + 1} visible={skillsR.visible} delay={i * 90} />
                   ))}
                 </div>
               </div>
               <div>
-                <div style={mono(9, "rgba(var(--c2),0.45)", { marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>AI_NLP_RESEARCH</div>
-                <div className="space-y-2.5">
+                <div style={mono(9, "rgba(var(--c2),0.45)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>AI_NLP_RESEARCH</div>
+                <div>
                   {content.skills.filter((s) => s.cat === "ai").map((s, i) => (
-                    <SkillBar key={s.id || s.label} label={s.label} level={s.level} visible={skillsR.visible} delay={i * 90} index={i + 7} />
+                    <SkillListItem key={s.id || s.label} label={s.label} index={i + 1} visible={skillsR.visible} delay={i * 90} />
                   ))}
                 </div>
               </div>
             </Spotlight>
-            <div className="mt-8">
-              <div style={mono(9, "rgba(var(--c1),0.5)", { marginBottom: 16, textTransform: "uppercase" as const, letterSpacing: "0.26em" })}>SPOKEN_LANGUAGES</div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-6">
-                {content.languages.map((lang, i) => {
-                  const L = lang.level.toLowerCase();
-                  const pct = L.includes("native") ? 100 : L.includes("profic") ? 75 : L.includes("fluent") ? 85 : L.includes("beginner") ? 40 : 60;
-                  return (
-                    <div key={lang.id}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 18, color: "var(--fg-a)" }}>{lang.name}</span>
-                        <span style={mono(9, pct >= 75 ? "var(--c1h)" : "var(--fg-c)", { letterSpacing: "0.14em" })}>{lang.level.toUpperCase()}</span>
-                      </div>
-                      <div className="skill-track" aria-hidden>
-                        <i style={{ width: skillsR.visible ? `${pct}%` : 0, transition: `width 0.9s cubic-bezier(0.16,1,0.3,1) ${i * 90}ms` }} />
-                      </div>
-                    </div>
-                  );
-                })}
+            <div className="mt-10">
+              <div style={mono(9, "rgba(var(--c1),0.5)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.26em" })}>SPOKEN_LANGUAGES</div>
+              <div className="flex flex-wrap gap-x-10 gap-y-4">
+                {content.languages.map((lang, i) => (
+                  <span key={lang.id} className="flex items-baseline gap-2" style={{ opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(8px)", transition: `opacity 0.6s ease ${i * 60}ms, transform 0.6s ease ${i * 60}ms` }}>
+                    <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 18, color: "var(--fg-a)" }}>{lang.name}</span>
+                    <span style={mono(9.5, lang.level.toLowerCase() === "native" ? "var(--c1h)" : "var(--fg-c)", { letterSpacing: "0.16em" })}>{lang.level.toUpperCase()}</span>
+                  </span>
+                ))}
               </div>
             </div>
-            <div className="mt-8">
-              <div style={mono(9, "rgba(var(--c1),0.5)", { marginBottom: 16, textTransform: "uppercase" as const, letterSpacing: "0.26em" })}>WORKFLOW & PRACTICE</div>
+            <div className="mt-10">
+              <div style={mono(9, "rgba(var(--c1),0.5)", { marginBottom: 16, textTransform: "uppercase" as const, letterSpacing: "0.26em" })}>DEVOPS & WORKFLOW</div>
               <div className="flex flex-wrap gap-2">
-                {["CI/CD", "Figma", "Redux", "Agile / Scrum", "Code Review"].map((t, ti) => (
+                {["Docker", "Git", "Jest / Cypress / Puppeteer", "Figma", "MySQL", "Agile / Scrum", "Linux", "CI/CD"].map((t, ti) => (
                   <span key={t}
                     style={{ ...mono(9.5, "var(--fg-b)", { padding: "8px 15px", border: "1px solid rgba(var(--c1),0.12)", letterSpacing: "0.12em", background: "var(--card)" }), opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(8px)", transition: `opacity 0.5s ease ${ti * 40}ms, transform 0.5s ease ${ti * 40}ms, border-color 0.25s ease, color 0.25s ease`, cursor: "default" }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.45)"; (e.currentTarget as HTMLElement).style.color = "var(--c1h)"; }}
@@ -1997,8 +1927,8 @@ export default function App() {
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} content={content} />
       <CMSButton
         enabled={cmsEnabled}
-        onUnlock={() => { setCmsEnabled(true); setEditorOpen(true); }}
-        onAutoUnlock={() => setCmsEnabled(true)}
+        onUnlock={() => { markOwner(); setCmsEnabled(true); setEditorOpen(true); }}
+        onAutoUnlock={() => { markOwner(); setCmsEnabled(true); }}
         onDisable={() => setCmsEnabled(false)}
         onOpenEditor={() => setEditorOpen(true)}
         onReset={() => { setContent(loadContent()); resetContent(); }}
