@@ -2028,7 +2028,13 @@ export default function App() {
             <div className="lg:col-span-7">
               <h1 ref={heroNameRef} className="glitch leading-none tracking-tight mb-4 select-none"
                 style={{ fontFamily: '"Audiowide", cursive', fontSize: "clamp(3.2rem,10vw,8.5rem)", fontWeight: 400, color: "var(--fg-a)" }}>
-                HAZEM<br /><span className="text-glow-cyan" style={{ color: "var(--c1h)" }}>ALABIAD</span>
+                HAZEM<br />
+                <span className="name-hover">
+                  {"ALABIAD".split("").map((ch, i) => (
+                    <span key={i} className="name-letter text-glow-cyan" style={{ color: "var(--c1h)", ['--i' as string]: i }}>{ch}</span>
+                  ))}
+                  <span className="name-underline"><span className="name-caret" /></span>
+                </span>
               </h1>
 
               <div className="flex items-center gap-2 mb-6">

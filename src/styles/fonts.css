@@ -247,6 +247,59 @@
 
 /* ── Text glow (accent headings) ── */
 .text-glow-cyan { text-shadow: 0 0 18px rgba(var(--c1),0.35), 0 0 48px rgba(var(--c1),0.15); }
+
+/* ── Hero name — per-letter hover stagger ── */
+.name-hover {
+  display: inline-block;
+  position: relative;
+}
+.name-letter {
+  display: inline-block;
+  text-shadow: 0 0 14px rgba(var(--c1),0.3), 0 0 34px rgba(var(--c1),0.12);
+  transition: transform 0.28s cubic-bezier(0.16,1,0.3,1), color 0.24s, text-shadow 0.28s;
+  animation: name-boot 0.7s cubic-bezier(0.16,1,0.3,1) both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+@keyframes name-boot {
+  from { opacity: 0; transform: translateY(0.35em) scale(0.9); filter: blur(4px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@media (hover: hover) {
+  .name-hover:hover .name-letter {
+    transform: translateY(-0.09em);
+    text-shadow: 0 0 20px rgba(var(--c1),0.9), 0 0 60px rgba(var(--c1),0.45);
+    color: #fff !important;
+  }
+  .name-hover:hover .name-letter:nth-child(1) { transition-delay: 0ms; }
+  .name-hover:hover .name-letter:nth-child(2) { transition-delay: 35ms; }
+  .name-hover:hover .name-letter:nth-child(3) { transition-delay: 70ms; }
+  .name-hover:hover .name-letter:nth-child(4) { transition-delay: 105ms; }
+  .name-hover:hover .name-letter:nth-child(5) { transition-delay: 140ms; }
+  .name-hover:hover .name-letter:nth-child(6) { transition-delay: 175ms; }
+  .name-hover:hover .name-letter:nth-child(7) { transition-delay: 210ms; }
+}
+@keyframes name-underline-in {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.name-underline {
+  position: absolute;
+  left: 0; right: 0; bottom: -0.12em;
+  height: 2px;
+  background: linear-gradient(90deg, var(--c1h), rgba(var(--c1),0.2));
+  transform-origin: left;
+  animation: name-underline-in 0.9s cubic-bezier(0.16,1,0.3,1) 0.9s both;
+  box-shadow: 0 0 16px rgba(var(--c1),0.7);
+}
+.name-caret {
+  position: absolute;
+  right: -3px; top: 50%;
+  width: 2px; height: 1.1em;
+  transform: translateY(-50%);
+  background: var(--c1h);
+  box-shadow: 0 0 10px var(--c1h);
+  animation: blink 1.05s step-end 1.8s infinite;
+}
 .text-glow-violet { text-shadow: 0 0 18px rgba(var(--c2),0.4), 0 0 48px rgba(var(--c2),0.18); }
 
 /* ── Quantum bomb ── */
