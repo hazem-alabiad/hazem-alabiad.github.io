@@ -81,11 +81,11 @@ export interface CmsContent {
 
 export const DEFAULT_CONTENT: CmsContent = {
   heroTagline:
-    "Software Engineer with 6+ years of experience, M.A. student in Computational Linguistics at Tübingen. Bridging production-grade full-stack engineering with AI, NLP, and LLM research.",
+    "Full-Stack Engineer & AI/NLP Researcher — 6+ years shipping production software used by millions. Pursuing an M.A. in Computational Linguistics at Tübingen, bridging engineering with LLMs and cognitive science.",
   bio1:
-    "Software Engineer with 6+ years of experience building production-ready systems and pixel-perfect UIs with React, Next.js, TypeScript, and modern tooling. Led cross-functional teams, improved developer experience, and delivered design-driven applications at scale.",
+    "Software engineer with 6+ years of experience building and leading at scale. Shipped React/TypeScript products used by 2M+ people (GetirJobs) and 1M+ enterprise users (IBM's Data Quality platform). Led engineering teams, raised test coverage to 70–90%, and championed accessibility.",
   bio2:
-    "Currently pursuing an M.A. in Computational Linguistics at the University of Tübingen (Student Assistant at IWM & the Autonomous Learning Lab). Research focus: AI, ML, LLMs, NLP, and Cognitive Science. Open to Working Student & internship roles in NLP, AI/ML, and LLMs — Tübingen, Stuttgart, or remote.",
+    "Currently an M.A. student in Computational Linguistics at the University of Tübingen — researching LLMs, NLP, and cognitive science as a Student Assistant at IWM & the Autonomous Learning Lab. Open to NLP/AI/ML and full-stack roles in Tübingen, Stuttgart, or remote.",
   factLocation: "Tübingen, Germany",
   factDegree: "M.A. Computational Linguistics",
   factCurrent: "Student Asst. · IWM & Auto. Learning Lab",

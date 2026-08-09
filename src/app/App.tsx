@@ -255,11 +255,11 @@ function useReveal(threshold = 0.1) {
 
 const DEFAULTS = {
   heroTagline:
-    "Software Engineer with 6+ years of experience, M.A. student in Computational Linguistics at Tübingen. Bridging production-grade full-stack engineering with AI, NLP, and LLM research.",
+    "Full-Stack Engineer & AI/NLP Researcher — 6+ years shipping production software used by millions. Pursuing an M.A. in Computational Linguistics at Tübingen, bridging engineering with LLMs and cognitive science.",
   bio1:
-    "Software Engineer with 6+ years of experience building production-ready systems and pixel-perfect UIs with React, Next.js, TypeScript, and modern tooling. Led cross-functional teams, improved developer experience, and delivered design-driven applications at scale.",
+    "Software engineer with 6+ years of experience building and leading at scale. Shipped React/TypeScript products used by 2M+ people (GetirJobs) and 1M+ enterprise users (IBM's Data Quality platform). Led engineering teams, raised test coverage to 70–90%, and championed accessibility.",
   bio2:
-    "Currently pursuing an M.A. in Computational Linguistics at the University of Tübingen (Student Assistant at IWM & the Autonomous Learning Lab). Research focus: AI, ML, LLMs, NLP, and Cognitive Science. Open to Working Student & internship roles in NLP, AI/ML, and LLMs — Tübingen, Stuttgart, or remote.",
+    "Currently an M.A. student in Computational Linguistics at the University of Tübingen — researching LLMs, NLP, and cognitive science as a Student Assistant at IWM & the Autonomous Learning Lab. Open to NLP/AI/ML and full-stack roles in Tübingen, Stuttgart, or remote.",
 };
 
 // ─── Style helpers (module-level so all components can use them) ──────────────
@@ -302,57 +302,118 @@ function SkillTicker() {
   );
 }
 
-// ─── StarTrace (joy) ─────────────────────────────────────────────────────────
+// ─── Muse Bloom (ambient joy, no game) ──────────────────────────────────────
 
-let bombCtx: AudioContext | null = null;
-function getBombCtx() {
+let bloomCtx: AudioContext | null = null;
+function getBloomCtx() {
   if (typeof window === "undefined") return null;
   const AC = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!AC) return null;
-  if (!bombCtx) bombCtx = new AC();
-  if (bombCtx.state === "suspended") bombCtx.resume();
-  return bombCtx;
+  if (!bloomCtx) bloomCtx = new AC();
+  if (bloomCtx.state === "suspended") bloomCtx.resume();
+  return bloomCtx;
 }
 
-function playConstPing(idx: number, count: number) {
-  const ctx = getBombCtx();
+function playBloomChord() {
+  const ctx = getBloomCtx();
   if (!ctx) return;
   const now = ctx.currentTime;
-  const scale = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.51, 1567.98, 1760.0];
-  const f = scale[Math.floor(idx % scale.length)];
-  const o = ctx.createOscillator();
-  o.type = "triangle";
-  o.frequency.value = f;
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(0.0005, now);
-  g.gain.linearRampToValueAtTime(0.06, now + 0.01);
-  g.gain.exponentialRampToValueAtTime(0.0005, now + 0.22);
-  o.connect(g).connect(ctx.destination);
-  o.start(now); o.stop(now + 0.26);
-}
-
-function playConstChime() {
-  const ctx = getBombCtx();
-  if (!ctx) return;
-  const now = ctx.currentTime;
-  const notes = [523.25, 659.25, 783.99, 1046.5, 1318.51];
+  const notes = [523.25, 783.99, 1046.5, 1567.98]; // C5 G5 C6 G6
   notes.forEach((fr, i) => {
     const o = ctx.createOscillator();
     o.type = "sine";
     o.frequency.value = fr;
-    const v = ctx.createOscillator();
-    v.type = "sine"; v.frequency.value = 0.5 + i * 0.13;
-    const vg = ctx.createGain();
-    vg.gain.value = 55;
-    v.connect(vg).connect(o.frequency);
-    const og = ctx.createGain();
-    const t0 = now + i * 0.1;
-    og.gain.setValueAtTime(0.0005, t0);
-    og.gain.linearRampToValueAtTime(0.1, t0 + 0.14);
-    og.gain.exponentialRampToValueAtTime(0.0005, t0 + 1.6);
-    o.connect(og).connect(ctx.destination);
-    o.start(t0); o.stop(t0 + 1.8);
+    const g = ctx.createGain();
+    const t0 = now + i * 0.09;
+    g.gain.setValueAtTime(0.0004, t0);
+    g.gain.linearRampToValueAtTime(0.07, t0 + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0004, t0 + 1.4);
+    o.connect(g).connect(ctx.destination);
+    o.start(t0); o.stop(t0 + 1.6);
   });
+}
+
+const MUSE_WHISPERS = [
+  "the corpus dreams in vectors…",
+  "attention is all you need — literally",
+  "parsing moonlight since 2019",
+  "every word, a coordinate",
+  "gradients of delight",
+  "let me embed that thought",
+  "∇L of a good day → 0",
+];
+
+function MuseBloom() {
+  const [burst, setBurst] = useState<Array<{ id: number; x: number; y: number; c: string; pvx: number; pvy: number }>>([]);
+  const [ring, setRing] = useState(false);
+  const [whisper, setWhisper] = useState<string | null>(null);
+  const seq = useRef(0);
+  const whispers = useRef([...MUSE_WHISPERS]);
+
+  const bloom = () => {
+    playBloomChord();
+    const colors = ["var(--c1h)", "var(--c2h)", "var(--c3h)", "var(--c4h)"];
+    const next: typeof burst = [];
+    for (let i = 0; i < 18; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = 46 + Math.random() * 86;
+      next.push({
+        id: ++seq.current,
+        x: 50 + Math.cos(a) * r,
+        y: 50 + Math.sin(a) * r,
+        c: colors[Math.floor(Math.random() * colors.length)],
+        pvx: (Math.random() - 0.5) * 60,
+        pvy: -(40 + Math.random() * 90),
+      });
+    }
+    setBurst(next);
+    setRing(true);
+    setTimeout(() => setRing(false), 1200);
+    setWhisper(whispers.current[Math.floor(Math.random() * whispers.current.length)]);
+    setTimeout(() => setWhisper(null), 3600);
+    setTimeout(() => setBurst([]), 1100);
+  };
+
+  return (
+    <>
+      <div style={{ position: "fixed", left: 18, bottom: 18, zIndex: 8500, display: "flex", alignItems: "center" }}>
+        {/* whisper readout */}
+        <div style={{
+          position: "absolute", left: 68, bottom: 14, pointerEvents: "none", whiteSpace: "nowrap",
+          opacity: whisper ? 1 : 0, transform: whisper ? "translateX(0)" : "translateX(-6px)",
+          transition: "opacity 0.5s ease, transform 0.5s ease",
+          fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.12em",
+          color: "rgba(var(--c2),0.8)", fontStyle: "italic",
+        }}>
+          {whisper && `→ ${whisper}`}
+        </div>
+        <button onClick={bloom} aria-label="Bloom a spark of joy"
+          style={{
+            cursor: "pointer", position: "relative", width: 52, height: 52, borderRadius: "50%",
+            background: "linear-gradient(135deg, rgba(var(--c1),0.22), rgba(var(--c2),0.14))",
+            border: "1px solid rgba(var(--c1),0.35)", backdropFilter: "blur(10px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 8px 24px rgba(var(--c1),0.18), inset 0 1px 0 rgba(255,255,255,0.12)",
+            transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s, border-color 0.25s",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 14px 30px rgba(var(--c1),0.3)"; e.currentTarget.style.borderColor = "rgba(var(--c1),0.7)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(var(--c1),0.18)"; e.currentTarget.style.borderColor = "rgba(var(--c1),0.35)"; }}>
+          {/* expanding halo ring */}
+          {ring && <span style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "1px solid rgba(var(--c2),0.55)", animation: "bloom-ring 1.1s cubic-bezier(0.16,1,0.3,1) forwards" }} />}
+          <Sparkles size={19} strokeWidth={2} style={{ color: "var(--c1h)", filter: "drop-shadow(0 0 6px rgba(var(--c1),0.6))" }} />
+          {/* particle burst */}
+          {burst.map((p) => (
+            <span key={p.id} style={{
+              position: "absolute", left: "50%", top: "50%", width: 5, height: 5, borderRadius: "50%",
+              background: p.c, boxShadow: "0 0 8px rgba(var(--c1),0.7)",
+              animation: "bloom-particle 1s cubic-bezier(0.16,1,0.3,1) forwards",
+              ['--pvx' as string]: `${p.pvx}px`, ['--pvy' as string]: `${p.pvy}px`,
+            }} />
+          ))}
+        </button>
+      </div>
+    </>
+  );
 }
 
 function HUDOrbit() {
@@ -390,184 +451,6 @@ function HUDOrbit() {
         ◉ SYNAPSE_ACTIVE
       </span>
     </div>
-  );
-}
-
-function StarTrace() {
-  const [open, setOpen] = useState(false);
-  const [catalogued, setCatalogued] = useState(false);
-  const [starName, setStarName] = useState("");
-  const [pointCount, setPointCount] = useState(0);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-    const savedRef = useRef<{ pts: Array<{ x: number; y: number }>; name: string } | null>(null);
-  const pointsRef = useRef<Array<{ x: number; y: number; t: number }>>([]);
-  const constA = ["NEBULA", "ORACLE", "SIRIUS", "HALO", "PULSAR", "VEGA", "ATLAS", "LYRA", "QUASAR", "AURORA"];
-  const constB = ["SENTINEL", "DREAMER", "WANDERER", "WEAVER", "PYTHON", "CARTOGRAPHER", "ORBIT", "SIGNAL", "MIRAGE", "RELAY"];
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("hazem_trace_saved");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && Array.isArray(parsed.pts) && parsed.pts.length > 1) savedRef.current = parsed;
-      }
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    const ref = canvasRef.current;
-    if (!ref || !open) return;
-    const ctx = ref.getContext("2d");
-    if (!ctx) return;
-    let w = 0, h = 0, raf = 0;
-    const stars: Array<{ x: number; y: number; r: number; p: number; s: number }> = [];
-    function size() {
-      w = ref.width = window.innerWidth;
-      h = ref.height = window.innerHeight;
-    }
-    size();
-    for (let i = 0; i < 90; i++) {
-      stars.push({ x: Math.random() * 1000, y: Math.random() * 1000, r: 0.4 + Math.random() * 1.3, p: Math.random() * 6.28, s: 0.4 + Math.random() * 1.2 });
-    }
-    const tick = () => {
-      ctx.clearRect(0, 0, w, h);
-      // deep-space field
-      ctx.fillStyle = "rgba(3,6,16,0.96)";
-      ctx.fillRect(0, 0, w, h);
-      const t = performance.now() / 1000;
-      for (const st of stars) {
-        const tw = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(t * st.s + st.p));
-        const g = Math.round(120 + tw * 135);
-        ctx.fillStyle = `rgba(${g},${g},255,${tw * 0.5})`;
-        ctx.beginPath();
-        ctx.arc((st.x / 1000) * w, (st.y / 1000) * h, st.r, 0, 6.283);
-        ctx.fill();
-      }
-      // constellation trail
-      const pts = pointsRef.current.concat(savedRef.current ? savedRef.current.pts : []);
-      if (pts.length > 1) {
-        ctx.strokeStyle = "rgba(var(--c1),0.9)";
-        ctx.lineWidth = 1.6;
-        ctx.shadowColor = "var(--c1h)";
-        ctx.shadowBlur = 14;
-        ctx.beginPath();
-        ctx.moveTo(pts[0].x, pts[0].y);
-        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        for (const p of pts) {
-          ctx.fillStyle = "#9fe8ff";
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, 1.7, 0, 6.283);
-          ctx.fill();
-        }
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    tick();
-    const onResize = () => size();
-    window.addEventListener("resize", onResize);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", onResize); };
-  }, [open]);
-
-  const close = () => { setOpen(false); setCatalogued(false); setPointCount(0); };
-
-  const openForge = () => {
-    pointsRef.current = [];
-    setOpen(true);
-    setCatalogued(false);
-    setPointCount(0);
-  };
-
-  useEffect(() => {
-    if (!open) return;
-    const onMove = (e: MouseEvent) => {
-      const p = pointsRef.current;
-      const last = p[p.length - 1];
-      if (!last || Math.hypot(e.clientX - last.x, e.clientY - last.y) > 7) {
-        p.push({ x: e.clientX, y: e.clientY, t: performance.now() });
-        if (p.length > 420) p.splice(0, p.length - 420);
-        playConstPing(p.length - 1, 1);
-        setPointCount(p.length);
-      }
-    };
-    window.addEventListener("mousemove", onMove);
-    return () => window.removeEventListener("mousemove", onMove);
-  }, [open]);
-
-  useEffect(() => { if (!open) return; const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); }; window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey); }, [open]);
-
-  const catalogue = () => {
-    const local = pointsRef.current.slice();
-    if (local.length < 2) return;
-    playConstChime();
-    const h1 = local.reduce((a, p) => a + p.x + p.y, 0) % constA.length;
-    const h2 = local.reduce((a, p) => a + Math.round(p.x * p.y), 0) % constB.length;
-    const name = `CONSTELLATION // ${constA[h1]}_${constB[h2]}`;
-    setStarName(name);
-    setCatalogued(true);
-    try { localStorage.setItem("hazem_trace_saved", JSON.stringify({ pts: local.map(({ x, y }) => ({ x, y })), name })); } catch {}
-  };
-
-  const saved = savedRef.current;
-
-  return (
-    <>
-      <div className="quantum-bomb-float" style={{ position: "fixed", left: 18, bottom: 18, zIndex: 8500 }}>
-        <button onClick={() => (open ? close() : openForge())}
-          style={{
-            cursor: "pointer", position: "relative", width: 58, height: 58,
-            background: "linear-gradient(135deg, rgba(var(--c2),0.28), rgba(var(--c1),0.16))",
-            border: "1px solid rgba(var(--c2),0.5)", borderRadius: "50%",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            backdropFilter: "blur(10px)",
-            transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s, box-shadow 0.25s",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 28px rgba(var(--c2),0.3), 0 0 0 4px rgba(var(--c1),0.07)",
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = "rgba(var(--c1),0.85)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(var(--c2),0.5)"; }}
-          aria-label="Open constellation forge">
-          <span className="bomb-ping" style={{ position: "absolute", inset: -3, borderRadius: "50%", pointerEvents: "none" }} />
-          <span style={{
-            width: 40, height: 40, borderRadius: "50%",
-            background: "radial-gradient(circle at 32% 30%, var(--c1h), var(--c2h))",
-            color: "var(--bg-deep)", display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 0 14px rgba(var(--c1),0.7), inset 0 -2px 5px rgba(0,0,0,0.28)",
-          }}>
-            <Sparkles size={18} strokeWidth={2} className="atom-spin" />
-          </span>
-        </button>
-      </div>
-
-      {open && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 9850, cursor: "crosshair" }} onClick={close}>
-          <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
-          <div style={{ position: "absolute", left: "50%", top: 26, transform: "translateX(-50%)", textAlign: "center", pointerEvents: "none" }}>
-            <span style={mono(10, "rgba(var(--c1),0.75)", { letterSpacing: "0.3em" })}>◈ CHARGE THE TAIL — MOVE YOUR CURSOR ◈</span>
-            <div style={{ marginTop: 6, fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.18em", color: "var(--fg-b)" }}>{pointCount} STARS · {saved ? "PRIOR CONSTELLATION LOADED · " : ""}ESC TO EXIT</div>
-          </div>
-          <div style={{ position: "absolute", left: "50%", bottom: 30, transform: "translateX(-50%)", display: "flex", gap: 12 }}>
-            <button onClick={(e) => { e.stopPropagation(); catalogue(); }} disabled={pointCount < 2}
-              style={mono(10, pointCount < 2 ? "var(--fg-d)" : "var(--c3h)", { letterSpacing: "0.2em", border: `1px solid ${pointCount < 2 ? "rgba(var(--fg-d),0.4)" : "rgba(var(--c3),0.5)"}`, padding: "10px 20px", background: "rgba(var(--c3),0.06)", cursor: pointCount < 2 ? "not-allowed" : "pointer" })}>
-              {pointCount < 2 ? "DRAW TO ENABLE" : "CATALOGUE CONSTELLATION"}
-            </button>
-            <button onClick={(e) => { e.stopPropagation(); close(); }} style={mono(10, "rgba(var(--c1),0.7)", { letterSpacing: "0.2em", border: "1px solid rgba(var(--c1),0.3)", padding: "10px 20px", background: "rgba(var(--c1),0.04)", cursor: "pointer" })}>EXIT</button>
-          </div>
-          {catalogued && (
-            <div style={{ position: "absolute", left: "50%", top: "48%", transform: "translate(-50%,-50%)", textAlign: "center", pointerEvents: "none", background: "rgba(var(--bg-rgb),0.9)", border: "1px solid rgba(var(--c1),0.35)", padding: "34px 48px", boxShadow: "0 30px 90px rgba(0,0,0,0.6), 0 0 60px rgba(var(--c1),0.15)" }}>
-              <div style={mono(9, "rgba(var(--c1),0.6)", { letterSpacing: "0.35em" })}>OBJECT CATALOGUED</div>
-              <div className="decode-in" style={{ marginTop: 12, fontFamily: '"Orbitron", sans-serif', fontWeight: 700, fontSize: "clamp(16px,3vw,26px)", letterSpacing: "0.1em", color: "var(--fg-a)", animation: "glitch-enter 0.8s steps(6) both" }}>{starName}</div>
-              <div style={{ marginTop: 10, fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.16em", color: "var(--fg-b)" }}>
-                NODES: {pointCount.toString().padStart(3, "0")} · SHELF: TÜBINGEN-DEEP-SKY
-              </div>
-              <div style={{ marginTop: 8, fontFamily: '"Rajdhani", sans-serif', fontSize: 13, color: "var(--c3h)", letterSpacing: "0.08em" }}>
-                PERSISTED TO YOUR BROWSER — IT WELCOMES YOU BACK.
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </>
   );
 }
 
@@ -1796,7 +1679,7 @@ export default function App() {
       <ScrollProgressBar />
       <SideNavDots />
       {/* deco layers removed: CustomCursor, MouseTrail, CRTOverlay, ParticleField — rAF + canvas cost, no functional value */}
-      <StarTrace />
+      <MuseBloom />
 
       {/* ── Nav ── */}
       <nav className="fixed top-0 w-full z-50 transition-all duration-500"
@@ -2095,7 +1978,7 @@ export default function App() {
             <WipeHeading className="mb-4" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.6rem,4vw,2.5rem)", color: "var(--fg-a)" }}>
               Research <span style={{ color: "var(--c1h)" }}>& Projects</span>
             </WipeHeading>
-            <Spotlight className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Spotlight className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
 {content.projects.map((proj, pidx) => {
                 const ProjIcon = [Brain, Code2, Database, GraduationCap, Globe, Briefcase][pidx % 6];
                 const projColor = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)"][pidx % 4];
