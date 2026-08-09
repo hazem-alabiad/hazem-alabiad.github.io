@@ -206,11 +206,13 @@ function ParticleField() {
     if (!ctx) return;
     const state = {
       particles: [] as Array<{ x: number; y: number; vx: number; vy: number; r: number; t: number; a: number }>,
+      pulses: [] as Array<{ a: number; b: number; prog: number; speed: number; color: string }>,
       mouse: { x: -9999, y: -9999 },
       scanY: 0,
       raf: 0,
       link: true,
       paused: false,
+      lastPulse: 0,
     };
     function init() {
       canvas!.width = window.innerWidth;
@@ -227,6 +229,18 @@ function ParticleField() {
         t: Math.random(),
         a: Math.random() * 0.5 + 0.25,
       }));
+      state.pulses = [];
+      state.lastPulse = 0;
+    }
+    function spawnPulse() {
+      const ps = state.particles;
+      if (ps.length < 2) return;
+      const a = Math.floor(Math.random() * ps.length);
+      let b = Math.floor(Math.random() * ps.length);
+      if (b === a) b = (b + 1) % ps.length;
+      const colors = ["rgba(0,240,255,", "rgba(160,90,255,", "rgba(255,255,255,"];
+      state.pulses.push({ a, b, prog: 0, speed: 0.008 + Math.random() * 0.012, color: colors[Math.floor(Math.random() * colors.length)] });
+      if (state.pulses.length > 22) state.pulses.shift();
     }
     function tick() {
       if (state.paused) { state.raf = requestAnimationFrame(tick); return; }
@@ -249,6 +263,9 @@ function ParticleField() {
       ctx!.fillRect(0, state.scanY - 80, W, 160);
       const { particles, mouse } = state;
       const linkDraw = state.link;
+      // spawn a traveling data pulse every ~340ms
+      const now = performance.now();
+      if (linkDraw && now - state.lastPulse > 340) { state.lastPulse = now; spawnPulse(); }
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         const dx = mouse.x - p.x, dy = mouse.y - p.y;
@@ -270,8 +287,33 @@ function ParticleField() {
             }
           }
         }
+        // soft node halo
+        ctx!.beginPath(); ctx!.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
+        ctx!.fillStyle = `rgba(${r},${g},${b},${p.a * 0.12})`; ctx!.fill();
         ctx!.beginPath(); ctx!.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx!.fillStyle = `rgba(${r},${g},${b},${p.a})`; ctx!.fill();
+      }
+      // data pulses traveling along edges
+      for (let k = state.pulses.length - 1; k >= 0; k--) {
+        const pu = state.pulses[k];
+        const A = particles[pu.a], B = particles[pu.b];
+        if (!A || !B) { state.pulses.splice(k, 1); continue; }
+        pu.prog += pu.speed;
+        if (pu.prog >= 1) { state.pulses.splice(k, 1); continue; }
+        const px = A.x + (B.x - A.x) * pu.prog;
+        const py = A.y + (B.y - A.y) * pu.prog;
+        const head = 1 - pu.prog;
+        const trail = ctx!.createLinearGradient(px, py, B.x, B.y);
+        trail.addColorStop(0, `${pu.color}0.9)`);
+        trail.addColorStop(1, `${pu.color}0)`);
+        ctx!.strokeStyle = trail;
+        ctx!.lineWidth = 1.6;
+        ctx!.beginPath(); ctx!.moveTo(px, py); ctx!.lineTo(B.x, B.y); ctx!.stroke();
+        // bright head
+        ctx!.beginPath(); ctx!.arc(px, py, 2.4 + head * 1.6, 0, Math.PI * 2);
+        ctx!.fillStyle = `${pu.color}${0.5 + head * 0.5})`; ctx!.fill();
+        ctx!.beginPath(); ctx!.arc(px, py, 5 + head * 6, 0, Math.PI * 2);
+        ctx!.fillStyle = `${pu.color}0.18)`; ctx!.fill();
       }
       state.raf = requestAnimationFrame(tick);
     }
@@ -295,6 +337,57 @@ function ParticleField() {
     };
   }, []);
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }} />;
+}
+
+// ─── Matrix rain — subtle falling data glyphs ─────────────────────────────────
+
+function MatrixRain() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [opacity, setOpacity] = useState(0.32);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const isCoarse = window.matchMedia("(pointer: coarse)").matches;
+    if (isCoarse) setOpacity(0.25);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    let raf = 0, cols = 0, drops: number[] = [], trails: number[] = [];
+    const glyphs = "01アイウエオカキクケコサシスセソタチツテトНАБВГД0101";
+    const fontSize = 13;
+    function init() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      cols = Math.ceil(canvas.width / fontSize);
+      drops = Array.from({ length: cols }, () => Math.random() * -6);
+      trails = Array.from({ length: cols }, () => Math.random() * 8);
+    }
+    function tick() {
+      ctx!.fillStyle = "rgba(5,8,20,0.09)";
+      ctx!.fillRect(0, 0, canvas!.width, canvas!.height);
+      ctx!.font = `${fontSize}px "JetBrains Mono", monospace`;
+      for (let i = 0; i < cols; i++) {
+        const ch = glyphs[(Math.random() * glyphs.length) | 0];
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+        const pct = Math.min(1, Math.max(0, (y / canvas!.height) * 1.6));
+        const g = Math.round(200 + pct * 55);
+        ctx!.fillStyle = `rgba(${g},${g},255,${0.25 + pct * 0.4})`;
+        ctx!.fillText(ch, x, y);
+        if (Math.random() > 0.92 && y > 0) {
+          ctx!.fillStyle = "rgba(255,255,255,0.75)";
+          ctx!.fillText(glyphs[(Math.random() * glyphs.length) | 0], x, y - fontSize);
+        }
+        drops[i]++;
+        if (drops[i] * fontSize > canvas!.height && Math.random() > 0.975) drops[i] = Math.random() * -4;
+      }
+      raf = requestAnimationFrame(tick);
+    }
+    init(); tick();
+    const onResize = () => resize();
+    window.addEventListener("resize", onResize);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", onResize); };
+  }, []);
+  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 0, opacity }} aria-hidden />;
 }
 
 // ─── Reveal hook ─────────────────────────────────────────────────────────────
@@ -460,6 +553,44 @@ function playNeuralAwaken() {
   sg.gain.exponentialRampToValueAtTime(0.0005, now + 2.4);
   sub.connect(sg).connect(master);
   sub.start(now); sub.stop(now + 2.6);
+}
+
+function HUDOrbit() {
+  const tokens = ["AI", "NLP", "LLM", "CL", "GPU", "ML", "θ", "07"];
+  return (
+    <div style={{ position: "absolute", left: "100%", top: 20, marginLeft: 12, width: 170, height: 170, pointerEvents: "none", opacity: 0.9 }}>
+      {/* dashed outer orbit */}
+      <div style={{ position: "absolute", inset: 0, border: "1px dashed rgba(var(--c1),0.28)", borderRadius: "50%", animation: "hud-orbit 16s linear infinite" }} />
+      <div style={{ position: "absolute", inset: 14, border: "1px solid rgba(var(--c2),0.18)", borderRadius: "50%", animation: "hud-orbit 11s linear infinite reverse" }} />
+      {/* tokens traveling the orbits */}
+      {tokens.map((tk, i) => {
+        const inner = i % 2 === 1;
+        const dur = inner ? 11 : 16;
+        return (
+          <div key={tk} style={{ position: "absolute", inset: 0, animation: `hud-orbit ${dur}s linear infinite`, animationDelay: `${-i * (dur / tokens.length)}s` }}>
+            <span style={{
+              position: "absolute", top: inner ? 30 : 10, left: "50%",
+              transform: "translate(-50%,-50%) rotate(" + (i * 40) + "deg)",
+              width: inner ? 18 : 22, height: inner ? 18 : 22, borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontFamily: '"JetBrains Mono", monospace', fontSize: 6.5, letterSpacing: "0.06em",
+              color: i % 2 ? "var(--c2h)" : "var(--c1h)",
+              background: i % 2 ? "rgba(var(--c2),0.08)" : "rgba(var(--c1),0.1)",
+              border: `1px solid ${i % 2 ? "rgba(var(--c2),0.5)" : "rgba(var(--c1),0.45)"}`,
+              boxShadow: i % 2 ? "0 0 10px rgba(var(--c2),0.35)" : "0 0 10px rgba(var(--c1),0.35)",
+              backdropFilter: "blur(4px)",
+            }}>
+              {tk}
+            </span>
+          </div>
+        );
+      })}
+      {/* tiny caret readout */}
+      <span style={{ position: "absolute", left: "50%", bottom: -2, transform: "translateX(-50%)", fontFamily: '"JetBrains Mono", monospace', fontSize: 7.5, letterSpacing: "0.3em", color: "rgba(var(--c1),0.5)", whiteSpace: "nowrap" }}>
+        ◉ SYNAPSE_ACTIVE
+      </span>
+    </div>
+  );
 }
 
 function NeuralLink() {
@@ -656,12 +787,14 @@ function SectionLabel({ num, label }: { num: string; label: string }) {
     return () => obs.disconnect();
   }, []);
   return (
-    <div ref={ref} className="flex items-center gap-4 mb-6">
+    <div ref={ref} className="relative flex items-center gap-4 mb-6">
       <span className={`neon-flicker ${vis ? "glitch-enter" : ""}`} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.28em", color: "rgba(var(--c1),0.7)", textTransform: "uppercase" as const }}>
         MODULE_{num}
       </span>
-      <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, rgba(var(--c1),0.3), transparent)", transform: vis ? "scaleX(1)" : "scaleX(0)", transformOrigin: "left", transition: "transform 1s ease 0.2s" }} />
-      <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.2em", color: "rgba(var(--c1),0.5)", textTransform: "uppercase" as const, opacity: vis ? 1 : 0, transition: "opacity 0.6s ease 0.8s" }}>
+      <div className="flex-1 h-px relative overflow-hidden" style={{ background: "linear-gradient(to right, rgba(var(--c1),0.3), transparent)", transform: vis ? "scaleX(1)" : "scaleX(0)", transformOrigin: "left", transition: "transform 1s ease 0.2s" }}>
+        {vis && <span className="neural-scan-line" />}
+      </div>
+      <span className="decode-in" style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, letterSpacing: "0.2em", color: "rgba(var(--c1),0.5)", textTransform: "uppercase" as const, opacity: vis ? 1 : 0, animation: vis ? "decode-glitch 1.2s steps(8) 0.4s both" : "none", ['--dl' as string]: 16 }}>
         {label}
       </span>
     </div>
@@ -1391,19 +1524,23 @@ function BootScreen({ onDone }: { onDone: () => void }) {
 // ─── Mouse Trail ──────────────────────────────────────────────────────────────
 
 function MouseTrail() {
-  type Dot = { id: number; x: number; y: number };
+  type Dot = { id: number; x: number; y: number; g: string };
   const [dots, setDots] = useState<Dot[]>([]);
   const counter = useRef(0);
+  const glyphKey = useRef(() => {
+    const g = ["0", "1", "✦", "◈", "θ", "λ", "Δ", "·", "+", "◆"][Math.floor(Math.random() * 10)];
+    return g;
+  });
 
   useEffect(() => {
     let last = 0;
     const move = (e: MouseEvent) => {
       const now = Date.now();
-      if (now - last < 30) return;
+      if (now - last < 40) return;
       last = now;
       const id = counter.current++;
-      setDots((p) => [...p.slice(-18), { id, x: e.clientX, y: e.clientY }]);
-      setTimeout(() => setDots((p) => p.filter((d) => d.id !== id)), 600);
+      setDots((p) => [...p.slice(-26), { id, x: e.clientX, y: e.clientY, g: glyphKey.current() }]);
+      setTimeout(() => setDots((p) => p.filter((d) => d.id !== id)), 850);
     };
     window.addEventListener("mousemove", move);
     return () => window.removeEventListener("mousemove", move);
@@ -1416,13 +1553,23 @@ function MouseTrail() {
         return (
           <div key={d.id} style={{
             position: "fixed", left: d.x - 2, top: d.y - 2,
-            width: 4 + age * 3, height: 4 + age * 3,
+            width: 5 + age * 4, height: 5 + age * 4,
             borderRadius: "50%",
-            background: age > 0.5 ? "rgba(var(--c2),0.4)" : "rgba(var(--c1),0.35)",
+            background: age > 0.6 ? "rgba(var(--c2),0.5)" : age > 0.3 ? "rgba(var(--c1),0.5)" : "rgba(255,255,255,0.55)",
+            boxShadow: age > 0.3 ? "0 0 10px rgba(var(--c1),0.5)" : "0 0 8px rgba(255,255,255,0.4)",
             pointerEvents: "none", zIndex: 9997,
-            animation: "trail-fade 0.55s ease forwards",
-            transform: `scale(${0.4 + age * 0.6})`,
-          }} />
+            animation: "trail-fade 0.8s ease forwards",
+            mixBlendMode: "screen",
+            transform: `scale(${0.35 + age * 0.65})`,
+          }}>
+            {Math.random() > 0.72 && (
+              <span style={{
+                position: "absolute", top: -14 - age * 6, left: 0, fontFamily: '"JetBrains Mono", monospace',
+                fontSize: 7.5, color: age > 0.6 ? "var(--c2h)" : "var(--c1h)", opacity: 0.7,
+                animation: "trail-glyph 0.6s ease forwards",
+              }}>{d.g}</span>
+            )}
+          </div>
         );
       })}
     </>
@@ -1798,6 +1945,7 @@ export default function App() {
       <SideNavDots />
       <CRTOverlay />
       <ParticleField />
+      <MatrixRain />
       <NeuralLink />
 
       {/* ── Nav ── */}
@@ -1863,16 +2011,20 @@ export default function App() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
             {/* Left — identity, role, bio, CTAs, stats */}
             <div className="lg:col-span-7">
-              <h1 ref={heroNameRef} className="leading-none tracking-tight mb-4 select-none"
-                style={{ fontFamily: '"Unbounded", sans-serif', fontWeight: 300, fontSize: "clamp(2.9rem,9.2vw,7.5rem)", color: "var(--fg-a)", letterSpacing: "0.02em" }}>
+              <div className="relative inline-block">
+              <h1 ref={heroNameRef} className="hero-name leading-none tracking-tight mb-4 select-none"
+                style={{ fontFamily: '"Orbitron", sans-serif', fontWeight: 700, fontSize: "clamp(2.2rem,7.6vw,6.4rem)", color: "var(--c1h)", letterSpacing: "0.04em", textShadow: "0 0 14px rgba(var(--c1),0.5), 0 0 46px rgba(var(--c1),0.22)" }}>
                 HAZEM<br />
                 <span className="name-hover">
                   {"ALABIAD".split("").map((ch, i) => (
-                    <span key={i} className="name-letter text-glow-cyan" style={{ color: "var(--c1h)", ['--i' as string]: i }}>{ch}</span>
+                    <span key={i} className="name-letter" style={{ ['--i' as string]: i, ['--glass' as string]: `${20 + (i * 37) % 60}%` }}>{ch}</span>
                   ))}
                   <span className="name-underline"><span className="name-caret" /></span>
                 </span>
+                <span className="hero-name-scan" aria-hidden />
               </h1>
+              <div className="hidden md:block"><HUDOrbit /></div>
+              </div>
 
               <div className="flex items-center gap-2 mb-6">
                 <div className="blink w-2 h-5 bg-[var(--c1h)]" />
