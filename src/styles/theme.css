@@ -366,3 +366,119 @@ button,
   .console-frame::before { display: none; }
   .tl-row { transition: none; }
 }
+
+/* ─── Ambient cursor system ─────────────────────────────────────────────────
+ * Precise cyan dot + an elastic ring that eases behind it. Runs only on fine
+ * pointers; touch and reduced-motion users fall back to the native cursor
+ * (no `cz-active` class is added and nothing renders).
+ */
+
+html.cz-active,
+html.cz-active * { cursor: none !important; }
+html.cz-active input,
+html.cz-active textarea,
+html.cz-active [contenteditable] { cursor: text !important; }
+
+.cz-dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c1h);
+  box-shadow: 0 0 10px rgba(var(--c1), 0.8);
+  opacity: 0;
+  animation: cz-in 0.4s ease 0.1s forwards;
+}
+.cz-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 34px;
+  height: 34px;
+  opacity: 0;
+  animation: cz-in 0.4s ease forwards;
+}
+.cz-ring > span {
+  display: block;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(var(--c1), 0.45);
+  background: transparent;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.25s ease,
+              background 0.25s ease;
+}
+.cz-ring.ring-hot > span {
+  transform: scale(1.5);
+  border-color: rgba(var(--c1), 0.85);
+  background: rgba(var(--c1), 0.06);
+}
+.cz-ring.ring-press > span {
+  transform: scale(0.72);
+}
+
+@keyframes cz-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ─── Ambient background drift (very slight) ────────────────────────────────
+ * Three large blurred orbs that translate on a slow loop. Pure CSS transforms
+ * (GPU-composited, no layout thrash) and heavily muted so the page stays calm.
+ */
+
+.ambient {
+  background: radial-gradient(70% 60% at 78% 22%, rgba(var(--c2), 0.05), transparent 60%);
+}
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  mix-blend-mode: screen;
+  opacity: 0;
+  will-change: transform;
+}
+.orb-a {
+  width: 55vmax;
+  height: 55vmax;
+  left: -14vmax;
+  top: -20vmax;
+  background: radial-gradient(circle, rgba(var(--c1), 0.11), transparent 65%);
+  animation: orb-drift-a 46s ease-in-out infinite alternate;
+}
+.orb-b {
+  width: 46vmax;
+  height: 46vmax;
+  right: -16vmax;
+  top: 24vmax;
+  background: radial-gradient(circle, rgba(var(--c2), 0.1), transparent 65%);
+  animation: orb-drift-b 58s ease-in-out infinite alternate;
+}
+.orb-c {
+  width: 42vmax;
+  height: 42vmax;
+  left: 22vmax;
+  bottom: -22vmax;
+  background: radial-gradient(circle, rgba(var(--c3), 0.08), transparent 65%);
+  animation: orb-drift-c 52s ease-in-out infinite alternate;
+}
+
+@keyframes orb-drift-a {
+  0%   { transform: translate3d(0, 0, 0) scale(1); opacity: 0.05; }
+  100% { transform: translate3d(9vmax, 7vmax, 0) scale(1.18); opacity: 0.12; }
+}
+@keyframes orb-drift-b {
+  0%   { transform: translate3d(0, 0, 0) scale(1.12); opacity: 0.06; }
+  100% { transform: translate3d(-8vmax, 6vmax, 0) scale(0.94); opacity: 0.11; }
+}
+@keyframes orb-drift-c {
+  0%   { transform: translate3d(0, 0, 0) scale(1); opacity: 0.04; }
+  100% { transform: translate3d(7vmax, -6vmax, 0) scale(1.22); opacity: 0.09; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb { animation: none; opacity: 0.05; }
+}

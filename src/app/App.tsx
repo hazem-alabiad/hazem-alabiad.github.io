@@ -389,6 +389,73 @@ function MuseBloom() {
   );
 }
 
+// ─── Ambient cursor (precise dot + elastic ring; fine pointers only) ─────────
+
+function AmbientCursor() {
+  const dotRef = useRef<HTMLDivElement>(null);
+  const ringRef = useRef<HTMLDivElement>(null);
+  const [enabled] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return (
+        window.matchMedia("(pointer: fine)").matches &&
+        !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      );
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    if (!enabled) return;
+    const dot = dotRef.current;
+    const ring = ringRef.current;
+    if (!dot || !ring) return;
+    document.documentElement.classList.add("cz-active");
+    let mx = window.innerWidth / 2, my = window.innerHeight / 2;
+    let rx = mx, ry = my;
+    let raf = 0;
+    const move = (e: MouseEvent) => {
+      mx = e.clientX;
+      my = e.clientY;
+      dot.style.transform = `translate3d(${mx - 3}px, ${my - 3}px, 0)`;
+    };
+    const over = (e: MouseEvent) => {
+      const t = e.target as HTMLElement | null;
+      ring.classList.toggle("ring-hot", !!t && !!t.closest('a, button, [role="button"], input, textarea, select, label'));
+    };
+    const down = () => ring.classList.add("ring-press");
+    const up = () => ring.classList.remove("ring-press");
+    const loop = () => {
+      rx += (mx - rx) * 0.18;
+      ry += (my - ry) * 0.18;
+      ring.style.transform = `translate3d(${rx - 17}px, ${ry - 17}px, 0)`;
+      raf = requestAnimationFrame(loop);
+    };
+    window.addEventListener("mousemove", move, { passive: true });
+    window.addEventListener("mouseover", over, { passive: true });
+    window.addEventListener("mousedown", down);
+    window.addEventListener("mouseup", up);
+    raf = requestAnimationFrame(loop);
+    return () => {
+      document.documentElement.classList.remove("cz-active");
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseover", over);
+      window.removeEventListener("mousedown", down);
+      window.removeEventListener("mouseup", up);
+      cancelAnimationFrame(raf);
+    };
+  }, [enabled]);
+
+  if (!enabled) return null;
+  return (
+    <div style={{ position: "fixed", top: 0, left: 0, zIndex: 100000, pointerEvents: "none" }} aria-hidden="true">
+      <div ref={dotRef} className="cz-dot" />
+      <div ref={ringRef} className="cz-ring"><span /></div>
+    </div>
+  );
+}
+
 function SectionLabel({ num, label }: { num: string; label: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [vis, setVis] = useState(false);
@@ -595,7 +662,6 @@ function CVDownloadButton({ cvUrl }: { cvUrl?: string | null }) {
         padding: 0,
         border: `1px solid ${borderCol}`,
         background: isActive ? "rgba(var(--c1),0.05)" : "rgba(var(--c1),0.03)",
-        cursor: phase === "idle" ? "none" : "default",
         minWidth: 300,
         boxShadow: phase === "transfer" ? "0 0 24px rgba(var(--c1),0.12)" : phase === "done" ? "0 0 28px rgba(var(--c3),0.2)" : "none",
         transition: "border-color 0.3s, box-shadow 0.3s",
@@ -1530,11 +1596,16 @@ export default function App() {
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: "var(--bg-page)", color: "var(--fg-a)" }}>
       {!booted && <BootScreen onDone={() => setBooted(true)} />}
-      {/* Ambient background (static, no scroll re-renders) */}
-      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, background: "radial-gradient(70% 60% at 78% 22%, rgba(var(--c2),0.05), transparent 60%)" }} aria-hidden="true" />
+      {/* Ambient background drift (pure CSS transforms, barely-there) */}
+      <div className="ambient" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }} aria-hidden="true">
+        <div className="orb orb-a" />
+        <div className="orb orb-b" />
+        <div className="orb orb-c" />
+      </div>
       <ScrollProgressBar />
       <SideNavDots />
       {/* deco layers removed: CustomCursor, MouseTrail, CRTOverlay, ParticleField — rAF + canvas cost, no functional value */}
+      <AmbientCursor />
       <MuseBloom />
 
       {/* ── Nav ── */}
@@ -1738,10 +1809,10 @@ export default function App() {
                 const sc: Record<string, string> = { RESEARCH: "var(--c2h)", COMPLETE: "var(--c3h)", ACTIVE: "var(--c1h)", BETA: "var(--c4h)" };
                 return (
                   <div key={proj.id || proj.name} className={`transition-all duration-300 ${projectsR.visible ? "slide-up-item" : "opacity-0"}`} style={{ animationDelay: `${pidx * 120}ms` }}>
-                  <div className="flex flex-col h-full p-6 transition-colors duration-300"
-                    style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.08)" }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.4)"; (e.currentTarget as HTMLElement).style.background = "var(--card-hover)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.08)"; (e.currentTarget as HTMLElement).style.background = "var(--card)"; }}>
+                  <div className="flex flex-col h-full p-6 transition-all duration-300 will-change-transform"
+                    style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.08)", transform: "translateY(0)", boxShadow: "none" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.4)"; (e.currentTarget as HTMLElement).style.background = "var(--card-hover)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 18px 40px rgba(0,0,0,0.35), 0 0 24px rgba(var(--c1),0.08)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.08)"; (e.currentTarget as HTMLElement).style.background = "var(--card)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}>
                     <div className="flex items-center justify-between gap-2 mb-4">
                       <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.1em", color: "var(--fg-d)" }}>{String(pidx + 1).padStart(2, "0")}</span>
                       <div className="flex items-center gap-2.5">
