@@ -1748,20 +1748,6 @@ export default function App() {
                 {get("heroTagline", DEFAULTS.heroTagline)}
               </p>
 
-              <div className="flex flex-wrap items-center gap-x-8 gap-y-3 mb-5" style={{ maxWidth: 600 }}>
-                {[
-                  { n: "2.2M+", l: "USERS SHIPPED" },
-                  { n: "1M+", l: "ENTERPRISE USERS" },
-                  { n: "6+", l: "YEARS ENGINEERING" },
-                  { n: "70%+", l: "TEST COVERAGE" },
-                ].map((m, i) => (
-                  <div key={m.l}>
-                    <div style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.3rem,2.4vw,1.7rem)", color: "var(--c1h)", lineHeight: 1, letterSpacing: "0.01em" }}>{m.n}</div>
-                    <div className="mt-1" style={mono(8.5, "var(--fg-c)", { letterSpacing: "0.18em" })}>{m.l}</div>
-                  </div>
-                ))}
-              </div>
-
               <div className="flex flex-wrap gap-3.5 mb-4">
                 <MagneticWrap>
                   <button onClick={() => scrollTo("experience")} className="flex items-center gap-2.5 transition-all duration-300"
