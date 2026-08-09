@@ -387,143 +387,178 @@
   45%  { transform: translate(-50%, -50%) scale(1.4); opacity: 0.9; }
   100% { transform: translate(-50%, -50%) scale(2.1); opacity: 0; }
 }
-@keyframes nuke-stem {
-  0%   { transform: translate(-50%, 0) scaleY(0.15); opacity: 0.9; }
-  40%  { transform: translate(-50%, -70px) scaleY(0.95); opacity: 0.9; }
-  100% { transform: translate(-50%, -190px) scaleY(1.25) scaleX(1.5); opacity: 0; }
+
+/* ── NeuralLink easter egg ── */
+@keyframes neural-arc {
+  0%   { transform: translate(0, 0) scale(0.8); opacity: 1; }
+  20%  { transform: translate(calc(var(--fx, 0px) * 0.22), calc(var(--fy, 0px) * 0.6 - 110px)) scale(1) ; opacity: 1; }
+  45%  { transform: translate(calc(var(--fx, 0px) * 0.48), calc(var(--fy, 0px) * 0.78 - 55px)) scale(1); opacity: 1; }
+  70%  { transform: translate(calc(var(--fx, 0px) * 0.78), calc(var(--fy, 0px) * 0.9 - 20px)) scale(0.95); opacity: 1; }
+  100% { transform: translate(var(--fx, 0px), var(--fy, 0px)) scale(0.4); opacity: 1; }
 }
-@keyframes nuke-head {
-  0%   { transform: translate(-50%, 0) scale(0.25); opacity: 0.95; }
-  45%  { transform: translate(-50%, -120px) scale(1); opacity: 0.85; }
-  100% { transform: translate(-50%, -210px) scale(1.9); opacity: 0; }
-}
-@keyframes ember-rise {
-  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(var(--ex, 0px), var(--ey, -260px)) scale(0.25); opacity: 0; }
-}
-.ember-rise {
-  animation-name: ember-rise;
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  animation-fill-mode: both;
-  animation-duration: var(--ed, 1.2s);
-}
-@keyframes rock-arc {
-  0%   { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
-  20%  { transform: translate(calc(var(--fx, 0px) * 0.22), calc(var(--fy, 0px) * 0.6 - 130px)) rotate(12deg) scale(1.02); opacity: 1; }
-  45%  { transform: translate(calc(var(--fx, 0px) * 0.48), calc(var(--fy, 0px) * 0.78 - 70px)) rotate(-8deg) scale(1); opacity: 1; }
-  70%  { transform: translate(calc(var(--fx, 0px) * 0.78), calc(var(--fy, 0px) * 0.9 - 25px)) rotate(3deg) scale(0.98); opacity: 1; }
-  100% { transform: translate(var(--fx, 0px), var(--fy, 0px)) rotate(0deg) scale(0.4); opacity: 1; }
-}
-@keyframes plume-wag {
-  0%, 100% { transform: translateY(-50%) rotate(0deg) scaleY(1); }
-  50%      { transform: translateY(-50%) rotate(2deg) scaleY(1.18); }
-}
-.nuke-rocket {
+.neural-packet {
   width: 0; height: 0; left: 0; top: 0;
-  transform: rotate(var(--rot, 0deg));
-  filter: drop-shadow(0 0 10px rgba(255,140,50,0.55));
-}
-.nuke-rocket-arc {
-  animation-name: rock-arc;
-  animation-duration: 1s;
+  animation-name: neural-arc;
+  animation-duration: 0.95s;
   animation-timing-function: cubic-bezier(0.55, -0.12, 0.85, 0.6);
   animation-fill-mode: both;
 }
-/* fuselage */
-.nuke-rocket-body {
-  position: relative;
-  width: 26px; height: 58px;
-  background: linear-gradient(135deg, #e8edf4, #b9c3d4 55%, #7d8aa0);
-  border-radius: 6px 6px 9px 9px;
-  box-shadow: inset 2px 0 0 rgba(255,255,255,0.55), inset -3px 0 6px rgba(30,45,70,0.25), 0 3px 8px rgba(10,20,40,0.35);
-}
-/* nose cone (tip pointing up, rounded) */
-.nuke-rocket-nose {
+/* the cherry core-token — data node streaking to the hub */
+.neural-core-token {
   position: absolute;
-  left: 50%; top: -22px;
-  width: 0; height: 0;
-  transform: translateX(-50%);
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
-  border-bottom: 24px solid var(--c1h);
-  filter: drop-shadow(0 0 6px rgba(var(--c1),0.7));
-  animation: rock-flicker 0.4s ease-in-out infinite;
+  left: -9px; top: -9px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, var(--c1h) 38%, var(--c2h) 65%, transparent 100%);
+  box-shadow: 0 0 12px 3px rgba(var(--c1),0.9), 0 0 34px 12px rgba(var(--c2),0.55);
+  animation: neural-token-pulse 0.35s ease-in-out infinite;
 }
-/* fuselage painted band + cargo stripe */
-.nuke-rocket-belt {
-  position: absolute; left: 3px; right: 3px; top: 34%;
-  height: 4px;
-  background: linear-gradient(90deg, var(--c2h), transparent);
-  border-radius: 2px;
-}
-/* porthole window */
-.nuke-rocket-window {
+.neural-trail {
   position: absolute;
-  left: 50%; top: 26%;
-  width: 12px; height: 12px;
+  right: 6px; top: -3px;
+  width: 34px; height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(to left, rgba(var(--c1),0.85), rgba(var(--c2),0.35), transparent);
+  filter: blur(1.5px);
+  animation: neural-trail-fade 0.3s linear infinite;
+}
+@keyframes neural-token-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50%      { transform: scale(1.3); opacity: 1; }
+}
+@keyframes neural-trail-fade {
+  0%   { opacity: 1; transform: translateX(-2px) scaleX(1); }
+  100% { opacity: 0.55; transform: translateX(-6px) scaleX(0.85); }
+}
+/* neural hub — white-hot synapse core */
+.neural-core {
+  position: absolute;
+  left: 0; top: 0;
+  width: 150px; height: 150px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(circle at 32% 28%, #cfeaff, var(--c1h) 55%, #0a2f5a);
-  border: 2px solid rgba(255,255,255,0.85);
-  box-shadow: 0 0 8px rgba(var(--c1),0.9), inset 0 0 3px rgba(0,0,0,0.4);
-}
-/* cargo ring stripe near nose */
-.nuke-rocket-ring {
-  position: absolute;
-  left: 2px; right: 2px; top: 14%;
-  height: 3px;
-  background: rgba(255,255,255,0.5);
-  box-shadow: 0 8px 0 rgba(255,255,255,0.2);
-}
-/* fins — wide swept tail fins glinting c2/c4 */
-.nuke-rocket-fin {
-  position: absolute;
-  width: 12px; height: 18px;
-  transition: none;
-}
-.nuke-rocket-fin-t {
-  left: -9px; top: 58%;
-  background: linear-gradient(to right, var(--c2h), rgba(var(--c2),0.25));
-  clip-path: polygon(100% 0, 100% 100%, 0 62%);
-  box-shadow: inset 0 0 4px rgba(0,0,0,0.35);
-}
-.nuke-rocket-fin-b {
-  right: -9px; top: 58%;
-  background: linear-gradient(to left, var(--c4h), rgba(var(--c4),0.25));
-  clip-path: polygon(0 0, 0 100%, 100% 62%);
-  box-shadow: inset 0 0 4px rgba(0,0,0,0.35);
-}
-.nuke-rocket-fin-c {
-  left: 50%; top: 64%;
-  width: 14px; height: 26px;
-  transform: translateX(-50%);
-  background: linear-gradient(to bottom, var(--c2h), var(--c4h));
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-}
-/* engine exhaust — flickering cryo-amber plume */
-.nuke-rocket-plume {
-  position: absolute;
-  left: 50%; top: 68px;
-  transform: translateX(-50%) scaleY(1);
-  width: 10px; height: 34px;
-  border-radius: 50% 50% 30% 30%;
-  background:
-    radial-gradient(60% 45% at 50% 0%, #fff7c4 0%, #ffd76a 45%, transparent 100%),
-    linear-gradient(180deg, rgba(255,214,106,0.95), rgba(255,120,30,0.75) 55%, transparent);
+  background: radial-gradient(circle, rgba(255,255,255,0.98) 0%, var(--c1h) 28%, var(--c2h) 52%, rgba(120,140,255,0.25) 72%, transparent 82%);
   filter: blur(1px);
-  transform-origin: 50% 0;
-  animation: plume-wag 0.12s ease-in-out infinite;
+  animation: neural-core-bloom 1.15s cubic-bezier(0.16,1,0.3,1) both;
+  mix-blend-mode: screen;
 }
-.nuke-rocket-plume2 {
-  top: 60px;
-  width: 16px; height: 48px;
-  opacity: 0.55;
-  background: linear-gradient(180deg, rgba(255,120,30,0.9), transparent);
-  animation-duration: 0.09s;
+.neural-core2 {
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, rgba(190,205,255,0.35), var(--c2h) 38%, transparent 70%);
+  filter: blur(10px);
+  animation-duration: 1.4s;
+  opacity: 0.85;
 }
-@keyframes rock-flicker {
-  0%, 100% { box-shadow: 0 0 10px 2px rgba(var(--c1),0.7), 0 0 26px 8px rgba(255,120,30,0.35); }
-  50%      { box-shadow: 0 0 18px 6px rgba(var(--c1),1), 0 0 44px 16px rgba(255,150,50,0.55); }
+.neural-glow {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 640px; height: 640px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--c1),0.4) 0%, rgba(var(--c2),0.22) 40%, transparent 70%);
+  mix-blend-mode: screen;
+  animation: neural-glow-fade 1.6s ease-out forwards;
+}
+@keyframes neural-core-bloom {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  18%  { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+  70%  { transform: translate(-50%, -50%) scale(0.88); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+}
+@keyframes neural-glow-fade { 0% { opacity: 1; } 100% { opacity: 0; } }
+/* synaptic web — connections firing outward */
+.neural-web {
+  position: absolute;
+  left: 0; top: 0;
+  width: 0; height: 0;
+}
+.neural-synapse {
+  position: absolute;
+  left: 0; top: 0;
+  width: 0; height: 0;
+  transform-origin: center;
+}
+.neural-link {
+  position: absolute;
+  left: 0; top: -1px;
+  width: 210px; height: 2px;
+  transform-origin: left center;
+  background: linear-gradient(to right, rgba(255,255,255,0.95), var(--c1h) 50%, rgba(var(--c2),0.4));
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(var(--c1),0.8);
+  animation: neural-link-fire 0.7s cubic-bezier(0.16,1,0.3,1) both;
+  animation-delay: var(--nd, 0s);
+}
+.neural-node {
+  position: absolute;
+  left: 200px; top: -5px;
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, var(--c1h) 55%, var(--c2h));
+  box-shadow: 0 0 10px 2px rgba(var(--c1),0.9), 0 0 22px 6px rgba(var(--c2),0.5);
+  animation: neural-node-fire 0.7s cubic-bezier(0.16,1,0.3,1) both;
+  animation-delay: var(--nd, 0);
+}
+.neural-node2 {
+  left: 118px; top: -3.5px;
+  width: 7px; height: 7px;
+  box-shadow: 0 0 8px 1px rgba(255,255,255,0.8);
+}
+@keyframes neural-link-fire {
+  0%   { transform: scaleX(0); opacity: 0; }
+  100% { transform: scaleX(1); opacity: 1; }
+}
+@keyframes neural-node-fire {
+  0%   { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+/* quantum scan rings */
+.neural-ring {
+  position: absolute;
+  left: 0; top: 0;
+  width: 80px; height: 80px;
+  transform: translate(-50%, -50%);
+  border: 1.5px solid rgba(var(--c1),0.9);
+  border-radius: 50%;
+  box-shadow: 0 0 16px rgba(var(--c1),0.6), inset 0 0 10px rgba(var(--c1),0.35);
+  animation: neural-ring-out 1s cubic-bezier(0.16,1,0.3,1) both;
+}
+.neural-ring2 {
+  border-color: rgba(var(--c2),0.8);
+  animation-delay: 0.15s;
+  animation-duration: 1.2s;
+}
+@keyframes neural-ring-out {
+  0%   { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(9); opacity: 0; }
+}
+/* read-out */
+.neural-status {
+  position: absolute;
+  left: 50%; top: 100px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-family: "JetBrains Mono", monospace;
+  letter-spacing: 0.18em;
+  color: var(--c1h);
+  text-shadow: 0 0 10px rgba(var(--c1),0.9);
+  white-space: nowrap;
+  text-transform: uppercase;
+  font-size: 13px;
+  animation: neural-status-in 0.7s ease 0.35s both;
+}
+.neural-status .neural-model {
+  color: var(--c2h);
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-shadow: 0 0 8px rgba(var(--c2),0.8);
+}
+@keyframes neural-status-in {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(10px); filter: blur(4px); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0); filter: blur(0); }
 }
 @keyframes pulse-breathing {
   0%, 100% { transform: scale(1); opacity: 1; }

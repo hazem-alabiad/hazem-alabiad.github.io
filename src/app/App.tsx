@@ -32,7 +32,6 @@ import {
   Cpu,
   Sparkles,
   Terminal,
-  Atom,
 } from "lucide-react";
 
 // ─── Scroll hooks ─────────────────────────────────────────────────────────────
@@ -378,254 +377,132 @@ function getBombCtx() {
   return bombCtx;
 }
 
-function playBombSound() {
+function playNeuralSend() {
   const ctx = getBombCtx();
   if (!ctx) return;
   const now = ctx.currentTime;
   const master = ctx.createGain();
-  master.gain.setValueAtTime(1.2, now);
-  master.gain.exponentialRampToValueAtTime(0.0005, now + 7.2);
+  master.gain.value = 0.55;
   master.connect(ctx.destination);
-  const env = (g: GainNode, t: number, a: number, t2: number, d: number) => {
-    g.gain.setValueAtTime(a, t);
-    g.gain.exponentialRampToValueAtTime(d, t2);
-  };
-  const noiseBuffer = (secs: number, brown = true) => {
-    const b = ctx.createBuffer(1, Math.floor(ctx.sampleRate * secs), ctx.sampleRate);
-    const d = b.getChannelData(0);
-    if (brown) {
-      let last2 = 0;
-      for (let i = 0; i < d.length; i++) { last2 = (last2 + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last2 * 4; }
-    } else {
-      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-    }
-    return b;
-  };
-  // aggressive random micro-jitter → gritty, chaotic noise instead of clean tones
-  const jitter = (g: GainNode, from: number, dur: number, base: number, amp: number, step = 0.025, seed = Math.random) => {
-    let t = from;
-    while (t < from + dur) {
-      g.gain.setValueAtTime(Math.max(0.0005, base + (seed() * 2 - 1) * amp), t);
-      t += step;
-    }
-  };
-
-  // hard-clipped distortion for that scarred, crushed nuclear edge
-  const clip = ctx.createWaveShaper();
-  const curve = new Float32Array(2048);
-  for (let i = 0; i < 2048; i++) {
-    const x = (i / 2048) * 2 - 1;
-    curve[i] = (Math.tanh(x * 5.5) / Math.tanh(5.5)) * 1.18;
-  }
-  clip.curve = curve;
-
-  // 1) THE KABOOM — massive clipped pressure front
-  const kaboom = ctx.createBufferSource();
-  kaboom.buffer = noiseBuffer(1.0, false);
-  const kf = ctx.createBiquadFilter();
-  kf.type = "lowpass";
-  kf.frequency.setValueAtTime(7500, now);
-  kf.frequency.exponentialRampToValueAtTime(200, now + 1.0);
-  const kg = ctx.createGain();
-  env(kg, now, 0.0005, now + 0.05, 1.9);
-  env(kg, now + 0.05, 1.9, now + 1.0, 0.0005);
-  kaboom.connect(kf).connect(kg).connect(clip).connect(master);
-  kaboom.start(now); kaboom.stop(now + 1.05);
-
-  // 2) foundation sub — violent low end
+  // rising digital chirp — data packet taking flight
+  const osc = ctx.createOscillator();
+  osc.type = "sawtooth";
+  osc.frequency.setValueAtTime(240, now);
+  osc.frequency.exponentialRampToValueAtTime(1250, now + 0.8);
+  const f = ctx.createBiquadFilter();
+  f.type = "bandpass"; f.frequency.value = 1600; f.Q.value = 3;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0005, now);
+  g.gain.linearRampToValueAtTime(0.12, now + 0.08);
+  g.gain.exponentialRampToValueAtTime(0.0005, now + 0.85);
+  osc.connect(f).connect(g).connect(master);
+  osc.start(now); osc.stop(now + 0.9);
+  // shimmer pulse
   const sub = ctx.createOscillator();
   sub.type = "sine";
-  sub.frequency.setValueAtTime(110, now);
-  sub.frequency.exponentialRampToValueAtTime(20, now + 6.0);
-  const subg = ctx.createGain();
-  env(subg, now, 0.002, now + 0.09, 1.1);
-  env(subg, now + 0.09, 1.1, now + 6.1, 0.0005);
-  jitter(subg, now + 0.09, 6.0, 1.0, 0.25, 0.12);
-  sub.connect(subg).connect(master);
-  sub.start(now); sub.stop(now + 6.2);
-
-  // 3) heavy body roar — walls of air pushed about
-  const roar = ctx.createBufferSource();
-  roar.buffer = noiseBuffer(5.0, true);
-  const rf = ctx.createBiquadFilter();
-  rf.type = "lowpass";
-  rf.frequency.setValueAtTime(4800, now);
-  rf.frequency.exponentialRampToValueAtTime(80, now + 5.0);
-  rf.Q.value = 1.4;
-  const rg = ctx.createGain();
-  env(rg, now, 0.0005, now + 0.22, 1.15);
-  env(rg, now + 0.22, 1.15, now + 5.0, 0.0005);
-  jitter(rg, now + 0.22, 4.9, 1.0, 0.4, 0.05);
-  roar.connect(rf).connect(rg).connect(clip).connect(master);
-  roar.start(now); roar.stop(now + 5.05);
-
-  // 4) sizzling static — thick hissy air, chaotic crackle-swirl
-  const sizzle = ctx.createBufferSource();
-  sizzle.buffer = noiseBuffer(4.2, false);
-  const sf = ctx.createBiquadFilter();
-  sf.type = "highpass"; sf.frequency.value = 2600;
-  const sf2 = ctx.createBiquadFilter();
-  sf2.type = "bandpass"; sf2.frequency.value = 5200; sf2.Q.value = 0.7;
+  sub.frequency.setValueAtTime(880, now + 0.1);
+  sub.frequency.exponentialRampToValueAtTime(1760, now + 0.5);
   const sg = ctx.createGain();
-  env(sg, now, 0.0005, now + 0.3, 0.4);
-  jitter(sg, now + 0.3, 3.7, 0.4, 0.38, 0.018);
-  env(sg, now + 3.7, sg.gain.value, now + 4.2, 0.0005);
-  sizzle.connect(sf).connect(sf2).connect(sg).connect(master);
-  sizzle.start(now); sizzle.stop(now + 4.25);
-
-  // 5) rolling distant explosions — staggered thunder through the decay
-  const roll = ctx.createBufferSource();
-  roll.buffer = noiseBuffer(6.0, true);
-  const rollf = ctx.createBiquadFilter();
-  rollf.type = "lowpass"; rollf.frequency.value = 380;
-  const rollg = ctx.createGain();
-  rollg.gain.setValueAtTime(0.001, now);
-  let tRoll = now + 0.6;
-  while (tRoll < now + 5.8) {
-    const vol = 0.06 + Math.random() * 0.34;
-    rollg.gain.setValueAtTime(0.001, tRoll);
-    rollg.gain.linearRampToValueAtTime(vol, tRoll + 0.05);
-    rollg.gain.exponentialRampToValueAtTime(0.001, tRoll + 0.4 + Math.random() * 0.8);
-    tRoll += 0.28 + Math.random() * 0.6;
-  }
-  roll.connect(rollf).connect(rollg).connect(master);
-  roll.start(now); roll.stop(now + 5.9);
-
-  // 6) chaotic aftershock pulses — irregular low drops still hitting minutes later
-  for (let k = 0; k < 5; k++) {
-    const t = now + 2.2 + Math.random() * 3.6;
-    const pulse = ctx.createOscillator();
-    pulse.type = "sine";
-    pulse.frequency.setValueAtTime(60 + Math.random() * 40, t);
-    pulse.frequency.exponentialRampToValueAtTime(26 + Math.random() * 10, t + 0.7);
-    const pgg = ctx.createGain();
-    env(pgg, t, 0.001, t + 0.06, 0.5);
-    env(pgg, t + 0.06, 0.5, t + 0.75, 0.001);
-    pulse.connect(pgg).connect(master);
-    pulse.start(t); pulse.stop(t + 0.8);
-  }
-
-  // 7) granular fire crackle — hundreds of debris pops raining down
-  const popBuf = noiseBuffer(0.035, false);
-  for (let k = 0; k < 170; k++) {
-    const t = now + 0.6 + Math.random() * 4.0;
-    const pop = ctx.createBufferSource();
-    pop.buffer = popBuf;
-    const pf = ctx.createBiquadFilter();
-    pf.type = "bandpass";
-    pf.frequency.value = 800 + Math.random() * 5200;
-    pf.Q.value = 9;
-    const pg = ctx.createGain();
-    pg.gain.setValueAtTime(0.001, t);
-    pg.gain.exponentialRampToValueAtTime(0.05 + Math.random() * 0.16, t + 0.007);
-    pg.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
-    pop.connect(pf).connect(pg).connect(master);
-    pop.start(t); pop.stop(t + 0.06);
-  }
-
-  // 8) ear-shattering sharp crack at ignition
-  const snap = ctx.createBufferSource();
-  snap.buffer = noiseBuffer(0.15, false);
-  const hpf = ctx.createBiquadFilter();
-  hpf.type = "highpass"; hpf.frequency.value = 4200;
-  const snG = ctx.createGain();
-  env(snG, now, 1.0, now + 0.16, 0.0005);
-  snap.connect(hpf).connect(snG).connect(master);
-  snap.start(now); snap.stop(now + 0.17);
-
-  // 9) shockwave sweep pierces through the wall of noise
-  const boom = ctx.createOscillator();
-  boom.type = "sine";
-  boom.frequency.setValueAtTime(2800, now);
-  boom.frequency.exponentialRampToValueAtTime(140, now + 1.3);
-  const bg = ctx.createGain();
-  env(bg, now, 0.0005, now + 0.12, 0.95);
-  env(bg, now + 0.12, 0.95, now + 1.35, 0.0005);
-  boom.connect(bg).connect(clip).connect(master);
-  boom.start(now); boom.stop(now + 1.4);
+  sg.gain.setValueAtTime(0.0005, now + 0.1);
+  sg.gain.linearRampToValueAtTime(0.08, now + 0.16);
+  sg.gain.exponentialRampToValueAtTime(0.0005, now + 0.55);
+  sub.connect(sg).connect(master);
+  sub.start(now + 0.1); sub.stop(now + 0.6);
 }
 
-function playWhooshSound() {
+function playNeuralAwaken() {
   const ctx = getBombCtx();
   if (!ctx) return;
   const now = ctx.currentTime;
-  const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 1.0), ctx.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2.5);
-  const src = ctx.createBufferSource();
-  src.buffer = buf;
-  const f = ctx.createBiquadFilter();
-  f.type = "lowpass";
-  f.frequency.setValueAtTime(3400, now);
-  f.frequency.exponentialRampToValueAtTime(380, now + 1.0);
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(0.0005, now);
-  g.gain.linearRampToValueAtTime(0.5, now + 0.14);
-  g.gain.exponentialRampToValueAtTime(0.0005, now + 1.0);
-  src.connect(f).connect(g).connect(ctx.destination);
-  src.start(now); src.stop(now + 1.02);
+  const master = ctx.createGain();
+  master.gain.value = 0.5;
+  master.connect(ctx.destination);
+  // warm AI chord bloom
+  const notes = [261.63, 329.63, 392.0, 523.25];
+  notes.forEach((fr, i) => {
+    const o = ctx.createOscillator();
+    o.type = "sine";
+    o.frequency.value = fr;
+    const v = ctx.createOscillator();
+    v.type = "sine"; v.frequency.value = 0.6 + i * 0.11;
+    const vg = ctx.createGain();
+    vg.gain.value = 60;
+    v.connect(vg).connect(o.frequency);
+    const og = ctx.createGain();
+    const t0 = now + i * 0.09;
+    og.gain.setValueAtTime(0.0005, t0);
+    og.gain.linearRampToValueAtTime(0.09, t0 + 0.2);
+    og.gain.exponentialRampToValueAtTime(0.0005, t0 + 2.6);
+    o.connect(og).connect(master);
+    o.start(t0); o.stop(t0 + 2.8);
+  });
+  // soft crystalline ping
+  for (let i = 0; i < 6; i++) {
+    const t = now + 0.4 + i * 0.22;
+    const ping = ctx.createOscillator();
+    ping.type = "triangle";
+    ping.frequency.value = 1800 + i * 320;
+    const pg = ctx.createGain();
+    pg.gain.setValueAtTime(0.0005, t);
+    pg.gain.linearRampToValueAtTime(0.05, t + 0.015);
+    pg.gain.exponentialRampToValueAtTime(0.0005, t + 0.5);
+    ping.connect(pg).connect(master);
+    ping.start(t); ping.stop(t + 0.55);
+  }
+  // gentle sub swell
+  const sub = ctx.createOscillator();
+  sub.type = "sine";
+  sub.frequency.setValueAtTime(82, now);
+  sub.frequency.linearRampToValueAtTime(55, now + 2.2);
+  const sg = ctx.createGain();
+  sg.gain.setValueAtTime(0.0005, now);
+  sg.gain.linearRampToValueAtTime(0.12, now + 0.25);
+  sg.gain.exponentialRampToValueAtTime(0.0005, now + 2.4);
+  sub.connect(sg).connect(master);
+  sub.start(now); sub.stop(now + 2.6);
 }
 
-function QuantumBomb() {
+function NeuralLink() {
   const [armed, setArmed] = useState(true);
   const [sparks, setSparks] = useState<Spark[]>([]);
   const [shocking, setShocking] = useState(false);
   const [blast, setBlast] = useState<{ x: number; y: number } | null>(null);
   const [afterglow, setAfterglow] = useState(false);
   const [flash, setFlash] = useState(false);
-  const [embers, setEmbers] = useState<{ x: number; y: number; dx: number; dur: number; s: number }[]>([]);
-  const [smoke, setSmoke] = useState<{ x: number; y: number; sx: number; sy: number; s: number; d: number }[]>([]);
-  const [rock, setRock] = useState<{ x: number; y: number; fx: number; fy: number } | null>(null);
+  const [packet, setPacket] = useState<{ x: number; y: number; fx: number; fy: number } | null>(null);
   const idRef = useRef(0);
 
-  const launchRock = (sx: number, sy: number) => {
+  const launchPacket = (sx: number, sy: number) => {
     const cx = window.innerWidth / 2;
     const cy = window.innerHeight / 2;
     setArmed(false);
-    playWhooshSound();
-    setRock({ x: sx, y: sy, fx: cx - sx, fy: cy - sy });
+    playNeuralSend();
+    setPacket({ x: sx, y: sy, fx: cx - sx, fy: cy - sy });
     setTimeout(() => {
-      setRock(null);
+      setPacket(null);
       detonate(cx, cy);
-      setTimeout(() => setArmed(true), 2600);
-    }, 1000);
+      setTimeout(() => setArmed(true), 2200);
+    }, 950);
   };
 
   const detonate = (cx: number, cy: number) => {
-    playBombSound();
+    playNeuralAwaken();
     const small = window.innerWidth < 640;
-    const colors = ["var(--c1h)", "var(--c2h)", "var(--c3h)", "var(--c4h)", "#ffffff"];
-    const dg = ["#caa06a", "#b7aca6", "#9a8b83", "var(--c4h)", "#6b5f58"];
+    const colors = ["var(--c1h)", "var(--c2h)", "var(--c2h)", "#ffffff", "#cfd8ff"];
     const parts: Spark[] = [];
-    const nSmall = small ? 56 : 140;
+    const nSmall = small ? 48 : 110;
     for (let i = 0; i < nSmall; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = 2 + Math.random() * 14;
+      const speed = 2 + Math.random() * 12;
       parts.push({
         id: ++idRef.current,
         x: cx, y: cy,
         dx: Math.cos(angle) * speed,
-        dy: Math.sin(angle) * speed - 2.5,
-        size: 1.5 + Math.random() * 5,
-        shape: Math.random() > 0.65 ? "square" : "dot",
+        dy: Math.sin(angle) * speed - 1.5,
+        size: 1.5 + Math.random() * 4,
+        shape: Math.random() > 0.7 ? "square" : "dot",
         color: colors[Math.floor(Math.random() * colors.length)],
-        life: 0.55 + Math.random() * 0.95,
-        rot: Math.random() * 360,
-      });
-    }
-    const nBig = small ? 4 : 10;
-    for (let i = 0; i < nBig; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 1.5 + Math.random() * 4;
-      parts.push({
-        id: ++idRef.current,
-        x: cx, y: cy,
-        dx: Math.cos(angle) * speed,
-        dy: Math.sin(angle) * speed - 3.5,
-        size: 14 + Math.random() * 20,
-        shape: "square",
-        color: dg[Math.floor(Math.random() * dg.length)],
-        life: 1.6 + Math.random() * 1.1,
+        life: 0.6 + Math.random() * 1.0,
         rot: Math.random() * 360,
       });
     }
@@ -634,94 +511,53 @@ function QuantumBomb() {
     setBlast({ x: cx, y: cy });
     setAfterglow(true);
     setFlash(true);
-    setEmbers(Array.from({ length: small ? 10 : 24 }, () => ({
-      x: cx + (Math.random() - 0.5) * 220,
-      y: cy + (Math.random() - 0.5) * 40,
-      dx: (Math.random() - 0.5) * 180,
-      dur: 0.9 + Math.random() * 1.3,
-      s: 3 + Math.random() * 6,
-    })));
-    setSmoke(Array.from({ length: small ? 5 : 9 }, () => ({
-      x: cx + (Math.random() - 0.5) * 120,
-      y: cy + (Math.random() - 0.5) * 40,
-      sx: (Math.random() - 0.5) * 460,
-      sy: -(60 + Math.random() * 260),
-      s: 90 + Math.random() * 130,
-      d: 2.2 + Math.random() * 1.2,
-    })));
-    setTimeout(() => setShocking(false), 1200);
-    setTimeout(() => setAfterglow(false), 1400);
-    setTimeout(() => setFlash(false), 700);
-    setTimeout(() => setSparks([]), 2700);
-    setTimeout(() => setEmbers([]), 2400);
-    setTimeout(() => setSmoke([]), 3600);
-    setTimeout(() => setBlast(null), 1600);
+    setTimeout(() => setShocking(false), 900);
+    setTimeout(() => setAfterglow(false), 1600);
+    setTimeout(() => setFlash(false), 650);
+    setTimeout(() => setSparks([]), 2600);
+    setTimeout(() => setBlast(null), 2600);
   };
+
+  const SYNAPSES = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
 
   return (
     <>
-      {shocking && <div style={{ position: "fixed", inset: 0, zIndex: 9890, pointerEvents: "none", animation: "bomb-shake 0.45s linear" }} />}
-      {flash && <div className="nuke-flash" style={{ position: "fixed", inset: 0, zIndex: 9855, pointerEvents: "none", background: "radial-gradient(circle at 50% 60%, rgba(255,255,235,1), rgba(255,220,160,0.9) 45%, rgba(255,255,255,0) 70%)", animation: "nuke-flash 0.65s ease-out forwards" }} />}
-      {blast && <div className="nuke-dust" style={{ position: "fixed", inset: 0, zIndex: 9848, pointerEvents: "none" }} />}
-      {afterglow && <div style={{ position: "fixed", inset: 0, zIndex: 9870, pointerEvents: "none", background: "radial-gradient(circle, rgba(255,255,255,0.28), transparent 60%)", mixBlendMode: "screen", animation: "bomb-afterglow 0.9s ease-out forwards" }} />}
+      {shocking && <div style={{ position: "fixed", inset: 0, zIndex: 9890, pointerEvents: "none", animation: "bomb-shake 0.5s linear" }} />}
+      {flash && <div style={{ position: "fixed", inset: 0, zIndex: 9855, pointerEvents: "none", background: "radial-gradient(circle at 50% 50%, rgba(200,215,255,0.95), rgba(140,160,255,0.55) 45%, rgba(255,255,255,0) 72%)", animation: "nuke-flash 0.6s ease-out forwards" }} />}
+      {afterglow && <div style={{ position: "fixed", inset: 0, zIndex: 9870, pointerEvents: "none", background: "radial-gradient(circle, rgba(150,170,255,0.3), transparent 60%)", mixBlendMode: "screen", animation: "bomb-afterglow 1s ease-out forwards" }} />}
       {blast && (
         <div style={{ position: "fixed", left: blast.x, top: blast.y, zIndex: 9882, pointerEvents: "none" }}>
-          {/* under-glow warming the ground */}
-          <div className="nuke-underwarm" />
-          {/* fireball — white-hot core → orange body → fading halo */}
-          <div className="nuke-fireball" />
-          <div className="nuke-core" />
-          <div className="nuke-halo" />
-          {/* shockwave rings */}
-          <div className="nuke-shock" />
-          <div className="nuke-shock" style={{ animationDelay: "0.07s", borderColor: "rgba(255,200,120,0.85)" }} />
-          {/* rolled smoke stem + neck */}
-          <div className="nuke-stem" />
-          <div className="nuke-stem-core" />
-          {/* billowing mushroom cap — layered cloud blobs + shadowed belly */}
-          <div className="nuke-cloud">
-            <div className="nuke-cap-belly" />
-            <div className="nuke-cap-blob" style={{ top: "44%", left: "50%" }} />
-            <div className="nuke-cap-blob" style={{ top: "38%", left: "30%", transform: "scale(0.86)" }} />
-            <div className="nuke-cap-blob" style={{ top: "40%", left: "70%", transform: "scale(0.86)" }} />
-            <div className="nuke-cap-blob" style={{ top: "26%", left: "50%", transform: "scale(0.72)" }} />
-            <div className="nuke-cap-rim" />
+          {/* neural core — white-hot synapse hub */}
+          <div className="neural-core" />
+          <div className="neural-core neural-core2" />
+          <div className="neural-glow" />
+          {/* expanding synaptic web */}
+          <div className="neural-web">
+            {SYNAPSES.map((a, i) => (
+              <div key={a} className="neural-synapse" style={{ transform: `rotate(${a}deg)`, ['--nd' as string]: `${i * 35}ms` }}>
+                <span className="neural-link" />
+                <span className="neural-node" />
+                <span className="neural-node neural-node2" />
+              </div>
+            ))}
+          </div>
+          {/* quantum scan rings */}
+          <div className="neural-ring" />
+          <div className="neural-ring neural-ring2" />
+          {/* neural status readout */}
+          <div className="neural-status">
+            <span>NEURAL_LINK_ESTABLISHED</span>
+            <span className="neural-model">MODEL_v2.6 // SYNAPSE_SYNC 4096 · OK</span>
           </div>
         </div>
       )}
-      {embers.length > 0 && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 9875, pointerEvents: "none", overflow: "hidden" }}>
-          {embers.map((e, i) => (
-            <div key={i} style={{
-              position: "absolute", left: e.x, top: e.y, width: e.s, height: e.s, borderRadius: "50%",
-              background: "linear-gradient(180deg, #fff3c4, var(--c4h))", boxShadow: "0 0 12px rgba(255,160,60,0.9)",
-              ['--ex' as string]: `${e.dx}px`, ['--ey' as string]: `${-260 - Math.random() * 120}px`,
-              ['--ed' as string]: `${e.dur}s`,
-            }} className="ember-rise" />
-          ))}
-        </div>
-      )}
-      {rock && (
-        <div className="nuke-rocket" style={{
-          position: "fixed", left: rock.x, top: rock.y, zIndex: 9888, pointerEvents: "none",
-          ['--rot' as string]: `${Math.atan2(rock.fy, rock.fx) * 180 / Math.PI}deg`,
+      {packet && (
+        <div className="neural-packet" style={{
+          position: "fixed", left: packet.x, top: packet.y, zIndex: 9888, pointerEvents: "none",
+          ['--fx' as string]: `${packet.fx}px`, ['--fy' as string]: `${packet.fy}px`,
         }}>
-          <div className="nuke-rocket-arc" style={{ ['--fx' as string]: `${rock.fx}px`, ['--fy' as string]: `${rock.fy}px` }}>
-            {/* exhaust plume */}
-            <span className="nuke-rocket-plume" />
-            <span className="nuke-rocket-plume nuke-rocket-plume2" />
-            {/* body with fins */}
-            <div className="nuke-rocket-body">
-              <span className="nuke-rocket-fin nuke-rocket-fin-t" />
-              <span className="nuke-rocket-fin nuke-rocket-fin-b" />
-              <span className="nuke-rocket-fin nuke-rocket-fin-c" />
-            </div>
-            {/* window + cargo rings */}
-            <span className="nuke-rocket-ring" />
-            <span className="nuke-rocket-window" />
-            {/* nose cone */}
-            <span className="nuke-rocket-nose" />
-          </div>
+          <span className="neural-core-token" />
+          <span className="neural-trail" />
         </div>
       )}
       {sparks.length > 0 && (
@@ -731,7 +567,7 @@ function QuantumBomb() {
               position: "absolute", left: s.x, top: s.y, width: s.size, height: s.size,
               background: s.color, boxShadow: s.shape === "square" ? "none" : `0 0 10px ${s.color}`,
               borderRadius: s.shape === "square" ? "1px" : "50%",
-              ['--sx' as string]: `${s.dx * 45}px`, ['--sy' as string]: `${s.dy * 45}px`,
+              ['--sx' as string]: `${s.dx * 42}px`, ['--sy' as string]: `${s.dy * 42}px`,
               ['--sr' as string]: `${s.rot}deg`, ['--sl' as string]: `${s.life}s`,
               ['--srot' as string]: `${s.rot * 3}deg`,
             }} />
@@ -742,33 +578,33 @@ function QuantumBomb() {
       <button onClick={(e) => {
         if (!armed) return;
         const r = e.currentTarget.getBoundingClientRect();
-        launchRock(r.left + r.width / 2, r.top + r.height / 2);
+        launchPacket(r.left + r.width / 2, r.top + r.height / 2);
       }}
         style={{
           cursor: "pointer", position: "relative", width: 52, height: 52,
-          background: "linear-gradient(135deg, rgba(var(--c1),0.28), rgba(var(--c3),0.16))",
-          border: "1px solid rgba(var(--c1),0.5)", borderRadius: "50%",
+          background: "linear-gradient(135deg, rgba(var(--c2),0.28), rgba(var(--c1),0.16))",
+          border: "1px solid rgba(var(--c2),0.5)", borderRadius: "50%",
           display: "flex", alignItems: "center", justifyContent: "center",
           backdropFilter: "blur(10px)",
           transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s, box-shadow 0.25s",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 28px rgba(var(--c1),0.3), 0 0 0 4px rgba(var(--c1),0.07)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 28px rgba(var(--c2),0.3), 0 0 0 4px rgba(var(--c1),0.07)",
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = "rgba(var(--c4),0.85)"; e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.18), 0 12px 34px rgba(var(--c1),0.42), 0 0 0 4px rgba(var(--c4),0.14)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(var(--c1),0.5)"; e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 28px rgba(var(--c1),0.3), 0 0 0 4px rgba(var(--c1),0.07)"; }}
-        aria-label="Launch the atomic rocket">
+        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = "rgba(var(--c1),0.85)"; e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.18), 0 12px 34px rgba(var(--c2),0.42), 0 0 0 4px rgba(var(--c1),0.14)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(var(--c2),0.5)"; e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 28px rgba(var(--c2),0.3), 0 0 0 4px rgba(var(--c1),0.07)"; }}
+        aria-label="Initiate neural link">
         <span className="bomb-ping" style={{ position: "absolute", inset: -3, borderRadius: "50%", pointerEvents: "none" }} />
         <span style={{
           width: 34, height: 34, borderRadius: "50%",
           background: armed
-            ? "radial-gradient(circle at 32% 30%, var(--c4h), var(--c1h))"
+            ? "radial-gradient(circle at 32% 30%, var(--c1h), var(--c2h))"
             : "radial-gradient(circle at 32% 30%, rgba(var(--c2),0.5), rgba(var(--fg-d),0.3))",
           color: "var(--bg-deep)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: armed ? "0 0 14px rgba(var(--c4),0.7), inset 0 -2px 5px rgba(0,0,0,0.28)" : "none",
+          boxShadow: armed ? "0 0 14px rgba(var(--c1),0.7), inset 0 -2px 5px rgba(0,0,0,0.28)" : "none",
           transition: "background 0.4s, box-shadow 0.4s",
           animation: armed ? "" : "reload-blink 1.1s ease-in-out infinite",
         }}>
-          <Atom size={19} strokeWidth={2} className={armed ? "atom-spin" : ""} />
+          <Sparkles size={18} strokeWidth={2} className={armed ? "atom-spin" : ""} />
         </span>
       </button>
       </div>
@@ -1962,7 +1798,7 @@ export default function App() {
       <SideNavDots />
       <CRTOverlay />
       <ParticleField />
-      <QuantumBomb />
+      <NeuralLink />
 
       {/* ── Nav ── */}
       <nav className="fixed top-0 w-full z-50 transition-all duration-500"
