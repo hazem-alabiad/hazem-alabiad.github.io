@@ -254,11 +254,11 @@ function useReveal(threshold = 0.1) {
 
 const DEFAULTS = {
   heroTagline:
-    "I make language models useful — engineering production-grade systems on one side, researching how they learn on the other. My path runs from a B.Sc. in computer engineering to an M.A. in computational linguistics: I've led full-stack teams and shipped products to millions at Getir and IBM, then moved into NLP research. Today I split my time between building and studying language technology — from LLM tutoring systems to the cognitive science of social media.",
+    "Software Engineer with 6+ years building production-ready, maintainable systems and pixel-perfect UIs in React, Next.js, TypeScript, and modern tooling. Lead cross-functional teams, improve developer experience, and ship design-driven applications at scale. Now M.A. Computational Linguistics @ Uni Tübingen and Student Assistant at IWM & the Autonomous Learning Lab — bridging engineering with AI, ML, LLMs, NLP, and Cognitive Science.",
   bio1:
     "",
   bio2:
-    "Open to NLP/AI/full-stack roles and research collaborations — Tübingen, Stuttgart, or remote.",
+    "Open to Working Student & internship roles in NLP, AI/ML, and LLMs — Tübingen, Stuttgart, or remote.",
 };
 
 // ─── Style helpers (module-level so all components can use them) ──────────────
@@ -1428,9 +1428,9 @@ export function markOwner() {
 // the old inline job-mode panel, calmer chrome, movable around the site language.
 
 const TERM_ROLES = [
-  { t: "NLP Engineer", p: true },
-  { t: "LLM / AI Engineer", p: false },
-  { t: "Research Engineer · AI/CompLing", p: false },
+  { t: "Student Assistant · LLM AI-Tutor", p: true },
+  { t: "Student Assistant · IWM Social-Media Research", p: false },
+  { t: "NLP Engineer", p: false },
   { t: "Full-Stack Engineer", p: false },
 ];
 
@@ -1511,13 +1511,13 @@ function EnhancedTerminal({ factLocation }: { factLocation: string }) {
         {/* status key/values */}
         <div className="pt-3 grid grid-cols-2 gap-x-4 gap-y-2" style={{ borderTop: "1px solid rgba(var(--c1),0.1)" }}>
           <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", gap: 6, whiteSpace: "nowrap" })}>
-            <span style={{ color: "var(--c2h)" }}>availability</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c3h)" }}>"Immediately"</span>
+            <span style={{ color: "var(--c2h)" }}>role</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c3h)" }}>"Student Asst. · LLM AI‑Tutor"</span>
           </div>
           <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", gap: 6, whiteSpace: "nowrap" })}>
             <span style={{ color: "var(--c2h)" }}>location</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c3h)" }}>"{factLocation}"</span>
           </div>
           <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", gap: 6, whiteSpace: "nowrap" })}>
-            <span style={{ color: "var(--c2h)" }}>open_to</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c1h)" }}>["Full‑time","Remote"]</span>
+            <span style={{ color: "var(--c2h)" }}>open_to</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c1h)" }}>["Working Student","NLP/AI/LLMs"]</span>
           </div>
           <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", gap: 6, whiteSpace: "nowrap" })}>
             <span style={{ color: "var(--c2h)" }}>status</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c4h)" }}>"Open to opportunities"</span>
@@ -1654,7 +1654,10 @@ export default function App() {
               className="hover:opacity-100 transition-opacity" aria-label="Command palette">
               <Command size={12} style={{ color: "var(--c1h)" }} /> <span style={{ color: "var(--fg-a)" }}>K</span>
             </button>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#00f0ff] pulse-dot" />
+            <button onClick={() => scrollTo("contact")} style={mono(9.5, "var(--c1h)", { letterSpacing: "0.22em", padding: "8px 16px", border: "1px solid rgba(var(--c1),0.6)", background: "rgba(var(--c1),0.12)", cursor: "pointer" })}
+              className="transition-all duration-300"
+              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = "rgba(var(--c1),0.25)"; el.style.boxShadow = "0 0 20px rgba(var(--c1),0.25)"; }}
+              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = "rgba(var(--c1),0.12)"; el.style.boxShadow = "none"; }}>HIRE ME</button>
             <span style={mono(9, "rgba(var(--c1),0.5)", { letterSpacing: "0.3em" })}>ONLINE_2026</span>
           </div>
           <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)} style={mono(11, "var(--c1h)")}>{menuOpen ? "CLOSE" : "MENU"}</button>
@@ -1698,9 +1701,13 @@ export default function App() {
                 Hazem <span style={{ background: "linear-gradient(135deg, var(--c1h), var(--c2h))", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", color: "transparent" }}>Alabiad</span>
               </h1>
 
-              <p className="mb-6" style={{ ...mono(13, "var(--c1h)", { letterSpacing: "0.12em" }), fontSize: "clamp(12px,1.6vw,16px)" }}>
+              <p className="mb-2" style={{ ...mono(13, "var(--c1h)", { letterSpacing: "0.12em" }), fontSize: "clamp(12px,1.6vw,16px)" }}>
                 FULL-STACK ENGINEER & AI/NLP RESEARCHER · M.A. COMPUTATIONAL LINGUISTICS
               </p>
+              <div className="flex items-center gap-2.5 mb-6">
+                <span style={mono(9, "var(--c3h)", { padding: "3px 9px", border: "1px solid rgba(var(--c3),0.35)", letterSpacing: "0.2em", background: "rgba(var(--c3),0.06)" })}>NOW</span>
+                <span style={mono(11.5, "var(--fg-hero)", { letterSpacing: "0.06em" })}>Student Assistant · LLM AI-Tutor & IWM — Uni Tübingen</span>
+              </div>
 
               <p ref={heroTagRef} {...ep("heroTagline", DEFAULTS.heroTagline, { ...body(17, "var(--fg-hero)"), maxWidth: 600, marginBottom: 24 })}>
                 {get("heroTagline", DEFAULTS.heroTagline)}
@@ -1728,7 +1735,7 @@ export default function App() {
 
               <div className="flex items-center gap-4" style={{ maxWidth: 600 }}>
                 <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--c3h)", boxShadow: "0 0 8px var(--c3h)" }} />
-                <span style={mono(10, "var(--fg-c)", { letterSpacing: "0.16em" })}>OPEN TO FULL-TIME · REMOTE · ON-SITE IN TÜBINGEN / STUTTGART</span>
+                <span style={mono(10, "var(--fg-c)", { letterSpacing: "0.16em" })}>OPEN TO WORKING STUDENT & INTERNSHIP ROLES — NLP · AI/ML · LLMS — TÜBINGEN / STUTTGART / REMOTE</span>
               </div>
             </div>
 
@@ -1737,7 +1744,7 @@ export default function App() {
               {/* Photo — smaller, professional frame */}
               <div className="group relative cursor-pointer" style={{ filter: "drop-shadow(0 16px 48px rgba(0,0,0,0.35))" }}>
                 <div className="console-frame" style={{
-                  width: "100%", aspectRatio: "4/5", maxWidth: 320, margin: "0 auto", overflow: "hidden", position: "relative",
+                  width: "100%", aspectRatio: "1/1", maxWidth: 240, margin: "0 auto", overflow: "hidden", position: "relative",
                   border: "1px solid rgba(var(--c1),0.18)", background: "var(--card-photo)",
                   borderRadius: 2,
                 }}>
@@ -1774,7 +1781,7 @@ export default function App() {
       <KeywordMarquee />
 
       {/* ── Experience ── */}
-      <section id="experience" className="relative py-16 lg:py-20 px-6" style={{ zIndex: 10 }}>
+      <section id="experience" className="relative py-20 lg:py-28 px-6" style={{ zIndex: 10 }}>
         <div ref={expR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="01" label="EXPERIENCE" />
           <div className="transition-all duration-1000" style={{ opacity: expR.visible ? 1 : 0, transform: expR.visible ? "translateY(0)" : "translateY(32px)" }}>
@@ -1801,7 +1808,7 @@ export default function App() {
       </section>
 
       {/* ── Projects ── */}
-      <section id="projects" className="relative py-16 lg:py-20 px-6" style={{ zIndex: 10 }}>
+      <section id="projects" className="relative py-20 lg:py-28 px-6" style={{ zIndex: 10 }}>
         <div ref={projectsR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="02" label="PROJECTS" />
           <div className="transition-all duration-1000" style={{ opacity: projectsR.visible ? 1 : 0, transform: projectsR.visible ? "translateY(0)" : "translateY(32px)" }}>
@@ -1859,7 +1866,7 @@ export default function App() {
       </section>
 
       {/* ── Skills ── */}
-      <section id="skills" className="relative py-16 lg:py-20 px-6" style={{ zIndex: 10 }}>
+      <section id="skills" className="relative py-20 lg:py-28 px-6" style={{ zIndex: 10 }}>
         <div ref={skillsR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="03" label="PROFICIENCIES" />
           <div className="transition-all duration-1000" style={{ opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(32px)" }}>
@@ -1913,7 +1920,7 @@ export default function App() {
       </section>
 
       {/* ── Contact ── */}
-      <section id="contact" className="relative py-16 lg:py-20 px-6" style={{ zIndex: 10 }}>
+      <section id="contact" className="relative py-20 lg:py-28 px-6" style={{ zIndex: 10 }}>
         <div ref={contactR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="04" label="CONTACT" />
           <div className="transition-all duration-1000" style={{ opacity: contactR.visible ? 1 : 0, transform: contactR.visible ? "translateY(0)" : "translateY(32px)" }}>

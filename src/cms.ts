@@ -81,10 +81,10 @@ export interface CmsContent {
 
 export const DEFAULT_CONTENT: CmsContent = {
   heroTagline:
-    "I make language models useful — engineering production-grade systems on one side, researching how they learn on the other. My path runs from a B.Sc. in computer engineering to an M.A. in computational linguistics: I've led full-stack teams and shipped products to millions at Getir and IBM, then moved into NLP research. Today I split my time between building and studying language technology — from LLM tutoring systems to the cognitive science of social media.",
+    "Software Engineer with 6+ years building production-ready, maintainable systems and pixel-perfect UIs in React, Next.js, TypeScript, and modern tooling. Lead cross-functional teams, improve developer experience, and ship design-driven applications at scale. Now M.A. Computational Linguistics @ Uni Tübingen and Student Assistant at IWM & the Autonomous Learning Lab — bridging engineering with AI, ML, LLMs, NLP, and Cognitive Science.",
   bio1: "",
   bio2:
-    "Open to NLP/AI/full-stack roles and research collaborations — Tübingen, Stuttgart, or remote.",
+    "Open to Working Student & internship roles in NLP, AI/ML, and LLMs — Tübingen, Stuttgart, or remote.",
   factLocation: "Tübingen, Germany",
   factDegree: "M.A. Computational Linguistics",
   factCurrent: "Student Asst. · IWM & Auto. Learning Lab",
