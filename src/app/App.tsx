@@ -32,8 +32,6 @@ import {
   Cpu,
   Sparkles,
   Terminal,
-  Sun,
-  Moon,
 } from "lucide-react";
 
 // ─── Scroll hooks ─────────────────────────────────────────────────────────────
@@ -363,11 +361,7 @@ function SkillTicker() {
   );
 }
 
-// ─── Quantum bomb (joy) ───────────────────────────────────────────────────────
-
-type Spark = {
-  id: number; x: number; y: number; dx: number; dy: number; size: number; color: string; life: number; rot: number; shape: "dot" | "square";
-};
+// ─── StarTrace (joy) ─────────────────────────────────────────────────────────
 
 let bombCtx: AudioContext | null = null;
 function getBombCtx() {
@@ -379,89 +373,45 @@ function getBombCtx() {
   return bombCtx;
 }
 
-function playNeuralSend() {
+function playConstPing(idx: number, count: number) {
   const ctx = getBombCtx();
   if (!ctx) return;
   const now = ctx.currentTime;
-  const master = ctx.createGain();
-  master.gain.value = 0.55;
-  master.connect(ctx.destination);
-  // rising digital chirp — data packet taking flight
-  const osc = ctx.createOscillator();
-  osc.type = "sawtooth";
-  osc.frequency.setValueAtTime(240, now);
-  osc.frequency.exponentialRampToValueAtTime(1250, now + 0.8);
-  const f = ctx.createBiquadFilter();
-  f.type = "bandpass"; f.frequency.value = 1600; f.Q.value = 3;
+  const scale = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.51, 1567.98, 1760.0];
+  const f = scale[Math.floor(idx % scale.length)];
+  const o = ctx.createOscillator();
+  o.type = "triangle";
+  o.frequency.value = f;
   const g = ctx.createGain();
   g.gain.setValueAtTime(0.0005, now);
-  g.gain.linearRampToValueAtTime(0.12, now + 0.08);
-  g.gain.exponentialRampToValueAtTime(0.0005, now + 0.85);
-  osc.connect(f).connect(g).connect(master);
-  osc.start(now); osc.stop(now + 0.9);
-  // shimmer pulse
-  const sub = ctx.createOscillator();
-  sub.type = "sine";
-  sub.frequency.setValueAtTime(880, now + 0.1);
-  sub.frequency.exponentialRampToValueAtTime(1760, now + 0.5);
-  const sg = ctx.createGain();
-  sg.gain.setValueAtTime(0.0005, now + 0.1);
-  sg.gain.linearRampToValueAtTime(0.08, now + 0.16);
-  sg.gain.exponentialRampToValueAtTime(0.0005, now + 0.55);
-  sub.connect(sg).connect(master);
-  sub.start(now + 0.1); sub.stop(now + 0.6);
+  g.gain.linearRampToValueAtTime(0.06, now + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0005, now + 0.22);
+  o.connect(g).connect(ctx.destination);
+  o.start(now); o.stop(now + 0.26);
 }
 
-function playNeuralAwaken() {
+function playConstChime() {
   const ctx = getBombCtx();
   if (!ctx) return;
   const now = ctx.currentTime;
-  const master = ctx.createGain();
-  master.gain.value = 0.5;
-  master.connect(ctx.destination);
-  // warm AI chord bloom
-  const notes = [261.63, 329.63, 392.0, 523.25];
+  const notes = [523.25, 659.25, 783.99, 1046.5, 1318.51];
   notes.forEach((fr, i) => {
     const o = ctx.createOscillator();
     o.type = "sine";
     o.frequency.value = fr;
     const v = ctx.createOscillator();
-    v.type = "sine"; v.frequency.value = 0.6 + i * 0.11;
+    v.type = "sine"; v.frequency.value = 0.5 + i * 0.13;
     const vg = ctx.createGain();
-    vg.gain.value = 60;
+    vg.gain.value = 55;
     v.connect(vg).connect(o.frequency);
     const og = ctx.createGain();
-    const t0 = now + i * 0.09;
+    const t0 = now + i * 0.1;
     og.gain.setValueAtTime(0.0005, t0);
-    og.gain.linearRampToValueAtTime(0.09, t0 + 0.2);
-    og.gain.exponentialRampToValueAtTime(0.0005, t0 + 2.6);
-    o.connect(og).connect(master);
-    o.start(t0); o.stop(t0 + 2.8);
+    og.gain.linearRampToValueAtTime(0.1, t0 + 0.14);
+    og.gain.exponentialRampToValueAtTime(0.0005, t0 + 1.6);
+    o.connect(og).connect(ctx.destination);
+    o.start(t0); o.stop(t0 + 1.8);
   });
-  // soft crystalline ping
-  for (let i = 0; i < 6; i++) {
-    const t = now + 0.4 + i * 0.22;
-    const ping = ctx.createOscillator();
-    ping.type = "triangle";
-    ping.frequency.value = 1800 + i * 320;
-    const pg = ctx.createGain();
-    pg.gain.setValueAtTime(0.0005, t);
-    pg.gain.linearRampToValueAtTime(0.05, t + 0.015);
-    pg.gain.exponentialRampToValueAtTime(0.0005, t + 0.5);
-    ping.connect(pg).connect(master);
-    ping.start(t); ping.stop(t + 0.55);
-  }
-  // gentle sub swell
-  const sub = ctx.createOscillator();
-  sub.type = "sine";
-  sub.frequency.setValueAtTime(82, now);
-  sub.frequency.linearRampToValueAtTime(55, now + 2.2);
-  const sg = ctx.createGain();
-  sg.gain.setValueAtTime(0.0005, now);
-  sg.gain.linearRampToValueAtTime(0.12, now + 0.25);
-  sg.gain.exponentialRampToValueAtTime(0.0005, now + 2.4);
-  sub.connect(sg).connect(master);
-  sub.start(now); sub.stop(now + 2.6);
 }
 
 function HUDOrbit() {
@@ -502,152 +452,180 @@ function HUDOrbit() {
   );
 }
 
-function NeuralLink() {
-  const [armed, setArmed] = useState(true);
-  const [sparks, setSparks] = useState<Spark[]>([]);
-  const [shocking, setShocking] = useState(false);
-  const [blast, setBlast] = useState<{ x: number; y: number } | null>(null);
-  const [afterglow, setAfterglow] = useState(false);
-  const [flash, setFlash] = useState(false);
-  const [packet, setPacket] = useState<{ x: number; y: number; fx: number; fy: number } | null>(null);
-  const idRef = useRef(0);
+function StarTrace() {
+  const [open, setOpen] = useState(false);
+  const [catalogued, setCatalogued] = useState(false);
+  const [starName, setStarName] = useState("");
+  const [pointCount, setPointCount] = useState(0);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+    const savedRef = useRef<{ pts: Array<{ x: number; y: number }>; name: string } | null>(null);
+  const pointsRef = useRef<Array<{ x: number; y: number; t: number }>>([]);
+  const constA = ["NEBULA", "ORACLE", "SIRIUS", "HALO", "PULSAR", "VEGA", "ATLAS", "LYRA", "QUASAR", "AURORA"];
+  const constB = ["SENTINEL", "DREAMER", "WANDERER", "WEAVER", "PYTHON", "CARTOGRAPHER", "ORBIT", "SIGNAL", "MIRAGE", "RELAY"];
 
-  const launchPacket = (sx: number, sy: number) => {
-    const cx = window.innerWidth / 2;
-    const cy = window.innerHeight / 2;
-    setArmed(false);
-    playNeuralSend();
-    setPacket({ x: sx, y: sy, fx: cx - sx, fy: cy - sy });
-    setTimeout(() => {
-      setPacket(null);
-      detonate(cx, cy);
-      setTimeout(() => setArmed(true), 2200);
-    }, 950);
-  };
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("hazem_trace_saved");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.pts) && parsed.pts.length > 1) savedRef.current = parsed;
+      }
+    } catch {}
+  }, []);
 
-  const detonate = (cx: number, cy: number) => {
-    playNeuralAwaken();
-    const small = window.innerWidth < 640;
-    const colors = ["var(--c1h)", "var(--c2h)", "var(--c2h)", "#ffffff", "#cfd8ff"];
-    const parts: Spark[] = [];
-    const nSmall = small ? 48 : 110;
-    for (let i = 0; i < nSmall; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 2 + Math.random() * 12;
-      parts.push({
-        id: ++idRef.current,
-        x: cx, y: cy,
-        dx: Math.cos(angle) * speed,
-        dy: Math.sin(angle) * speed - 1.5,
-        size: 1.5 + Math.random() * 4,
-        shape: Math.random() > 0.7 ? "square" : "dot",
-        color: colors[Math.floor(Math.random() * colors.length)],
-        life: 0.6 + Math.random() * 1.0,
-        rot: Math.random() * 360,
-      });
+  useEffect(() => {
+    const ref = canvasRef.current;
+    if (!ref || !open) return;
+    const ctx = ref.getContext("2d");
+    if (!ctx) return;
+    let w = 0, h = 0, raf = 0;
+    const stars: Array<{ x: number; y: number; r: number; p: number; s: number }> = [];
+    function size() {
+      w = ref.width = window.innerWidth;
+      h = ref.height = window.innerHeight;
     }
-    setSparks(parts);
-    setShocking(true);
-    setBlast({ x: cx, y: cy });
-    setAfterglow(true);
-    setFlash(true);
-    setTimeout(() => setShocking(false), 900);
-    setTimeout(() => setAfterglow(false), 1600);
-    setTimeout(() => setFlash(false), 650);
-    setTimeout(() => setSparks([]), 2600);
-    setTimeout(() => setBlast(null), 2600);
+    size();
+    for (let i = 0; i < 90; i++) {
+      stars.push({ x: Math.random() * 1000, y: Math.random() * 1000, r: 0.4 + Math.random() * 1.3, p: Math.random() * 6.28, s: 0.4 + Math.random() * 1.2 });
+    }
+    const tick = () => {
+      ctx.clearRect(0, 0, w, h);
+      // deep-space field
+      ctx.fillStyle = "rgba(3,6,16,0.96)";
+      ctx.fillRect(0, 0, w, h);
+      const t = performance.now() / 1000;
+      for (const st of stars) {
+        const tw = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(t * st.s + st.p));
+        const g = Math.round(120 + tw * 135);
+        ctx.fillStyle = `rgba(${g},${g},255,${tw * 0.5})`;
+        ctx.beginPath();
+        ctx.arc((st.x / 1000) * w, (st.y / 1000) * h, st.r, 0, 6.283);
+        ctx.fill();
+      }
+      // constellation trail
+      const pts = pointsRef.current.concat(savedRef.current ? savedRef.current.pts : []);
+      if (pts.length > 1) {
+        ctx.strokeStyle = "rgba(var(--c1),0.9)";
+        ctx.lineWidth = 1.6;
+        ctx.shadowColor = "var(--c1h)";
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        for (const p of pts) {
+          ctx.fillStyle = "#9fe8ff";
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 1.7, 0, 6.283);
+          ctx.fill();
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    tick();
+    const onResize = () => size();
+    window.addEventListener("resize", onResize);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", onResize); };
+  }, [open]);
+
+  const close = () => { setOpen(false); setCatalogued(false); setPointCount(0); };
+
+  const openForge = () => {
+    pointsRef.current = [];
+    setOpen(true);
+    setCatalogued(false);
+    setPointCount(0);
   };
 
-  const SYNAPSES = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
+  useEffect(() => {
+    if (!open) return;
+    const onMove = (e: MouseEvent) => {
+      const p = pointsRef.current;
+      const last = p[p.length - 1];
+      if (!last || Math.hypot(e.clientX - last.x, e.clientY - last.y) > 7) {
+        p.push({ x: e.clientX, y: e.clientY, t: performance.now() });
+        if (p.length > 420) p.splice(0, p.length - 420);
+        playConstPing(p.length - 1, 1);
+        setPointCount(p.length);
+      }
+    };
+    window.addEventListener("mousemove", onMove);
+    return () => window.removeEventListener("mousemove", onMove);
+  }, [open]);
+
+  useEffect(() => { if (!open) return; const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); }; window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey); }, [open]);
+
+  const catalogue = () => {
+    const local = pointsRef.current.slice();
+    if (local.length < 2) return;
+    playConstChime();
+    const h1 = local.reduce((a, p) => a + p.x + p.y, 0) % constA.length;
+    const h2 = local.reduce((a, p) => a + Math.round(p.x * p.y), 0) % constB.length;
+    const name = `CONSTELLATION // ${constA[h1]}_${constB[h2]}`;
+    setStarName(name);
+    setCatalogued(true);
+    try { localStorage.setItem("hazem_trace_saved", JSON.stringify({ pts: local.map(({ x, y }) => ({ x, y })), name })); } catch {}
+  };
+
+  const saved = savedRef.current;
 
   return (
     <>
-      {shocking && <div style={{ position: "fixed", inset: 0, zIndex: 9890, pointerEvents: "none", animation: "bomb-shake 0.5s linear" }} />}
-      {flash && <div style={{ position: "fixed", inset: 0, zIndex: 9855, pointerEvents: "none", background: "radial-gradient(circle at 50% 50%, rgba(200,215,255,0.95), rgba(140,160,255,0.55) 45%, rgba(255,255,255,0) 72%)", animation: "nuke-flash 0.6s ease-out forwards" }} />}
-      {afterglow && <div style={{ position: "fixed", inset: 0, zIndex: 9870, pointerEvents: "none", background: "radial-gradient(circle, rgba(150,170,255,0.3), transparent 60%)", mixBlendMode: "screen", animation: "bomb-afterglow 1s ease-out forwards" }} />}
-      {blast && (
-        <div style={{ position: "fixed", left: blast.x, top: blast.y, zIndex: 9882, pointerEvents: "none" }}>
-          {/* neural core — white-hot synapse hub */}
-          <div className="neural-core" />
-          <div className="neural-core neural-core2" />
-          <div className="neural-glow" />
-          {/* expanding synaptic web */}
-          <div className="neural-web">
-            {SYNAPSES.map((a, i) => (
-              <div key={a} className="neural-synapse" style={{ transform: `rotate(${a}deg)`, ['--nd' as string]: `${i * 35}ms` }}>
-                <span className="neural-link" />
-                <span className="neural-node" />
-                <span className="neural-node neural-node2" />
-              </div>
-            ))}
-          </div>
-          {/* quantum scan rings */}
-          <div className="neural-ring" />
-          <div className="neural-ring neural-ring2" />
-          {/* neural status readout */}
-          <div className="neural-status">
-            <span>NEURAL_LINK_ESTABLISHED</span>
-            <span className="neural-model">MODEL_v2.6 // SYNAPSE_SYNC 4096 · OK</span>
-          </div>
-        </div>
-      )}
-      {packet && (
-        <div className="neural-packet" style={{
-          position: "fixed", left: packet.x, top: packet.y, zIndex: 9888, pointerEvents: "none",
-          ['--fx' as string]: `${packet.fx}px`, ['--fy' as string]: `${packet.fy}px`,
-        }}>
-          <span className="neural-core-token" />
-          <span className="neural-trail" />
-        </div>
-      )}
-      {sparks.length > 0 && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 9880, pointerEvents: "none", overflow: "hidden" }}>
-          {sparks.map((s) => (
-            <div key={s.id} className="bomb-spark" style={{
-              position: "absolute", left: s.x, top: s.y, width: s.size, height: s.size,
-              background: s.color, boxShadow: s.shape === "square" ? "none" : `0 0 10px ${s.color}`,
-              borderRadius: s.shape === "square" ? "1px" : "50%",
-              ['--sx' as string]: `${s.dx * 42}px`, ['--sy' as string]: `${s.dy * 42}px`,
-              ['--sr' as string]: `${s.rot}deg`, ['--sl' as string]: `${s.life}s`,
-              ['--srot' as string]: `${s.rot * 3}deg`,
-            }} />
-          ))}
-        </div>
-      )}
       <div className="quantum-bomb-float" style={{ position: "fixed", left: 18, bottom: 18, zIndex: 8500 }}>
-      <button onClick={(e) => {
-        if (!armed) return;
-        const r = e.currentTarget.getBoundingClientRect();
-        launchPacket(r.left + r.width / 2, r.top + r.height / 2);
-      }}
-        style={{
-          cursor: "pointer", position: "relative", width: 52, height: 52,
-          background: "linear-gradient(135deg, rgba(var(--c2),0.28), rgba(var(--c1),0.16))",
-          border: "1px solid rgba(var(--c2),0.5)", borderRadius: "50%",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          backdropFilter: "blur(10px)",
-          transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s, box-shadow 0.25s",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 28px rgba(var(--c2),0.3), 0 0 0 4px rgba(var(--c1),0.07)",
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = "rgba(var(--c1),0.85)"; e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.18), 0 12px 34px rgba(var(--c2),0.42), 0 0 0 4px rgba(var(--c1),0.14)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(var(--c2),0.5)"; e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 28px rgba(var(--c2),0.3), 0 0 0 4px rgba(var(--c1),0.07)"; }}
-        aria-label="Initiate neural link">
-        <span className="bomb-ping" style={{ position: "absolute", inset: -3, borderRadius: "50%", pointerEvents: "none" }} />
-        <span style={{
-          width: 34, height: 34, borderRadius: "50%",
-          background: armed
-            ? "radial-gradient(circle at 32% 30%, var(--c1h), var(--c2h))"
-            : "radial-gradient(circle at 32% 30%, rgba(var(--c2),0.5), rgba(var(--fg-d),0.3))",
-          color: "var(--bg-deep)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: armed ? "0 0 14px rgba(var(--c1),0.7), inset 0 -2px 5px rgba(0,0,0,0.28)" : "none",
-          transition: "background 0.4s, box-shadow 0.4s",
-          animation: armed ? "" : "reload-blink 1.1s ease-in-out infinite",
-        }}>
-          <Sparkles size={18} strokeWidth={2} className={armed ? "atom-spin" : ""} />
-        </span>
-      </button>
+        <button onClick={() => (open ? close() : openForge())}
+          style={{
+            cursor: "pointer", position: "relative", width: 58, height: 58,
+            background: "linear-gradient(135deg, rgba(var(--c2),0.28), rgba(var(--c1),0.16))",
+            border: "1px solid rgba(var(--c2),0.5)", borderRadius: "50%",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            backdropFilter: "blur(10px)",
+            transition: "transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s, box-shadow 0.25s",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 28px rgba(var(--c2),0.3), 0 0 0 4px rgba(var(--c1),0.07)",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = "rgba(var(--c1),0.85)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(var(--c2),0.5)"; }}
+          aria-label="Open constellation forge">
+          <span className="bomb-ping" style={{ position: "absolute", inset: -3, borderRadius: "50%", pointerEvents: "none" }} />
+          <span style={{
+            width: 40, height: 40, borderRadius: "50%",
+            background: "radial-gradient(circle at 32% 30%, var(--c1h), var(--c2h))",
+            color: "var(--bg-deep)", display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 0 14px rgba(var(--c1),0.7), inset 0 -2px 5px rgba(0,0,0,0.28)",
+          }}>
+            <Sparkles size={18} strokeWidth={2} className="atom-spin" />
+          </span>
+        </button>
       </div>
+
+      {open && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9850, cursor: "crosshair" }} onClick={close}>
+          <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+          <div style={{ position: "absolute", left: "50%", top: 26, transform: "translateX(-50%)", textAlign: "center", pointerEvents: "none" }}>
+            <span style={mono(10, "rgba(var(--c1),0.75)", { letterSpacing: "0.3em" })}>◈ CHARGE THE TAIL — MOVE YOUR CURSOR ◈</span>
+            <div style={{ marginTop: 6, fontFamily: '"JetBrains Mono", monospace', fontSize: 9, letterSpacing: "0.18em", color: "var(--fg-b)" }}>{pointCount} STARS · {saved ? "PRIOR CONSTELLATION LOADED · " : ""}ESC TO EXIT</div>
+          </div>
+          <div style={{ position: "absolute", left: "50%", bottom: 30, transform: "translateX(-50%)", display: "flex", gap: 12 }}>
+            <button onClick={(e) => { e.stopPropagation(); catalogue(); }} disabled={pointCount < 2}
+              style={mono(10, pointCount < 2 ? "var(--fg-d)" : "var(--c3h)", { letterSpacing: "0.2em", border: `1px solid ${pointCount < 2 ? "rgba(var(--fg-d),0.4)" : "rgba(var(--c3),0.5)"}`, padding: "10px 20px", background: "rgba(var(--c3),0.06)", cursor: pointCount < 2 ? "not-allowed" : "pointer" })}>
+              {pointCount < 2 ? "DRAW TO ENABLE" : "CATALOGUE CONSTELLATION"}
+            </button>
+            <button onClick={(e) => { e.stopPropagation(); close(); }} style={mono(10, "rgba(var(--c1),0.7)", { letterSpacing: "0.2em", border: "1px solid rgba(var(--c1),0.3)", padding: "10px 20px", background: "rgba(var(--c1),0.04)", cursor: "pointer" })}>EXIT</button>
+          </div>
+          {catalogued && (
+            <div style={{ position: "absolute", left: "50%", top: "48%", transform: "translate(-50%,-50%)", textAlign: "center", pointerEvents: "none", background: "rgba(var(--bg-rgb),0.9)", border: "1px solid rgba(var(--c1),0.35)", padding: "34px 48px", boxShadow: "0 30px 90px rgba(0,0,0,0.6), 0 0 60px rgba(var(--c1),0.15)" }}>
+              <div style={mono(9, "rgba(var(--c1),0.6)", { letterSpacing: "0.35em" })}>OBJECT CATALOGUED</div>
+              <div className="decode-in" style={{ marginTop: 12, fontFamily: '"Orbitron", sans-serif', fontWeight: 700, fontSize: "clamp(16px,3vw,26px)", letterSpacing: "0.1em", color: "var(--fg-a)", animation: "glitch-enter 0.8s steps(6) both" }}>{starName}</div>
+              <div style={{ marginTop: 10, fontFamily: '"JetBrains Mono", monospace', fontSize: 10, letterSpacing: "0.16em", color: "var(--fg-b)" }}>
+                NODES: {pointCount.toString().padStart(3, "0")} · SHELF: TÜBINGEN-DEEP-SKY
+              </div>
+              <div style={{ marginTop: 8, fontFamily: '"Rajdhani", sans-serif', fontSize: 13, color: "var(--c3h)", letterSpacing: "0.08em" }}>
+                PERSISTED TO YOUR BROWSER — IT WELCOMES YOU BACK.
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 }
@@ -1523,13 +1501,14 @@ function SideNavDots() {
 
 // ─── Command palette (⌘K) ────────────────────────────────────────────────────
 
-const THEMES = ["dark-cyan", "violet", "matrix", "ember"] as const;
+const THEMES = ["dark-cyan", "violet", "matrix", "ember", "light"] as const;
 
 const THEME_LABEL: Record<string, string> = {
   "dark-cyan": "NEON_CYAN",
   violet: "NEON_VIOLET",
   matrix: "MATRIX",
   ember: "EMBER",
+  light: "DAYLIGHT",
 };
 
 function getStoredTheme(): string {
@@ -1540,16 +1519,6 @@ function getStoredTheme(): string {
     if (t && THEMES.includes(t as never)) return t;
   } catch {}
   return "dark-cyan";
-}
-
-function getStoredMode(): "dark" | "light" {
-  try {
-    const q = new URLSearchParams(window.location.search).get("mode");
-    if (q === "light" || q === "dark") return q;
-    const m = localStorage.getItem("hazem_portfolio_mode");
-    if (m === "light" || m === "dark") return m;
-  } catch {}
-  return "dark";
 }
 
 function ThemeSwitcher({ theme, onChange }: { theme: string; onChange: (t: string) => void }) {
@@ -1567,24 +1536,13 @@ function ThemeSwitcher({ theme, onChange }: { theme: string; onChange: (t: strin
             <button key={t} onMouseDown={(e) => { e.preventDefault(); onChange(t); setOpen(false); }}
               className="w-full text-left px-3 py-2 flex items-center gap-2 transition-colors"
               style={{ background: theme === t ? "rgba(var(--c1),0.08)" : "transparent", cursor: "pointer", border: "none" }}>
-              <span className="pulse-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: `var(--${t === "dark-cyan" ? "c1h" : t === "violet" ? "c2h" : t === "matrix" ? "c3h" : "c4h"})`, display: "inline-block" }} />
+              <span className="pulse-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: t === "light" ? "#8a97ad" : `var(--${t === "dark-cyan" ? "c1h" : t === "violet" ? "c2h" : t === "matrix" ? "c3h" : "c4h"})`, display: "inline-block" }} />
               <span style={mono(9.5, theme === t ? "var(--c1h)" : "var(--fg-b)", { letterSpacing: "0.12em" })}>{THEME_LABEL[t]}</span>
             </button>
           ))}
         </div>
       )}
     </div>
-  );
-}
-
-function ModeToggle({ mode, onChange }: { mode: "dark" | "light"; onChange: (m: "dark" | "light") => void }) {
-  return (
-    <button onClick={() => onChange(mode === "dark" ? "light" : "dark")}
-      style={mono(10, "rgba(var(--c1),0.65)", { letterSpacing: "0.16em", border: "1px solid rgba(var(--c1),0.18)", padding: "5px 10px", background: "rgba(var(--c1),0.04)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 })}
-      className="hover:opacity-80 transition-opacity" aria-label="Toggle dark/light mode" title="Toggle dark/light mode">
-      {mode === "dark" ? <Sun size={12} style={{ color: "var(--c4h)" }} /> : <Moon size={12} style={{ color: "var(--c1h)" }} />}
-      <span style={{ color: "var(--fg-a)" }}>{mode.toUpperCase()}</span>
-    </button>
   );
 }
 
@@ -1771,7 +1729,6 @@ export default function App() {
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [theme, setTheme] = useState<string>(() => getStoredTheme());
-  const [mode, setMode] = useState<"dark" | "light">(() => getStoredMode());
   const heroNameRef = useRef<HTMLHeadingElement>(null);
   const heroTagRef = useRef<HTMLParagraphElement>(null);
 
@@ -1793,13 +1750,9 @@ export default function App() {
   useLayoutEffect(() => {
     if (typeof document !== "undefined") {
       document.documentElement.setAttribute("data-theme", theme);
-      document.documentElement.setAttribute("data-mode", mode);
-      try {
-        localStorage.setItem("hazem_portfolio_theme", theme);
-        localStorage.setItem("hazem_portfolio_mode", mode);
-      } catch {}
+      try { localStorage.setItem("hazem_portfolio_theme", theme); } catch {}
     }
-  }, [theme, mode]);
+  }, [theme]);
 
   const activeSection = useActiveSection(NAV);
 
@@ -1879,7 +1832,7 @@ export default function App() {
       <SideNavDots />
       <CRTOverlay />
       <ParticleField />
-      <NeuralLink />
+      <StarTrace />
 
       {/* ── Nav ── */}
       <nav className="fixed top-0 w-full z-50 transition-all duration-500"
@@ -1895,7 +1848,6 @@ export default function App() {
           </div>
 <div className="hidden md:flex items-center gap-3">
             <ThemeSwitcher theme={theme} onChange={setTheme} />
-            <ModeToggle mode={mode} onChange={setMode} />
             <button onClick={() => setPaletteOpen(true)} style={mono(10, "rgba(var(--c1),0.55)", { letterSpacing: "0.18em", border: "1px solid rgba(var(--c1),0.18)", padding: "5px 10px", background: "rgba(var(--c1),0.04)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 })}
               className="hover:opacity-100 transition-opacity" aria-label="Command palette">
               <Command size={12} style={{ color: "var(--c1h)" }} /> <span style={{ color: "var(--fg-a)" }}>K</span>
@@ -1911,26 +1863,13 @@ export default function App() {
               <button key={id} onClick={() => scrollTo(id)} className="block w-full text-left uppercase" style={mono(10, activeSection === id ? "var(--c1h)" : "var(--fg-b)", { letterSpacing: "0.22em" })}>{id}</button>
             ))}
             <div className="pt-1 space-y-2" style={{ borderTop: "1px solid rgba(var(--c1),0.1)" }}>
-              <span style={mono(9, "rgba(var(--c1),0.45)", { letterSpacing: "0.25em" })}>MODE</span>
-              <div className="grid grid-cols-2 gap-2">
-                {(["dark", "light"] as const).map((m) => (
-                  <button key={m} onClick={() => { setMode(m); setMenuOpen(false); }}
-                    className="flex items-center gap-2 px-3 py-2 text-left transition-colors"
-                    style={{ background: mode === m ? "rgba(var(--c1),0.1)" : "rgba(var(--c1),0.04)", border: `1px solid ${mode === m ? "rgba(var(--c1),0.4)" : "rgba(var(--c1),0.14)"}`, cursor: "pointer" }}>
-                    {m === "dark" ? <Moon size={10} style={{ color: "var(--c1h)" }} /> : <Sun size={10} style={{ color: "var(--c4h)" }} />}
-                    <span style={mono(9, mode === m ? "var(--c1h)" : "var(--fg-b)", { letterSpacing: "0.1em" })}>{m.toUpperCase()}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="pt-1 space-y-2" style={{ borderTop: "1px solid rgba(var(--c1),0.1)" }}>
               <span style={mono(9, "rgba(var(--c1),0.45)", { letterSpacing: "0.25em" })}>THEME</span>
               <div className="grid grid-cols-2 gap-2">
                 {THEMES.map((t) => (
                   <button key={t} onClick={() => { setTheme(t); setMenuOpen(false); }}
                     className="flex items-center gap-2 px-3 py-2 text-left transition-colors"
                     style={{ background: theme === t ? "rgba(var(--c1),0.1)" : "rgba(var(--c1),0.04)", border: `1px solid ${theme === t ? "rgba(var(--c1),0.4)" : "rgba(var(--c1),0.14)"}`, cursor: "pointer" }}>
-                    <span className="pulse-dot" style={{ width: 8, height: 8, borderRadius: "50%", background: `var(--${t === "dark-cyan" ? "c1h" : t === "violet" ? "c2h" : t === "matrix" ? "c3h" : "c4h"})`, display: "inline-block" }} />
+                    <span className="pulse-dot" style={{ width: 8, height: 8, borderRadius: "50%", background: t === "light" ? "#8a97ad" : `var(--${t === "dark-cyan" ? "c1h" : t === "violet" ? "c2h" : t === "matrix" ? "c3h" : "c4h"})`, display: "inline-block" }} />
                     <span style={mono(9, theme === t ? "var(--c1h)" : "var(--fg-b)", { letterSpacing: "0.1em" })}>{THEME_LABEL[t]}</span>
                   </button>
                 ))}
