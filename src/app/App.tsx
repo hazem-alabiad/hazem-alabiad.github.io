@@ -32,6 +32,8 @@ import {
   Cpu,
   Sparkles,
   Terminal,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 // ─── Scroll hooks ─────────────────────────────────────────────────────────────
@@ -206,50 +208,36 @@ function ParticleField() {
     if (!ctx) return;
     const state = {
       particles: [] as Array<{ x: number; y: number; vx: number; vy: number; r: number; t: number; a: number }>,
-      pulses: [] as Array<{ a: number; b: number; prog: number; speed: number; color: string }>,
       mouse: { x: -9999, y: -9999 },
       scanY: 0,
       raf: 0,
       link: true,
       paused: false,
-      lastPulse: 0,
     };
     function init() {
       canvas!.width = window.innerWidth;
       canvas!.height = window.innerHeight;
       const w = canvas!.width;
-      const count = w < 640 ? 38 : w < 1024 ? 64 : 110;
+      const count = w < 640 ? 16 : w < 1024 ? 26 : 44;
       state.link = w >= 768;
       state.particles = Array.from({ length: count }, () => ({
         x: Math.random() * canvas!.width,
         y: Math.random() * canvas!.height,
-        vx: (Math.random() - 0.5) * 0.42,
-        vy: (Math.random() - 0.5) * 0.42,
-        r: Math.random() * 1.8 + 0.4,
+        vx: (Math.random() - 0.5) * 0.14,
+        vy: (Math.random() - 0.5) * 0.14,
+        r: Math.random() * 1.2 + 0.3,
         t: Math.random(),
-        a: Math.random() * 0.5 + 0.25,
+        a: Math.random() * 0.25 + 0.12,
       }));
-      state.pulses = [];
-      state.lastPulse = 0;
-    }
-    function spawnPulse() {
-      const ps = state.particles;
-      if (ps.length < 2) return;
-      const a = Math.floor(Math.random() * ps.length);
-      let b = Math.floor(Math.random() * ps.length);
-      if (b === a) b = (b + 1) % ps.length;
-      const colors = ["rgba(0,240,255,", "rgba(160,90,255,", "rgba(255,255,255,"];
-      state.pulses.push({ a, b, prog: 0, speed: 0.008 + Math.random() * 0.012, color: colors[Math.floor(Math.random() * colors.length)] });
-      if (state.pulses.length > 22) state.pulses.shift();
     }
     function tick() {
       if (state.paused) { state.raf = requestAnimationFrame(tick); return; }
       const W = canvas!.width, H = canvas!.height;
-      ctx!.fillStyle = "rgba(5,8,20,0.18)";
+      ctx!.fillStyle = "rgba(5,8,20,0.10)";
       ctx!.fillRect(0, 0, W, H);
-      state.scanY = (state.scanY + 0.55) % H;
-      if (state.scanY < 0.55) {
-        ctx!.strokeStyle = "rgba(0,240,255,0.04)";
+      state.scanY = (state.scanY + 0.3) % H;
+      if (state.scanY < 0.3) {
+        ctx!.strokeStyle = "rgba(0,240,255,0.022)";
         ctx!.lineWidth = 0.5;
         const GS = 65;
         for (let x = 0; x < W; x += GS) { ctx!.beginPath(); ctx!.moveTo(x, 0); ctx!.lineTo(x, H); ctx!.stroke(); }
@@ -257,21 +245,18 @@ function ParticleField() {
       }
       const sg = ctx!.createLinearGradient(0, state.scanY - 80, 0, state.scanY + 80);
       sg.addColorStop(0, "rgba(0,240,255,0)");
-      sg.addColorStop(0.5, "rgba(0,240,255,0.032)");
+      sg.addColorStop(0.5, "rgba(0,240,255,0.016)");
       sg.addColorStop(1, "rgba(0,240,255,0)");
       ctx!.fillStyle = sg;
       ctx!.fillRect(0, state.scanY - 80, W, 160);
       const { particles, mouse } = state;
       const linkDraw = state.link;
-      // spawn a traveling data pulse every ~340ms
-      const now = performance.now();
-      if (linkDraw && now - state.lastPulse > 340) { state.lastPulse = now; spawnPulse(); }
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         const dx = mouse.x - p.x, dy = mouse.y - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 200 && dist > 0) { p.vx += (dx / dist) * 0.013; p.vy += (dy / dist) * 0.013; }
-        p.vx *= 0.99; p.vy *= 0.99;
+        if (dist < 200 && dist > 0) { p.vx += (dx / dist) * 0.008; p.vy += (dy / dist) * 0.008; }
+        p.vx *= 0.98; p.vy *= 0.98;
         p.x += p.vx; p.y += p.vy;
         if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
         if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
@@ -280,40 +265,15 @@ function ParticleField() {
           for (let j = i + 1; j < particles.length; j++) {
             const q = particles[j];
             const dd = Math.sqrt((p.x - q.x) ** 2 + (p.y - q.y) ** 2);
-            if (dd < 115) {
-              ctx!.strokeStyle = `rgba(${r},${g},${b},${(1 - dd / 115) * 0.2})`;
+            if (dd < 100) {
+              ctx!.strokeStyle = `rgba(${r},${g},${b},${(1 - dd / 100) * 0.14})`;
               ctx!.lineWidth = 0.4;
               ctx!.beginPath(); ctx!.moveTo(p.x, p.y); ctx!.lineTo(q.x, q.y); ctx!.stroke();
             }
           }
         }
-        // soft node halo
-        ctx!.beginPath(); ctx!.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(${r},${g},${b},${p.a * 0.12})`; ctx!.fill();
         ctx!.beginPath(); ctx!.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx!.fillStyle = `rgba(${r},${g},${b},${p.a})`; ctx!.fill();
-      }
-      // data pulses traveling along edges
-      for (let k = state.pulses.length - 1; k >= 0; k--) {
-        const pu = state.pulses[k];
-        const A = particles[pu.a], B = particles[pu.b];
-        if (!A || !B) { state.pulses.splice(k, 1); continue; }
-        pu.prog += pu.speed;
-        if (pu.prog >= 1) { state.pulses.splice(k, 1); continue; }
-        const px = A.x + (B.x - A.x) * pu.prog;
-        const py = A.y + (B.y - A.y) * pu.prog;
-        const head = 1 - pu.prog;
-        const trail = ctx!.createLinearGradient(px, py, B.x, B.y);
-        trail.addColorStop(0, `${pu.color}0.9)`);
-        trail.addColorStop(1, `${pu.color}0)`);
-        ctx!.strokeStyle = trail;
-        ctx!.lineWidth = 1.6;
-        ctx!.beginPath(); ctx!.moveTo(px, py); ctx!.lineTo(B.x, B.y); ctx!.stroke();
-        // bright head
-        ctx!.beginPath(); ctx!.arc(px, py, 2.4 + head * 1.6, 0, Math.PI * 2);
-        ctx!.fillStyle = `${pu.color}${0.5 + head * 0.5})`; ctx!.fill();
-        ctx!.beginPath(); ctx!.arc(px, py, 5 + head * 6, 0, Math.PI * 2);
-        ctx!.fillStyle = `${pu.color}0.18)`; ctx!.fill();
       }
       state.raf = requestAnimationFrame(tick);
     }
@@ -337,57 +297,6 @@ function ParticleField() {
     };
   }, []);
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }} />;
-}
-
-// ─── Matrix rain — subtle falling data glyphs ─────────────────────────────────
-
-function MatrixRain() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [opacity, setOpacity] = useState(0.32);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const isCoarse = window.matchMedia("(pointer: coarse)").matches;
-    if (isCoarse) setOpacity(0.25);
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    let raf = 0, cols = 0, drops: number[] = [], trails: number[] = [];
-    const glyphs = "01アイウエオカキクケコサシスセソタチツテトНАБВГД0101";
-    const fontSize = 13;
-    function init() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      cols = Math.ceil(canvas.width / fontSize);
-      drops = Array.from({ length: cols }, () => Math.random() * -6);
-      trails = Array.from({ length: cols }, () => Math.random() * 8);
-    }
-    function tick() {
-      ctx!.fillStyle = "rgba(5,8,20,0.09)";
-      ctx!.fillRect(0, 0, canvas!.width, canvas!.height);
-      ctx!.font = `${fontSize}px "JetBrains Mono", monospace`;
-      for (let i = 0; i < cols; i++) {
-        const ch = glyphs[(Math.random() * glyphs.length) | 0];
-        const x = i * fontSize;
-        const y = drops[i] * fontSize;
-        const pct = Math.min(1, Math.max(0, (y / canvas!.height) * 1.6));
-        const g = Math.round(200 + pct * 55);
-        ctx!.fillStyle = `rgba(${g},${g},255,${0.25 + pct * 0.4})`;
-        ctx!.fillText(ch, x, y);
-        if (Math.random() > 0.92 && y > 0) {
-          ctx!.fillStyle = "rgba(255,255,255,0.75)";
-          ctx!.fillText(glyphs[(Math.random() * glyphs.length) | 0], x, y - fontSize);
-        }
-        drops[i]++;
-        if (drops[i] * fontSize > canvas!.height && Math.random() > 0.975) drops[i] = Math.random() * -4;
-      }
-      raf = requestAnimationFrame(tick);
-    }
-    init(); tick();
-    const onResize = () => resize();
-    window.addEventListener("resize", onResize);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", onResize); };
-  }, []);
-  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 0, opacity }} aria-hidden />;
 }
 
 // ─── Reveal hook ─────────────────────────────────────────────────────────────
@@ -758,15 +667,15 @@ function FloatingCode() {
     <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 1 }}>
       {snippets.map((s, i) => {
         const anims = ["float-a", "float-b", "float-c"];
-        const dur = [8, 11, 9, 13, 10, 12, 7, 14][i];
-        const delay = [0, 2, 4, 1, 6, 3, 5, 7][i];
+        const dur = [16, 22, 18, 26, 20, 24, 14, 28][i];
+        const delay = [0, 4, 8, 2, 12, 6, 10, 14][i];
         const left = [8, 75, 20, 85, 12, 65, 40, 55][i];
         const top  = [15, 25, 60, 45, 80, 70, 35, 88][i];
         return (
           <div key={i} style={{
             position: "absolute", left: `${left}%`, top: `${top}%`,
             fontFamily: '"JetBrains Mono", monospace', fontSize: 10,
-            color: i % 2 === 0 ? "rgba(var(--c1),0.07)" : "rgba(var(--c2),0.07)",
+            color: i % 2 === 0 ? "rgba(var(--c1),0.045)" : "rgba(var(--c2),0.045)",
             letterSpacing: "0.1em", whiteSpace: "nowrap",
             animation: `${anims[i % 3]} ${dur}s ease-in-out ${delay}s infinite`,
           }}>
@@ -1536,7 +1445,7 @@ function MouseTrail() {
     let last = 0;
     const move = (e: MouseEvent) => {
       const now = Date.now();
-      if (now - last < 40) return;
+      if (now - last < 70) return;
       last = now;
       const id = counter.current++;
       setDots((p) => [...p.slice(-26), { id, x: e.clientX, y: e.clientY, g: glyphKey.current() }]);
@@ -1614,14 +1523,13 @@ function SideNavDots() {
 
 // ─── Command palette (⌘K) ────────────────────────────────────────────────────
 
-const THEMES = ["dark-cyan", "violet", "matrix", "ember", "light"] as const;
+const THEMES = ["dark-cyan", "violet", "matrix", "ember"] as const;
 
 const THEME_LABEL: Record<string, string> = {
   "dark-cyan": "NEON_CYAN",
   violet: "NEON_VIOLET",
   matrix: "MATRIX",
   ember: "EMBER",
-  light: "DAYLIGHT",
 };
 
 function getStoredTheme(): string {
@@ -1632,6 +1540,16 @@ function getStoredTheme(): string {
     if (t && THEMES.includes(t as never)) return t;
   } catch {}
   return "dark-cyan";
+}
+
+function getStoredMode(): "dark" | "light" {
+  try {
+    const q = new URLSearchParams(window.location.search).get("mode");
+    if (q === "light" || q === "dark") return q;
+    const m = localStorage.getItem("hazem_portfolio_mode");
+    if (m === "light" || m === "dark") return m;
+  } catch {}
+  return "dark";
 }
 
 function ThemeSwitcher({ theme, onChange }: { theme: string; onChange: (t: string) => void }) {
@@ -1649,13 +1567,24 @@ function ThemeSwitcher({ theme, onChange }: { theme: string; onChange: (t: strin
             <button key={t} onMouseDown={(e) => { e.preventDefault(); onChange(t); setOpen(false); }}
               className="w-full text-left px-3 py-2 flex items-center gap-2 transition-colors"
               style={{ background: theme === t ? "rgba(var(--c1),0.08)" : "transparent", cursor: "pointer", border: "none" }}>
-              <span className="pulse-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: t === "light" ? "#8a97ad" : `var(--${t === "dark-cyan" ? "c1h" : t === "violet" ? "c2h" : t === "matrix" ? "c3h" : "c4h"})`, display: "inline-block" }} />
+              <span className="pulse-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: `var(--${t === "dark-cyan" ? "c1h" : t === "violet" ? "c2h" : t === "matrix" ? "c3h" : "c4h"})`, display: "inline-block" }} />
               <span style={mono(9.5, theme === t ? "var(--c1h)" : "var(--fg-b)", { letterSpacing: "0.12em" })}>{THEME_LABEL[t]}</span>
             </button>
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+function ModeToggle({ mode, onChange }: { mode: "dark" | "light"; onChange: (m: "dark" | "light") => void }) {
+  return (
+    <button onClick={() => onChange(mode === "dark" ? "light" : "dark")}
+      style={mono(10, "rgba(var(--c1),0.65)", { letterSpacing: "0.16em", border: "1px solid rgba(var(--c1),0.18)", padding: "5px 10px", background: "rgba(var(--c1),0.04)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 })}
+      className="hover:opacity-80 transition-opacity" aria-label="Toggle dark/light mode" title="Toggle dark/light mode">
+      {mode === "dark" ? <Sun size={12} style={{ color: "var(--c4h)" }} /> : <Moon size={12} style={{ color: "var(--c1h)" }} />}
+      <span style={{ color: "var(--fg-a)" }}>{mode.toUpperCase()}</span>
+    </button>
   );
 }
 
@@ -1842,6 +1771,7 @@ export default function App() {
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [theme, setTheme] = useState<string>(() => getStoredTheme());
+  const [mode, setMode] = useState<"dark" | "light">(() => getStoredMode());
   const heroNameRef = useRef<HTMLHeadingElement>(null);
   const heroTagRef = useRef<HTMLParagraphElement>(null);
 
@@ -1863,9 +1793,13 @@ export default function App() {
   useLayoutEffect(() => {
     if (typeof document !== "undefined") {
       document.documentElement.setAttribute("data-theme", theme);
-      try { localStorage.setItem("hazem_portfolio_theme", theme); } catch {}
+      document.documentElement.setAttribute("data-mode", mode);
+      try {
+        localStorage.setItem("hazem_portfolio_theme", theme);
+        localStorage.setItem("hazem_portfolio_mode", mode);
+      } catch {}
     }
-  }, [theme]);
+  }, [theme, mode]);
 
   const activeSection = useActiveSection(NAV);
 
@@ -1945,7 +1879,6 @@ export default function App() {
       <SideNavDots />
       <CRTOverlay />
       <ParticleField />
-      <MatrixRain />
       <NeuralLink />
 
       {/* ── Nav ── */}
@@ -1962,6 +1895,7 @@ export default function App() {
           </div>
 <div className="hidden md:flex items-center gap-3">
             <ThemeSwitcher theme={theme} onChange={setTheme} />
+            <ModeToggle mode={mode} onChange={setMode} />
             <button onClick={() => setPaletteOpen(true)} style={mono(10, "rgba(var(--c1),0.55)", { letterSpacing: "0.18em", border: "1px solid rgba(var(--c1),0.18)", padding: "5px 10px", background: "rgba(var(--c1),0.04)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 })}
               className="hover:opacity-100 transition-opacity" aria-label="Command palette">
               <Command size={12} style={{ color: "var(--c1h)" }} /> <span style={{ color: "var(--fg-a)" }}>K</span>
@@ -1977,13 +1911,26 @@ export default function App() {
               <button key={id} onClick={() => scrollTo(id)} className="block w-full text-left uppercase" style={mono(10, activeSection === id ? "var(--c1h)" : "var(--fg-b)", { letterSpacing: "0.22em" })}>{id}</button>
             ))}
             <div className="pt-1 space-y-2" style={{ borderTop: "1px solid rgba(var(--c1),0.1)" }}>
+              <span style={mono(9, "rgba(var(--c1),0.45)", { letterSpacing: "0.25em" })}>MODE</span>
+              <div className="grid grid-cols-2 gap-2">
+                {(["dark", "light"] as const).map((m) => (
+                  <button key={m} onClick={() => { setMode(m); setMenuOpen(false); }}
+                    className="flex items-center gap-2 px-3 py-2 text-left transition-colors"
+                    style={{ background: mode === m ? "rgba(var(--c1),0.1)" : "rgba(var(--c1),0.04)", border: `1px solid ${mode === m ? "rgba(var(--c1),0.4)" : "rgba(var(--c1),0.14)"}`, cursor: "pointer" }}>
+                    {m === "dark" ? <Moon size={10} style={{ color: "var(--c1h)" }} /> : <Sun size={10} style={{ color: "var(--c4h)" }} />}
+                    <span style={mono(9, mode === m ? "var(--c1h)" : "var(--fg-b)", { letterSpacing: "0.1em" })}>{m.toUpperCase()}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="pt-1 space-y-2" style={{ borderTop: "1px solid rgba(var(--c1),0.1)" }}>
               <span style={mono(9, "rgba(var(--c1),0.45)", { letterSpacing: "0.25em" })}>THEME</span>
               <div className="grid grid-cols-2 gap-2">
                 {THEMES.map((t) => (
                   <button key={t} onClick={() => { setTheme(t); setMenuOpen(false); }}
                     className="flex items-center gap-2 px-3 py-2 text-left transition-colors"
                     style={{ background: theme === t ? "rgba(var(--c1),0.1)" : "rgba(var(--c1),0.04)", border: `1px solid ${theme === t ? "rgba(var(--c1),0.4)" : "rgba(var(--c1),0.14)"}`, cursor: "pointer" }}>
-                    <span className="pulse-dot" style={{ width: 8, height: 8, borderRadius: "50%", background: t === "light" ? "#8a97ad" : `var(--${t === "dark-cyan" ? "c1h" : t === "violet" ? "c2h" : t === "matrix" ? "c3h" : "c4h"})`, display: "inline-block" }} />
+                    <span className="pulse-dot" style={{ width: 8, height: 8, borderRadius: "50%", background: `var(--${t === "dark-cyan" ? "c1h" : t === "violet" ? "c2h" : t === "matrix" ? "c3h" : "c4h"})`, display: "inline-block" }} />
                     <span style={mono(9, theme === t ? "var(--c1h)" : "var(--fg-b)", { letterSpacing: "0.1em" })}>{THEME_LABEL[t]}</span>
                   </button>
                 ))}
@@ -2012,16 +1959,18 @@ export default function App() {
             {/* Left — identity, role, bio, CTAs, stats */}
             <div className="lg:col-span-7">
               <div className="relative inline-block">
-              <h1 ref={heroNameRef} className="hero-name leading-none tracking-tight mb-4 select-none"
-                style={{ fontFamily: '"Orbitron", sans-serif', fontWeight: 700, fontSize: "clamp(2.2rem,7.6vw,6.4rem)", color: "var(--c1h)", letterSpacing: "0.04em", textShadow: "0 0 14px rgba(var(--c1),0.5), 0 0 46px rgba(var(--c1),0.22)" }}>
-                HAZEM<br />
+              <h1 ref={heroNameRef} className="hero-name relative leading-none tracking-tight mb-4 select-none"
+                style={{ fontFamily: '"Orbitron", sans-serif', fontWeight: 700, fontSize: "clamp(2.2rem,7.6vw,6.4rem)", letterSpacing: "0.04em" }}>
+                <span className="name-hazem" style={{ color: "var(--fg-a)", textShadow: "0 0 10px rgba(255,255,255,0.45), 0 0 34px rgba(var(--c1),0.35)" }}>HAZEM</span><br />
                 <span className="name-hover">
                   {"ALABIAD".split("").map((ch, i) => (
-                    <span key={i} className="name-letter" style={{ ['--i' as string]: i, ['--glass' as string]: `${20 + (i * 37) % 60}%` }}>{ch}</span>
+                    <span key={i} className="name-letter" style={{ ['--i' as string]: i, ['--glass' as string]: `${18 + (i * 41) % 56}%` }}>{ch}</span>
                   ))}
-                  <span className="name-underline"><span className="name-caret" /></span>
+                  <span className="name-underline"><span className="name-wave" /></span>
+                  <span className="name-caret" />
                 </span>
                 <span className="hero-name-scan" aria-hidden />
+                <span className="hero-name-scan hero-name-scan2" aria-hidden />
               </h1>
               <div className="hidden md:block"><HUDOrbit /></div>
               </div>
