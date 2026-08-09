@@ -81,17 +81,17 @@ export interface CmsContent {
 
 export const DEFAULT_CONTENT: CmsContent = {
   heroTagline:
-    "Full-Stack Engineer & AI/NLP Researcher — 6+ years shipping production software used by millions. Pursuing an M.A. in Computational Linguistics at Tübingen, bridging engineering with LLMs and cognitive science.",
+    "I make language models useful — engineering production-grade systems on one side, researching how they learn on the other.",
   bio1:
-    "Software engineer with 6+ years of experience building and leading at scale. Shipped React/TypeScript products used by 2M+ people (GetirJobs) and 1M+ enterprise users (IBM's Data Quality platform). Led engineering teams, raised test coverage to 70–90%, and championed accessibility.",
+    "My path runs from a B.Sc. in computer engineering to an M.A. in computational linguistics: I've led full-stack teams and shipped products to millions of users at Getir and IBM, then moved into NLP research. Today I split my time between building and studying language technology — from LLM tutoring systems to the cognitive science of social media.",
   bio2:
-    "Currently an M.A. student in Computational Linguistics at the University of Tübingen — researching LLMs, NLP, and cognitive science as a Student Assistant at IWM & the Autonomous Learning Lab. Open to NLP/AI/ML and full-stack roles in Tübingen, Stuttgart, or remote.",
+    "Open to NLP/AI/full-stack roles and research collaborations — Tübingen, Stuttgart, or remote.",
   factLocation: "Tübingen, Germany",
   factDegree: "M.A. Computational Linguistics",
   factCurrent: "Student Asst. · IWM & Auto. Learning Lab",
   factAvailable: "NLP / AI / Full-Stack",
   contactIntro:
-    "Open to NLP/AI research roles, full-stack engineering positions, and research collaborations. Based in Tübingen, open to remote worldwide.",
+    "Questions, collaborations, or a role in mind? I reply within a day — reach me directly or transmit a message below.",
   footerLine: "© 2026 HAZEM ALABIAD. TÜBINGEN, GERMANY.",
   photo: null,
   cvDataUrl: null,

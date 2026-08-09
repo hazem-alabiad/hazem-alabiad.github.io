@@ -168,14 +168,7 @@ export default function CmsEditor({
             <textarea value={draft.bio1} onChange={(e) => set("bio1", e.target.value)} rows={4} style={inputStyle("100%")} />
           </div>
           <div>
-            <Label>BIO 2</Label>
-            <textarea value={draft.bio2} onChange={(e) => set("bio2", e.target.value)} rows={4} style={inputStyle("100%")} />
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div><Label>LOCATION FACT</Label><input value={draft.factLocation} onChange={(e) => set("factLocation", e.target.value)} style={inputStyle("100%")} /></div>
-            <div><Label>DEGREE FACT</Label><input value={draft.factDegree} onChange={(e) => set("factDegree", e.target.value)} style={inputStyle("100%")} /></div>
-            <div><Label>CURRENT ROLE FACT</Label><input value={draft.factCurrent} onChange={(e) => set("factCurrent", e.target.value)} style={inputStyle("100%")} /></div>
-            <div><Label>AVAILABLE FOR</Label><input value={draft.factAvailable} onChange={(e) => set("factAvailable", e.target.value)} style={inputStyle("100%")} /></div>
+            <Label>LOCATION FACT</Label><input value={draft.factLocation} onChange={(e) => set("factLocation", e.target.value)} style={inputStyle("100%")} />
           </div>
         </Section>
 

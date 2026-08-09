@@ -13,7 +13,6 @@ import {
   Code2,
   Database,
   Globe,
-  MapPin,
   GraduationCap,
   Briefcase,
   PencilLine,
@@ -255,11 +254,11 @@ function useReveal(threshold = 0.1) {
 
 const DEFAULTS = {
   heroTagline:
-    "Full-Stack Engineer & AI/NLP Researcher — 6+ years shipping production software used by millions. Pursuing an M.A. in Computational Linguistics at Tübingen, bridging engineering with LLMs and cognitive science.",
+    "I make language models useful — engineering production-grade systems on one side, researching how they learn on the other.",
   bio1:
-    "Software engineer with 6+ years of experience building and leading at scale. Shipped React/TypeScript products used by 2M+ people (GetirJobs) and 1M+ enterprise users (IBM's Data Quality platform). Led engineering teams, raised test coverage to 70–90%, and championed accessibility.",
+    "My path runs from a B.Sc. in computer engineering to an M.A. in computational linguistics: I've led full-stack teams and shipped products to millions of users at Getir and IBM, then moved into NLP research. Today I split my time between building and studying language technology — from LLM tutoring systems to the cognitive science of social media.",
   bio2:
-    "Currently an M.A. student in Computational Linguistics at the University of Tübingen — researching LLMs, NLP, and cognitive science as a Student Assistant at IWM & the Autonomous Learning Lab. Open to NLP/AI/ML and full-stack roles in Tübingen, Stuttgart, or remote.",
+    "Open to NLP/AI/full-stack roles and research collaborations — Tübingen, Stuttgart, or remote.",
 };
 
 // ─── Style helpers (module-level so all components can use them) ──────────────
@@ -275,30 +274,6 @@ const body = (sz: number, color = "var(--fg-b)"): React.CSSProperties => ({
 });
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-
-function SkillTicker() {
-  const [paused, setPaused] = useState(false);
-  const items = [
-    "React.js", "TypeScript", "GraphQL", "Node.js", "Python",
-    "LLMs", "NLP", "TensorFlow", "Docker", "Elasticsearch",
-    "Next.js", "Corpus Linguistics", "Fine-tuning", "WebSocket", "Playwright",
-    "React.js", "TypeScript", "GraphQL", "Node.js", "Python",
-    "LLMs", "NLP", "TensorFlow", "Docker", "Elasticsearch",
-    "Next.js", "Corpus Linguistics", "Fine-tuning", "WebSocket", "Playwright",
-  ];
-  return (
-    <div style={{ overflow: "hidden", borderTop: "1px solid rgba(var(--c1),0.08)", borderBottom: "1px solid rgba(var(--c1),0.08)", padding: "12px 0", position: "relative", zIndex: 10 }}
-      onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <div className="ticker-track" style={{ display: "flex", gap: 36, width: "max-content", animation: "ticker 40s linear infinite", animationPlayState: paused ? "paused" : "running" }}>
-        {items.map((item, i) => (
-          <span key={i} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: 11, letterSpacing: "0.3em", color: i % 3 === 0 ? "var(--c1h)" : "var(--fg-d)", textTransform: "uppercase", whiteSpace: "nowrap", userSelect: "none", display: "flex", alignItems: "center", gap: 12, transition: "color 0.25s", cursor: "default" }}>
-            {item} <span style={{ color: "rgba(var(--c1),0.3)" }}>•</span>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 // ─── Muse Bloom (ambient joy, no game) ──────────────────────────────────────
 
@@ -455,10 +430,6 @@ function SkillBar({ label, level, visible, delay, index }: { label: string; leve
     </div>
   );
 }
-
-// ─── Focus chips ─────────────────────────────────────────────────────────────
-
-const FOCUS_ITEMS = ["NLP", "LLMs", "ML / Deep Learning", "Comp. Linguistics", "Multilingual AI", "AI Research"];
 
 // ─── Count Up ─────────────────────────────────────────────────────────────────
 
@@ -986,7 +957,7 @@ const BOOT_LINES = [
   "[ OK ] Initializing neural interface…",
   "[ OK ] Loading personality matrix v2.6.0",
   "[ OK ] Mounting knowledge base: NLP / LLMs / CompLing",
-  "[ OK ] Compiling 6+ years of experience…",
+  "[ OK ] Indexing production experience…",
   "[ OK ] Connecting to Tübingen research node",
   "[ OK ] Verifying cryptographic identity",
   "[ OK ] All systems nominal. Launching HAZEM_ABIAD_OS…",
@@ -1638,30 +1609,9 @@ export default function App() {
                 {get("heroTagline", DEFAULTS.heroTagline)}
               </p>
 
-              <p {...ep("bio1", DEFAULTS.bio1, { ...body(16, "var(--fg-b)"), maxWidth: 640, marginBottom: 12 })}>
+              <p {...ep("bio1", DEFAULTS.bio1, { ...body(16, "var(--fg-b)"), maxWidth: 640, marginBottom: 28 })}>
                 {get("bio1", DEFAULTS.bio1)}
               </p>
-              <p {...ep("bio2", DEFAULTS.bio2, { ...body(16, "var(--fg-b)"), maxWidth: 640, marginBottom: 28 })}>
-                {get("bio2", DEFAULTS.bio2)}
-              </p>
-
-              <div className="flex flex-wrap items-center gap-3 mb-8" style={{ maxWidth: 600 }}>
-                <span style={mono(9, "rgba(var(--c1),0.5)", { letterSpacing: "0.25em", textTransform: "uppercase" })}>FOCUS://</span>
-                {FOCUS_ITEMS.map((t, i) => (
-                  <span key={t} className="badge-in"
-                    style={{
-                      fontFamily: '"JetBrains Mono", monospace', fontSize: 10,
-                      letterSpacing: "0.16em", textTransform: "uppercase", padding: "5px 11px",
-                      color: "var(--fg-c)", background: "var(--chip)",
-                      animationDelay: `${i * 80}ms`, transition: "color 0.2s, background 0.2s, border-color 0.2s",
-                      border: "1px solid rgba(var(--c1),0.1)", cursor: "default",
-                    }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--c1h)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.4)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--fg-c)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.1)"; }}>
-                    {t}
-                  </span>
-                ))}
-              </div>
 
               <div className="flex flex-wrap gap-3.5 mb-10">
                 <MagneticWrap>
@@ -1682,39 +1632,10 @@ export default function App() {
                 </MagneticWrap>
                 <CVDownloadButton cvUrl={content.cvDataUrl} />
               </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-5 max-w-2xl">
-                {content.stats.map(({ to, suffix, label }) => (
-                  <div key={label} className="pl-4" style={{ borderLeft: "1px solid rgba(var(--c1),0.22)" }}>
-                    <div style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.7rem,3vw,2.2rem)", color: "var(--c1h)", lineHeight: 1 }}>
-                      {suffix.startsWith("2.2") ? suffix : <CountUp to={to} suffix={suffix} />}
-                    </div>
-                    <div style={mono(9, "var(--fg-c)", { letterSpacing: "0.16em", marginTop: 6, textTransform: "uppercase" as const })}>{label}</div>
-                  </div>
-                ))}
-              </div>
             </div>
 
-            {/* Right — Photo + quick facts, merged from About */}
+            {/* Right — Photo + job-mode readout */}
             <div className="lg:col-span-5 space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {[
-                  { Icon: MapPin, label: "Location", value: get("factLocation", DEFAULT_CONTENT.factLocation) },
-                  { Icon: GraduationCap, label: "Degree", value: get("factDegree", DEFAULT_CONTENT.factDegree) },
-                  { Icon: Briefcase, label: "Current", value: get("factCurrent", DEFAULT_CONTENT.factCurrent) },
-                  { Icon: Globe, label: "Open To", value: get("factAvailable", DEFAULT_CONTENT.factAvailable) },
-                ].map(({ Icon, label, value }) => (
-                  <div key={label} className="flex gap-3 p-4 items-start"
-                    style={{ background: "var(--card)", border: "1px solid rgba(var(--c1),0.08)" }}>
-                    <Icon size={15} color="var(--c1h)" style={{ opacity: 0.8, marginTop: 1, flexShrink: 0 }} />
-                    <div>
-                      <div style={mono(8.5, "var(--fg-c)", { textTransform: "uppercase" as const, letterSpacing: "0.16em", marginBottom: 2 })}>{label}</div>
-                      <div style={body(14, "var(--fg-a)")}>{value}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
               <div className="group relative cursor-pointer" style={{ filter: "drop-shadow(0 12px 40px rgba(var(--c1),0.14))" }}>
                 <div style={{
                   width: "100%", aspectRatio: "16/10", overflow: "hidden", position: "relative",
@@ -1800,8 +1721,6 @@ export default function App() {
           </div>
         </div>
       </section>
-
-      <SkillTicker />
 
       {/* ── Projects ── */}
       <section id="projects" className="relative py-16 lg:py-20 px-6" style={{ zIndex: 10 }}>
@@ -1903,9 +1822,9 @@ export default function App() {
               </div>
             </div>
             <div className="mt-8">
-              <div style={mono(9, "rgba(var(--c1),0.5)", { marginBottom: 16, textTransform: "uppercase" as const, letterSpacing: "0.26em" })}>TOOLCHAIN & WORKFLOW</div>
+              <div style={mono(9, "rgba(var(--c1),0.5)", { marginBottom: 16, textTransform: "uppercase" as const, letterSpacing: "0.26em" })}>WORKFLOW & PRACTICE</div>
               <div className="flex flex-wrap gap-2">
-                {["Docker", "Linux", "Git", "CI/CD", "Figma", "REST API", "WebSocket", "GraphQL", "Jest", "Cypress", "Playwright", "Vite", "Next.js", "Elasticsearch", "MySQL", "Redux", "Agile / Scrum", "Code Review", "E2E Testing"].map((t, ti) => (
+                {["CI/CD", "Figma", "Redux", "Agile / Scrum", "Code Review"].map((t, ti) => (
                   <span key={t}
                     style={{ ...mono(9.5, "var(--fg-b)", { padding: "8px 15px", border: "1px solid rgba(var(--c1),0.12)", letterSpacing: "0.12em", background: "var(--card)" }), opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(8px)", transition: `opacity 0.5s ease ${ti * 40}ms, transform 0.5s ease ${ti * 40}ms, border-color 0.25s ease, color 0.25s ease`, cursor: "default" }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.45)"; (e.currentTarget as HTMLElement).style.color = "var(--c1h)"; }}
