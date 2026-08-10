@@ -1561,7 +1561,7 @@ function EnhancedTerminal({ factLocation }: { factLocation: string }) {
             <span style={{ color: "var(--c2h)" }}>location</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c3h)" }}>"{factLocation}"</span>
           </div>
           <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", flexWrap: "wrap", gap: 6, minWidth: 0 })}>
-            <span style={{ color: "var(--c2h)" }}>languages</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c3h)" }}>["AR","TR","EN","DE(B1)"]</span>
+            <span style={{ color: "var(--c2h)" }}>languages</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c3h)" }}>["AR","TR","EN","DE"]</span>
           </div>
           <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", flexWrap: "wrap", gap: 6, minWidth: 0 })}>
             <span style={{ color: "var(--c2h)" }}>open_to</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c1h)" }}>["Working Student","NLP/AI/LLMs"]</span>
@@ -1792,10 +1792,6 @@ export default function App() {
                 <CVDownloadButton cvUrl={content.cvDataUrl} />
               </div>
 
-              <div className="flex items-center gap-4" style={{ maxWidth: 600 }}>
-                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--c3h)", boxShadow: "0 0 8px var(--c3h)" }} />
-                <span style={mono(10, "var(--fg-c)", { letterSpacing: "0.16em" })}>OPEN TO WORKING STUDENT & INTERNSHIP ROLES — NLP · AI/ML · LLMS — TÜBINGEN / STUTTGART / REMOTE</span>
-              </div>
             </div>
 
             {/* Right — Photo + Enhanced Terminal */}
