@@ -593,12 +593,6 @@ export default function App() {
                     </div>
                     <h3 className="entry-role">{edu.degree}</h3>
                     {edu.detail && <ul>{edu.detail.split(". ").filter(Boolean).map((d, j) => <li key={j}>{d}.</li>)}</ul>}
-                    {edu.focus?.length > 0 && (
-                      <div className="edu-focus" aria-label="Focus areas">
-                        <span className="edu-focus-label">focus</span>
-                        <div className="edu-focus-tags">{edu.focus.map((t) => <span className="edu-focus-tag" key={t}>{t}</span>)}</div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </Reveal>

@@ -575,19 +575,6 @@ h2.section-title em { color: var(--amber); font-style: italic; }
 
 /* education specifics */
 .entry--edu .entry-meta { margin-bottom: 14px; }
-.edu-focus { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--rule-soft); }
-.edu-focus-label {
-  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--violet);
-}
-.edu-focus-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-.edu-focus-tag {
-  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.03em;
-  color: var(--ink); border: 1px solid var(--violet-soft); background: var(--violet-soft);
-  padding: 3px 10px; border-radius: 20px;
-  transition: border-color .15s ease, color .15s ease;
-}
-.edu-focus-tag:hover { border-color: var(--violet); color: var(--violet); }
 .entry--edu .entry-role { margin-bottom: 2px; }
 
 /* ============================================================================
