@@ -8,6 +8,8 @@ import { BlogIndex, BlogPost } from "../blog/Blog";
 import hazemPhoto from "../imports/hazem-photo.jpeg";
 import cvPdf from "../imports/Hazem-Alabiad-CV.pdf";
 
+const CMS_TOKEN_KEY = "hazem-cms-token";
+
 /* ── tiny hash router for the blog ────────────────────────────────────── */
 function useBlogRoute() {
   const [route, setRoute] = useState(() => window.location.hash);
@@ -70,6 +72,7 @@ function Icon({ name, size = 14, className = "" }: { name: string; size?: number
   );
 }
 
+/* ── organization mark (LinkedIn-style logo tile, shield fallback) ──── */
 /* ── university crest (LinkedIn-style school mark) ────────────────────── */
 function UniCrest({ school, size = 44 }: { school: string; size?: number }) {
   const s = school.toLowerCase().includes("tübingen")
@@ -179,6 +182,7 @@ function TerminalHero({ content, factLocation }: { content: CmsContent; factLoca
 
   return (
     <header className="hero" id="home">
+      <div className="hero-glow" aria-hidden="true" />
       <div className="wrap">
         {/* identity: photo + name + status */}
         <div className="hero-top">
@@ -186,8 +190,9 @@ function TerminalHero({ content, factLocation }: { content: CmsContent; factLoca
             <img src={content.photo || (hazemPhoto as string)} alt="Hazem Alabiad" />
           </div>
           <div className="hero-id">
+            <p className="hero-eyebrow">— cv.status —</p>
             <div className="hero-name-row">
-              <h1 className="name">Hazem<span className="name-dot">.</span>Alabiad</h1>
+              <h1 className="name"><span className="name-first">Hazem</span><span className="name-dot">.</span><span className="name-last">Alabiad</span></h1>
               <span className="status-pill" title="Open to roles in NLP/AI/LLM and full-stack">
                 <span className="status-pill-dot" /> open to opportunities
               </span>
@@ -201,15 +206,13 @@ function TerminalHero({ content, factLocation }: { content: CmsContent; factLoca
                 <span className="gloss-word">Engineer</span>
               </div>
             </div>
-            <p className="bio">
-              {get(content, "heroTagline", "Shipped products used by 3M+ people — from a Data Quality platform for 1M+ enterprise users at IBM to GetirJobs at 2.2M+ users — and made a frontend team's dev server 3× faster. Now reversing into research: building an LLM-based AI tutor and studying how algorithms shape learning, as part of an M.A. in Computational Linguistics at Tübingen.")}
-            </p>
+            <p className="bio" dangerouslySetInnerHTML={{ __html: get(content, "heroTagline", "<strong>Computational Linguist &amp; Full-Stack Engineer.</strong> Shipped to <strong>3M+ people</strong> — IBM Data Quality (1M+ enterprise users), GetirJobs (2.2M+), 3× faster builds. Now on an <strong>M.A. in Computational Linguistics</strong> at Tübingen, building an LLM-based AI tutor. <strong>Open to NLP/AI and full-stack roles.</strong>") }} />
             <div className="cta-row">
               <a className="btn primary" href={email}><Icon name="mail" size={14} /> Get in touch</a>
               <a className="btn ic-gh" href={content.links.find((l) => l.label === "GITHUB")?.href || "#"} target="_blank" rel="noopener noreferrer"><Icon name="gh" size={14} /> GitHub</a>
               <a className="btn ic-in" href={content.links.find((l) => l.label === "LINKEDIN")?.href || "#"} target="_blank" rel="noopener noreferrer"><Icon name="in" size={14} /> LinkedIn</a>
               <a className="btn ic-go" href={content.links.find((l) => l.label === "SCHOLAR")?.href || "#"} target="_blank" rel="noopener noreferrer"><Icon name="scholar" size={14} /> Scholar</a>
-              <a className="btn" href={(content.cvDataUrl || cvPdf) as string} download="Hazem-Alabiad-CV.pdf"><Icon name="cv" size={14} /> Résumé</a>
+              <a className="btn btn-cv" href={(content.cvDataUrl || cvPdf) as string} download="Hazem-Alabiad-CV.pdf"><Icon name="cv" size={14} /> <strong>CV</strong></a>
             </div>
           </div>
         </div>
@@ -244,24 +247,26 @@ function TerminalHero({ content, factLocation }: { content: CmsContent; factLoca
                 <div className="term-grid">
                   {content.education.filter((e) => e.current).map((e) => (
                     <div className="term-current" key={e.id}>
-                      <span className="term-current-dot" />
-                      <span className="term-current-k">degree</span>
+                      <span className="term-current-ic"><Icon name="grad" size={16} /></span>
                       <span className="term-current-v">
                         <strong>{e.degree}</strong>
-                        <span className="term-current-school">@ {e.school} · {e.period}</span>
+                        <span className="term-current-school">{e.school} · <em>{e.location}</em></span>
+                        <span className="term-current-period">{e.period}</span>
                       </span>
-                      <span className="term-tag term-tag--now">● now</span>
+                      <span className="term-tag term-tag--now">● current</span>
                     </div>
                   ))}
-                  <div className="term-kv"><span className="term-k">experience</span><span className="term-v">"6+ years"</span></div>
-                  <div className="term-kv"><span className="term-k">location</span><span className="term-v">"{factLocation}"</span></div>
+                  <div className="term-kv term-kv--feature"><span className="term-k">experience</span><span className="term-v">"6+ years"</span></div>
+                  <div className="term-kv term-kv--feature"><span className="term-k">open_to</span><span className="term-v">["Working Student","NLP/AI/LLMs"]</span></div>
                   <div className="term-kv"><span className="term-k">languages</span><span className="term-v">[{content.languages.map((l) => `"${l.name.slice(0, 2).toUpperCase()}"`).join(",")}]</span></div>
-                  <div className="term-kv"><span className="term-k">open_to</span><span className="term-v">["Working Student","NLP/AI/LLMs"]</span></div>
                 </div>
               </div>
             )}
           </div>
         </div>
+        <a className="hero-scroll" href="#experience" onClick={(e) => { e.preventDefault(); scrollTo("experience"); }}>
+          <span className="hero-scroll-line" /> scroll for the transcript — terminal &amp; roles below
+        </a>
       </div>
     </header>
   );
@@ -387,22 +392,39 @@ function CMSButton({ onUnlock, enabled, onDisable, onOpenEditor }: {
   const [token, setToken] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  async function verify() {
-    if (!token.trim()) return;
+
+  async function verify(value: string) {
+    if (!value.trim()) return;
     setBusy(true); setErr("");
     try {
-      const res = await fetch("https://api.github.com/user", { headers: { Authorization: `token ${token.trim()}`, "User-Agent": "hazem-portfolio" } });
+      const res = await fetch("https://api.github.com/user", { headers: { Authorization: `token ${value.trim()}`, "User-Agent": "hazem-portfolio" } });
       const data = await res.json();
-      if (data.login === "hazem-alabiad") { setOpen(false); onUnlock(); } else setErr("Token does not match owner.");
+      if (data.login === "hazem-alabiad") {
+        try { localStorage.setItem(CMS_TOKEN_KEY, value.trim()); } catch { /* storage unavailable */ }
+        setOpen(false); onUnlock();
+      } else setErr("Token does not match owner.");
     } catch { setErr("Verification failed."); }
     finally { setBusy(false); }
     setTimeout(() => setToken(""), 4000);
   }
+
+  useEffect(() => {
+    let saved = "";
+    try { saved = localStorage.getItem(CMS_TOKEN_KEY) || ""; } catch { /* noop */ }
+    if (saved) verify(saved).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function lock() {
+    try { localStorage.removeItem(CMS_TOKEN_KEY); } catch { /* noop */ }
+    onDisable();
+  }
+
   if (enabled) {
     return (
       <div style={{ position: "fixed", right: 18, bottom: 18, zIndex: 60, display: "flex", gap: 8 }}>
         <button onClick={onOpenEditor} className="cms-unlock" style={{ position: "static" }}>EDIT CV</button>
-        <button onClick={onDisable} className="cms-unlock" style={{ position: "static" }}>LOCK</button>
+        <button onClick={lock} className="cms-unlock" style={{ position: "static" }}>LOCK</button>
       </div>
     );
   }
@@ -415,7 +437,7 @@ function CMSButton({ onUnlock, enabled, onDisable, onOpenEditor }: {
           <input value={token} onChange={(e) => setToken(e.target.value)} placeholder="GitHub PAT" type="password" style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--rule)", color: "var(--ink)", fontFamily: "var(--font-mono)", fontSize: 12, padding: "7px 9px", borderRadius: 3, outline: "none" }} />
           {err && <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--red)", marginTop: 6 }}>{err}</div>}
           <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
-            <button onClick={verify} disabled={busy} className="btn primary" style={{ flex: 1, padding: "7px 10px" }}>{busy ? "..." : "UNLOCK"}</button>
+            <button onClick={() => verify(token)} disabled={busy} className="btn primary" style={{ flex: 1, padding: "7px 10px" }}>{busy ? "..." : "UNLOCK"}</button>
             <button onClick={() => setOpen(false)} className="btn" style={{ padding: "7px 10px" }}>CANCEL</button>
           </div>
         </div>
@@ -564,10 +586,10 @@ export default function App() {
                   <div className="entry-dot" aria-hidden="true" />
                   <div className="entry-body">
                     <div className="entry-meta">
-                      <span className="entry-date">{edu.period}</span>
-                      {edu.current && <span className="entry-current">current</span>}
+                      <span className="entry-current-row">{edu.current && <span className="entry-current">current</span>}</span>
                       <span className="entry-org-name">{edu.school}</span>
-                      {edu.location ? <span className="entry-loc">{edu.location}</span> : null}
+                      <span className="entry-loc">{edu.location}</span>
+                      <span className="entry-date">{edu.period}</span>
                     </div>
                     <h3 className="entry-role">{edu.degree}</h3>
                     {edu.detail && <ul>{edu.detail.split(". ").filter(Boolean).map((d, j) => <li key={j}>{d}.</li>)}</ul>}
@@ -576,9 +598,6 @@ export default function App() {
                         <span className="edu-focus-label">focus</span>
                         <div className="edu-focus-tags">{edu.focus.map((t) => <span className="edu-focus-tag" key={t}>{t}</span>)}</div>
                       </div>
-                    )}
-                    {edu.badges?.length > 0 && (
-                      <div className="entry-tags edu-achv">{edu.badges.map((t) => <span className="entry-tag entry-tag--edu" key={t}>★ {t}</span>)}</div>
                     )}
                   </div>
                 </div>
@@ -605,10 +624,10 @@ export default function App() {
                   <div className="entry-dot" aria-hidden="true" />
                   <div className="entry-body">
                     <div className="entry-meta">
-                      <span className="entry-date">{exp.period}</span>
-                      {exp.current && <span className="entry-current">current</span>}
+                      <span className="entry-current-row">{exp.current && <span className="entry-current">current</span>}</span>
                       <span className="entry-org-name">{exp.company}</span>
-                      {exp.location ? <span className="entry-loc">{exp.location}</span> : null}
+                      <span className="entry-loc">{exp.location}</span>
+                      <span className="entry-date">{exp.period}</span>
                     </div>
                     <h3 className="entry-role">{exp.role}</h3>
                     <ul>{exp.bullets.map((b, j) => <li key={j}>{b}</li>)}</ul>

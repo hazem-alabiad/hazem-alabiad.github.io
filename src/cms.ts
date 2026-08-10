@@ -83,7 +83,7 @@ export interface CmsContent {
 
 export const DEFAULT_CONTENT: CmsContent = {
   heroTagline:
-    "Shipped products used by 3M+ people — from a Data Quality platform for 1M+ enterprise users at IBM to GetirJobs at 2.2M+ users — and made a frontend team's dev server 3× faster. Now reversing into research: building an LLM-based AI tutor and studying how algorithms shape learning, as part of an M.A. in Computational Linguistics at Tübingen.",
+    "<strong>Computational Linguist &amp; Full-Stack Engineer.</strong> Shipped to <strong>3M+ people</strong> — IBM Data Quality (1M+ enterprise users), GetirJobs (2.2M+), 3× faster builds. Now on an <strong>M.A. in Computational Linguistics</strong> at Tübingen, building an LLM-based AI tutor. <strong>Open to NLP/AI and full-stack roles.</strong>",
   bio1: "",
   bio2:
     "Open to roles in NLP, AI/LLM engineering, and full-stack software engineering — Tübingen, Stuttgart, or remote.",
