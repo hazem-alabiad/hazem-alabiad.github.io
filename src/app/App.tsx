@@ -48,11 +48,40 @@ const ICONS: Record<string, string> = {
   wrench: "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z",
   mail: "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm18 2L12 13 2 6",
   ext: "M7 17 17 7M7 7h10v10",
+  gh: "M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.58 9.58 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85V21c0 .27.18.58.69.48A10 10 0 0 0 12 2z",
+  in: "M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4z",
+  scholar: "M12 3 1 9l11 6 9-4.91V17h2V9zM5 13.18V17c0 1.66 3.13 3 7 3s7-1.34 7-3v-3.82l-7 3.82z",
+  cv: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8",
+  pen: "M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z",
+  mic: "M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v3",
+  globe: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z",
+  mountain: "M8 3 1 21h22L16 9l-4 6-2-3L8 3z",
+  bike: "M5.5 18a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zM18.5 18a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zM14 9 13 6h3l1 3h3M8 12h4l3-3",
+  ball: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM2 12h20M12 2a12 12 0 0 0-4 10 12 12 0 0 0 4 10 12 12 0 0 0 4-10 12 12 0 0 0-4-10z",
+  book: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z",
+  chart: "M3 3v18h18M18 17V9M13 17V5M8 17v-3",
+  scales: "M12 3v18M8 21h8M6 7h12M6 7 3 14h6zM18 7l-3 7h6z",
 };
 function Icon({ name, size = 14, className = "" }: { name: string; size?: number; className?: string }) {
   return (
     <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d={ICONS[name] || ""} />
+    </svg>
+  );
+}
+
+/* ── university crest (LinkedIn-style school mark) ────────────────────── */
+function UniCrest({ school, size = 44 }: { school: string; size?: number }) {
+  const s = school.toLowerCase().includes("tübingen")
+    ? { bg: "#7CC4A8", fg: "#131015", glyph: "T" }
+    : { bg: "#0E4C92", fg: "#F2EEE6", glyph: school.charAt(0) };
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" className="edu-crest">
+      <rect x="1" y="1" width="46" height="46" rx="12" fill={s.bg} />
+      <rect x="1" y="1" width="46" height="46" rx="12" fill="none" stroke="var(--rule-soft)" />
+      <path d="M24 11l11 5v7h-.4c0 4.9-4 8.6-10.6 8.6S13.4 27.9 13.4 23H13v-7l11-5z" fill="none" stroke={s.fg} strokeWidth="2" strokeLinejoin="round" />
+      <path d="M16.5 30.5L20 21h8l3.5 9.5" fill="none" stroke={s.fg} strokeWidth="2" strokeLinejoin="round" />
+      <text x="24" y="38" textAnchor="middle" fontFamily="var(--font-display)" fontWeight="600" fontSize="14" fill={s.fg}>{s.glyph}</text>
     </svg>
   );
 }
@@ -151,7 +180,41 @@ function TerminalHero({ content, factLocation }: { content: CmsContent; factLoca
   return (
     <header className="hero" id="home">
       <div className="wrap">
-        {/* macOS-style terminal */}
+        {/* identity: photo + name + status */}
+        <div className="hero-top">
+          <div className="hero-photo">
+            <img src={content.photo || (hazemPhoto as string)} alt="Hazem Alabiad" />
+          </div>
+          <div className="hero-id">
+            <div className="hero-name-row">
+              <h1 className="name">Hazem<span className="name-dot">.</span>Alabiad</h1>
+              <span className="status-pill" title="Open to roles in NLP/AI/LLM and full-stack">
+                <span className="status-pill-dot" /> open to opportunities
+              </span>
+            </div>
+            <div className="gloss gloss--inline">
+              <div className="gloss-line1">
+                <span className="gloss-word">Computational</span>
+                <span className="gloss-word">Linguist</span>
+                <span className="gloss-word">&amp;</span>
+                <span className="gloss-word">Full-Stack</span>
+                <span className="gloss-word">Engineer</span>
+              </div>
+            </div>
+            <p className="bio">
+              {get(content, "heroTagline", "Shipped products used by 3M+ people — from a Data Quality platform for 1M+ enterprise users at IBM to GetirJobs at 2.2M+ users — and made a frontend team's dev server 3× faster. Now reversing into research: building an LLM-based AI tutor and studying how algorithms shape learning, as part of an M.A. in Computational Linguistics at Tübingen.")}
+            </p>
+            <div className="cta-row">
+              <a className="btn primary" href={email}><Icon name="mail" size={14} /> Get in touch</a>
+              <a className="btn ic-gh" href={content.links.find((l) => l.label === "GITHUB")?.href || "#"} target="_blank" rel="noopener noreferrer"><Icon name="gh" size={14} /> GitHub</a>
+              <a className="btn ic-in" href={content.links.find((l) => l.label === "LINKEDIN")?.href || "#"} target="_blank" rel="noopener noreferrer"><Icon name="in" size={14} /> LinkedIn</a>
+              <a className="btn ic-go" href={content.links.find((l) => l.label === "SCHOLAR")?.href || "#"} target="_blank" rel="noopener noreferrer"><Icon name="scholar" size={14} /> Scholar</a>
+              <a className="btn" href={(content.cvDataUrl || cvPdf) as string} download="Hazem-Alabiad-CV.pdf"><Icon name="cv" size={14} /> Résumé</a>
+            </div>
+          </div>
+        </div>
+
+        {/* signature flourish: terminal */}
         <div className="term-window">
           <div className="term-titlebar">
             <span className="term-dot term-dot-red" />
@@ -179,47 +242,25 @@ function TerminalHero({ content, factLocation }: { content: CmsContent; factLoca
                   ))}
                 </div>
                 <div className="term-grid">
+                  {content.education.filter((e) => e.current).map((e) => (
+                    <div className="term-current" key={e.id}>
+                      <span className="term-current-dot" />
+                      <span className="term-current-k">degree</span>
+                      <span className="term-current-v">
+                        <strong>{e.degree}</strong>
+                        <span className="term-current-school">@ {e.school} · {e.period}</span>
+                      </span>
+                      <span className="term-tag term-tag--now">● now</span>
+                    </div>
+                  ))}
                   <div className="term-kv"><span className="term-k">experience</span><span className="term-v">"6+ years"</span></div>
                   <div className="term-kv"><span className="term-k">location</span><span className="term-v">"{factLocation}"</span></div>
                   <div className="term-kv"><span className="term-k">languages</span><span className="term-v">[{content.languages.map((l) => `"${l.name.slice(0, 2).toUpperCase()}"`).join(",")}]</span></div>
                   <div className="term-kv"><span className="term-k">open_to</span><span className="term-v">["Working Student","NLP/AI/LLMs"]</span></div>
-                  <div className="term-kv"><span className="term-k">education</span><span className="term-v">["M.A. CompLing","B.Sc. CompEng"]</span></div>
-                  <div className="term-kv"><span className="term-k">status</span><span className="term-v term-v-green">"Open to opportunities"</span></div>
                 </div>
               </div>
             )}
           </div>
-        </div>
-
-        {/* photo + gloss beside terminal */}
-        <div className="hero-side">
-          <div className="hero-photo">
-            <img src={content.photo || (hazemPhoto as string)} alt="Hazem Alabiad" />
-          </div>
-          <div className="gloss gloss--inline">
-            <div className="gloss-line1">
-              <span className="gloss-word">Computational</span>
-              <span className="gloss-word">Linguist</span>
-              <span className="gloss-word">&amp;</span>
-              <span className="gloss-word">Full-Stack</span>
-              <span className="gloss-word">Engineer</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* name + bio + ctas */}
-      <div className="wrap">
-        <h1 className="name">Hazem Alabiad</h1>
-        <p className="bio">
-          {get(content, "heroTagline", "Software engineer with 6+ years building production systems and clean interfaces. Currently researching LLM AI-tutors and cognitive & AI as part of an M.A. in Computational Linguistics — bridging engineering, NLP, and cognitive science.")}
-        </p>
-        <div className="cta-row">
-          <a className="btn primary" href={email}>Get in touch</a>
-          <a className="btn" href={content.links.find((l) => l.label === "GITHUB")?.href || "#"} target="_blank" rel="noopener noreferrer">GitHub</a>
-          <a className="btn" href={content.links.find((l) => l.label === "LINKEDIN")?.href || "#"} target="_blank" rel="noopener noreferrer">LinkedIn</a>
-          <a className="btn" href={content.links.find((l) => l.label === "SCHOLAR")?.href || "#"} target="_blank" rel="noopener noreferrer">Scholar</a>
-          <a className="btn" href={(content.cvDataUrl || cvPdf) as string} download="Hazem-Alabiad-CV.pdf">Résumé</a>
         </div>
       </div>
     </header>
@@ -406,10 +447,20 @@ export default function App() {
 
   useEffect(() => {
     try {
-      const c = parseInt(localStorage.getItem("hazem_visits") || "0", 10);
-      const n = c + 1;
-      localStorage.setItem("hazem_visits", String(n));
-      setVisits(n);
+      const host = window.location.hostname;
+      const isDev = host === "localhost" || host === "127.0.0.1" || host.endsWith(".local");
+      const ownerSkipped = localStorage.getItem("hazem_owner") === "1";
+      const sessionCounted = sessionStorage.getItem("hazem_visits_session") === "1";
+      if (isDev || ownerSkipped) { setVisits(parseInt(localStorage.getItem("hazem_visits") || "0", 10)); return; }
+      if (!sessionCounted) {
+        const c = parseInt(localStorage.getItem("hazem_visits") || "0", 10);
+        const n = c + 1;
+        localStorage.setItem("hazem_visits", String(n));
+        sessionStorage.setItem("hazem_visits_session", "1");
+        setVisits(n);
+      } else {
+        setVisits(parseInt(localStorage.getItem("hazem_visits") || "0", 10));
+      }
     } catch { setVisits(1); }
   }, []);
 
@@ -464,8 +515,6 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, [shortcutsOpen, email, cvUrl]);
 
-  const stackTerms = content.skills.filter((s) => s.cat === "stack").flatMap((s) => s.label.split("/").map((t) => t.trim()).filter(Boolean));
-  const aiTerms = content.skills.filter((s) => s.cat === "ai").flatMap((s) => s.label.split("/").map((t) => t.trim()).filter(Boolean));
   const devopsTerms = ["Docker", "Git", "Jest", "Cypress", "Puppeteer", "Figma", "MySQL", "Agile", "Linux", "CI/CD"];
 
   return (
@@ -481,7 +530,7 @@ export default function App() {
             <a href="#experience" onClick={() => scrollTo("experience")}>Experience</a>
             <a href="#research" onClick={() => scrollTo("research")}>Research</a>
             <a href="#skills" onClick={() => scrollTo("skills")}>Skills</a>
-            <a href="#blog" onClick={() => goBlog()} className="nav-blog">Blog</a>
+            <a href="#blog" onClick={(e) => { e.preventDefault(); goBlog(); }} className="nav-blog">Blog</a>
             <a href="#contact" onClick={() => scrollTo("contact")}>Contact</a>
             <button className="nav-shorts" onClick={() => setShortcutsOpen(true)} title="Search & shortcuts (⌘K)">⌘K</button>
             <button
@@ -504,19 +553,33 @@ export default function App() {
       {/* ── EDUCATION ───────────────────────────────────────────────────── */}
       <section id="education">
         <div className="wrap">
-          <div className="section-head reveal">
-            <div className="section-gloss"><b>n.</b> — formal training, in reverse</div>
-            <h2 className="section-title">Educ<em>ation</em></h2>
-          </div>
-          <div className="edu-grid">
+          <Reveal className="section-head">
+          <div className="section-gloss"><span className="sec-icon sec-icon--violet"><Icon name="grad" size={11} /></span> n. — formal training, in reverse</div>
+          <h2 className="section-title">Educ<em>ation</em></h2>
+        </Reveal>
+          <div className="timeline">
             {content.education.map((edu) => (
               <Reveal key={edu.id}>
-                <div className="edu-item">
-                  <div className="edu-date">{edu.period}</div>
-                  <div>
-                    <h3 className="edu-degree">{edu.degree}</h3>
-                    <p className="edu-school">{edu.school}{edu.location ? ` · ${edu.location}` : ""}</p>
-                    {edu.detail && <ul><li>{edu.detail}</li></ul>}
+                <div className="entry entry--edu">
+                  <div className="entry-dot" aria-hidden="true" />
+                  <div className="entry-body">
+                    <div className="entry-meta">
+                      <span className="entry-date">{edu.period}</span>
+                      {edu.current && <span className="entry-current">current</span>}
+                      <span className="entry-org-name">{edu.school}</span>
+                      {edu.location ? <span className="entry-loc">{edu.location}</span> : null}
+                    </div>
+                    <h3 className="entry-role">{edu.degree}</h3>
+                    {edu.detail && <ul>{edu.detail.split(". ").filter(Boolean).map((d, j) => <li key={j}>{d}.</li>)}</ul>}
+                    {edu.focus?.length > 0 && (
+                      <div className="edu-focus" aria-label="Focus areas">
+                        <span className="edu-focus-label">focus</span>
+                        <div className="edu-focus-tags">{edu.focus.map((t) => <span className="edu-focus-tag" key={t}>{t}</span>)}</div>
+                      </div>
+                    )}
+                    {edu.badges?.length > 0 && (
+                      <div className="entry-tags edu-achv">{edu.badges.map((t) => <span className="entry-tag entry-tag--edu" key={t}>★ {t}</span>)}</div>
+                    )}
                   </div>
                 </div>
               </Reveal>
@@ -531,10 +594,10 @@ export default function App() {
       {/* ── EXPERIENCE ──────────────────────────────────────────────────── */}
       <section id="experience">
         <div className="wrap">
-          <div className="section-head reveal">
-            <div className="section-gloss"><span className="sec-icon"><Icon name="work" size={11} /></span> n. — a chronological record of applied work</div>
+          <Reveal className="section-head">
+            <div className="section-gloss"><span className="sec-icon sec-icon--sage"><Icon name="work" size={11} /></span> n. — a chronological record of applied work</div>
             <h2 className="section-title">Exper<em>ience</em></h2>
-          </div>
+          </Reveal>
           <div className="timeline">
             {content.experience.map((exp) => (
               <Reveal key={exp.id}>
@@ -563,10 +626,10 @@ export default function App() {
       {/* ── RESEARCH & PROJECTS ─────────────────────────────────────────── */}
       <section id="research">
         <div className="wrap">
-          <div className="section-head reveal">
-            <div className="section-gloss"><span className="sec-icon"><Icon name="flask" size={11} /></span> n. — inquiry made public and reproducible</div>
+          <Reveal className="section-head">
+            <div className="section-gloss"><span className="sec-icon sec-icon--pink"><Icon name="flask" size={11} /></span> n. — inquiry made public and reproducible</div>
             <h2 className="section-title">Research &amp; Pro<em>jects</em></h2>
-          </div>
+          </Reveal>
           <div className="proj-grid">
             {content.projects.map((p) => (
               <Reveal key={p.id}>
@@ -594,14 +657,38 @@ export default function App() {
       {/* ── SKILLS ──────────────────────────────────────────────────────── */}
       <section id="skills">
         <div className="wrap">
-          <div className="section-head reveal">
-            <div className="section-gloss"><b>n.</b> — the working vocabulary, grouped by class</div>
+          <Reveal className="section-head">
+            <div className="section-gloss"><span className="sec-icon sec-icon--sage"><Icon name="code" size={11} /></span> n. — the working vocabulary, grouped by class</div>
             <h2 className="section-title">Lexi<em>con</em></h2>
-          </div>
+          </Reveal>
           <div className="lexicon">
-            <Reveal><div className="lex-row"><div className="lex-class">Full-Stack</div><div className="lex-terms">{stackTerms.map((t) => <span className="term" key={t}>{t}</span>)}</div></div></Reveal>
-            <Reveal><div className="lex-row"><div className="lex-class">AI / NLP</div><div className="lex-terms">{aiTerms.map((t) => <span className="term" key={t}>{t}</span>)}</div></div></Reveal>
-            <Reveal><div className="lex-row"><div className="lex-class">DevOps &amp; Workflow</div><div className="lex-terms">{devopsTerms.map((t) => <span className="term" key={t}>{t}</span>)}</div></div></Reveal>
+            <Reveal>
+              <div className="lex-card">
+                <div className="lex-head">
+                  <span className="lex-class-ic"><Icon name="code" size={15} /></span>
+                  <span className="lex-class">Full-Stack</span>
+                </div>
+                <div className="lex-terms lex-terms--padded">{content.skills.filter((s) => s.cat === "stack").map((s) => <span className="term term--prio" key={s.id}>{s.label}</span>)}</div>
+              </div>
+            </Reveal>
+            <Reveal>
+              <div className="lex-card">
+                <div className="lex-head">
+                  <span className="lex-class-ic"><Icon name="flask" size={15} /></span>
+                  <span className="lex-class">AI / NLP</span>
+                </div>
+                <div className="lex-terms lex-terms--padded">{content.skills.filter((s) => s.cat === "ai").map((s) => <span className="term term--prio term--violet" key={s.id}>{s.label}</span>)}</div>
+              </div>
+            </Reveal>
+            <Reveal>
+              <div className="lex-card">
+                <div className="lex-head">
+                  <span className="lex-class-ic"><Icon name="wrench" size={15} /></span>
+                  <span className="lex-class">DevOps &amp; Workflow</span>
+                </div>
+                <div className="lex-terms lex-terms--padded">{devopsTerms.map((t) => <span className="term" key={t}>{t}</span>)}</div>
+              </div>
+            </Reveal>
           </div>
         </div>
       </section>
@@ -616,19 +703,40 @@ export default function App() {
           </div>
           <div className="footer-top">
             <div className="footer-cta">
-              <h2>Let's talk.</h2>
+              <label className="footer-slogan" htmlFor="footer-mail">Have a role, a project, or a research itch?</label>
+              <a className="footer-email" id="footer-mail" href={email}>{content.links.find((l) => l.label === "EMAIL")?.value || "hazem.alabiad@icloud.com"}</a>
               <p>{get(content, "contactIntro", "Open to roles in NLP, AI/LLM engineering, and full-stack software engineering — reach out directly or find me on any of the links below.")}</p>
-              <a className="btn primary" href={email}>Get in touch</a>
             </div>
             <div className="footer-links">
-              <a className="linked ic-mail" href={email}>{content.links.find((l) => l.label === "EMAIL")?.value || ""}</a>
-              <a className="linked ic-gh" href={content.links.find((l) => l.label === "GITHUB")?.href || "#"} target="_blank" rel="noopener noreferrer">github.com/hazem-alabiad</a>
-              <a className="linked ic-in" href={content.links.find((l) => l.label === "LINKEDIN")?.href || "#"} target="_blank" rel="noopener noreferrer">linkedin.com/in/hazemalabiad</a>
-              <a className="linked ic-go" href={content.links.find((l) => l.label === "SCHOLAR")?.href || "#"} target="_blank" rel="noopener noreferrer">{content.links.find((l) => l.label === "SCHOLAR")?.value || "scholar.google.com/hazem"}</a>
+              <a className="linked ic-gh" href={content.links.find((l) => l.label === "GITHUB")?.href || "#"} target="_blank" rel="noopener noreferrer"><Icon name="gh" size={15} />github.com/hazem-alabiad</a>
+              <a className="linked ic-in" href={content.links.find((l) => l.label === "LINKEDIN")?.href || "#"} target="_blank" rel="noopener noreferrer"><Icon name="in" size={15} />linkedin.com/in/hazemalabiad</a>
+              <a className="linked ic-go" href={content.links.find((l) => l.label === "SCHOLAR")?.href || "#"} target="_blank" rel="noopener noreferrer"><Icon name="scholar" size={15} />{content.links.find((l) => l.label === "SCHOLAR")?.value || "scholar.google.com/hazem"}</a>
             </div>
           </div>
-          <div className="interests">
-            <b>Outside of work:</b> drawing, voiceover, travelling, hiking, biking, sports, and reading about history, finance, and socioeconomics.
+          <div className="hobbies">
+            <div className="hobbies-head">
+              <span className="hobbies-caret">$</span>
+              <span className="hobbies-cmd">hobbies --interactive</span>
+            </div>
+            <div className="hobbies-grid">
+              {[
+                ["pen", "drawing"],
+                ["mic", "voiceover"],
+                ["globe", "travelling"],
+                ["mountain", "hiking"],
+                ["bike", "biking"],
+                ["ball", "sports"],
+                ["book", "history"],
+                ["chart", "finance"],
+                ["scales", "socioeconomics"],
+              ].map(([ic, label], i) => (
+                <div className="hobby" key={label} style={{ "--d": `${i * 22}ms` } as React.CSSProperties}>
+                  <span className="hobby-idx">{String(i + 1).padStart(2, "0")}</span>
+                  <Icon name={ic} size={17} />
+                  <span className="hobby-label">{label}</span>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="footer-meta">
             <span {...ep("footerLine", "", {}, save, cmsEnabled)} className="copyright">

@@ -23,6 +23,7 @@ export interface CmsEducation {
   location: string;
   period: string;
   detail: string;
+  focus: string[];
   badges: string[];
   current: boolean;
 }
@@ -82,7 +83,7 @@ export interface CmsContent {
 
 export const DEFAULT_CONTENT: CmsContent = {
   heroTagline:
-    "Software engineer with 6+ years building production systems and clean interfaces. Currently researching LLM AI-tutors and cognitive & AI as part of an M.A. in Computational Linguistics — bridging engineering, NLP, and cognitive science.",
+    "Shipped products used by 3M+ people — from a Data Quality platform for 1M+ enterprise users at IBM to GetirJobs at 2.2M+ users — and made a frontend team's dev server 3× faster. Now reversing into research: building an LLM-based AI tutor and studying how algorithms shape learning, as part of an M.A. in Computational Linguistics at Tübingen.",
   bio1: "",
   bio2:
     "Open to roles in NLP, AI/LLM engineering, and full-stack software engineering — Tübingen, Stuttgart, or remote.",
@@ -114,7 +115,8 @@ experience: [
       period: "Oct 2023 – Present",
       detail:
         "Focus: Corpus Linguistics, Large Language Models (LLMs), Cognitive Science, NLP and Data Science.",
-      badges: ["NLP", "LLMs", "Cognitive Science"],
+      focus: ["NLP", "LLMs", "Cognitive Science"],
+      badges: [],
       current: true,
     },
     {
@@ -125,6 +127,7 @@ experience: [
       period: "Sep 2015 – Jun 2019",
       detail:
         "Honor student, top 10% of the class (GPA 3.41). Received the YTB Scholarship for high performance.",
+      focus: [],
       badges: ["Honor Student", "Top 10%"],
       current: false,
     },

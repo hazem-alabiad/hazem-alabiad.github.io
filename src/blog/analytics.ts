@@ -17,19 +17,21 @@ export function readViews(): ViewsMap {
 }
 
 export function trackView(key: string): ViewsMap {
+  const host = typeof window !== "undefined" ? window.location.hostname : "";
+  const isDev = host === "localhost" || host === "127.0.0.1" || host.endsWith(".local");
+  const ownerSkipped = typeof localStorage !== "undefined" && localStorage.getItem("hazem_owner") === "1";
+  if (isDev || ownerSkipped) return readViews();
+  const sessionCounted = typeof sessionStorage !== "undefined" && sessionStorage.getItem("hazem_blog_session") === "1";
   const views = readViews();
-  views[key] = (views[key] || 0) + 1;
-  try {
-    localStorage.setItem(VIEWS_KEY, JSON.stringify(views));
-  } catch {
-    /* storage full or blocked — ignore */
+  if (!sessionCounted) {
+    views[key] = (views[key] || 0) + 1;
+    try { sessionStorage.setItem("hazem_blog_session", "1"); } catch { /* ignore */ }
+    try { localStorage.setItem(VIEWS_KEY, JSON.stringify(views)); } catch { /* ignore */ }
   }
   if (ANALYTICS_ENDPOINT) {
     try {
       navigator.sendBeacon(ANALYTICS_ENDPOINT, new URLSearchParams({ p: key }));
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
   }
   return views;
 }
