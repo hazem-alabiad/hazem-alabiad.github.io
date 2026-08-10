@@ -1317,7 +1317,7 @@ function CommandPalette({ open, onClose, content }: { open: boolean; onClose: ()
 }
 
 function ExpEntry({ exp, idx, visible }: { exp: CmsExperience; idx: number; visible: boolean }) {
-  const [open, setOpen] = useState(idx === 0);
+  const [open, setOpen] = useState(exp.current);
   return (
     <div className={`tl-row ${visible ? "depth-rise" : "opacity-0"}`}
       style={{ animationDelay: `${idx * 100}ms`, opacity: visible ? 1 : 0, position: "relative", paddingLeft: 28 }}>
@@ -1797,29 +1797,34 @@ export default function App() {
             </div>
 
             {/* Right — Photo + Enhanced Terminal */}
-            <div className="lg:col-span-5 space-y-5">
-              {/* Photo — smaller, professional frame */}
-              <div className="group relative cursor-pointer" style={{ filter: "drop-shadow(0 16px 48px rgba(0,0,0,0.35))" }}>
-                <div className="console-frame" style={{
-                  width: "100%", aspectRatio: "1/1", maxWidth: 240, margin: "0 auto", overflow: "hidden", position: "relative",
-                  border: "1px solid rgba(var(--c1),0.18)", background: "var(--card-photo)",
-                  borderRadius: 2,
-                }}>
-                  <div className="br-tl" />
-                  <div className="br-br" />
-                  <img
-                    src={content.photo || hazemPhoto}
-                    alt="Hazem Alabiad"
-                    loading="lazy"
-                    decoding="async"
-                    style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 30%", display: "block" }}
-                  />
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 55%, rgba(var(--bg-rgb),0.85) 100%)", pointerEvents: "none" }} />
-                  <div style={{ position: "absolute", inset: 0, background: "repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px)", opacity: 0.4, pointerEvents: "none" }} />
-                  <div className="flex items-center gap-2" style={{ position: "absolute", left: 12, bottom: 10, zIndex: 2 }}>
-                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--c3h)", boxShadow: "0 0 6px var(--c3h)" }} />
-                    <span style={mono(8.5, "var(--fg-a)", { letterSpacing: "0.14em" })}>HAZEM ALABIAD · ONLINE</span>
+            <div className="lg:col-span-5 space-y-4">
+              {/* Profile card — compact photo + identity + quick status */}
+              <div className="flex items-center gap-5">
+                <div className="group relative flex-shrink-0" style={{ filter: "drop-shadow(0 12px 32px rgba(0,0,0,0.35))" }}>
+                  <div className="console-frame" style={{
+                    width: 108, height: 108, overflow: "hidden", position: "relative",
+                    border: "1px solid rgba(var(--c1),0.2)", background: "var(--card-photo)",
+                    borderRadius: 2,
+                  }}>
+                    <div className="br-tl" />
+                    <div className="br-br" />
+                    <img
+                      src={content.photo || hazemPhoto}
+                      alt="Hazem Alabiad"
+                      loading="lazy"
+                      decoding="async"
+                      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 30%", display: "block" }}
+                    />
+                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 50%, rgba(var(--bg-rgb),0.8) 100%)", pointerEvents: "none" }} />
                   </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0" style={{ background: "var(--c3h)", boxShadow: "0 0 6px var(--c3h)" }} />
+                    <span style={mono(9.5, "var(--fg-c)", { letterSpacing: "0.14em" })}>HAZEM ALABIAD</span>
+                  </div>
+                  <div style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 17, color: "var(--fg-a)", letterSpacing: "0.01em" }}>Software Engineer · AI / NLP</div>
+                  <div className="mt-2" style={mono(8.5, "var(--c1h)", { letterSpacing: "0.16em" })}>OPEN TO WORKING STUDENT & INTERNSHIPS</div>
                 </div>
               </div>
 
