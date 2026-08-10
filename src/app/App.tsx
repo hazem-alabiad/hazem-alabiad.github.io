@@ -1759,7 +1759,7 @@ export default function App() {
               </h1>
 
               <p className="mb-4" style={{ ...mono(13, "var(--c1h)", { letterSpacing: "0.12em" }), fontSize: "clamp(12px,1.6vw,15px)" }}>
-                FULL-STACK ENGINEER · AI / NLP RESEARCHER
+                FULL-STACK ENGINEER · AI / NLP / LLM RESEARCHER
               </p>
 
               <p ref={heroTagRef} {...ep("heroTagline", DEFAULTS.heroTagline, { ...body(17, "var(--fg-hero)"), maxWidth: 600, marginBottom: 24 })}>
@@ -1843,16 +1843,6 @@ export default function App() {
         <div ref={expR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="01" label="EXPERIENCE" />
           <div className="transition-all duration-1000" style={{ opacity: expR.visible ? 1 : 0, transform: expR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            {/* ── Education ── */}
-            <div className="mb-8">
-              <div style={mono(9, "rgba(var(--c2),0.45)", { marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>EDUCATION</div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {content.education.map((edu, idx) => (
-                  <EduEntry key={edu.id || idx} edu={edu} idx={idx} visible={expR.visible} />
-                ))}
-              </div>
-            </div>
-
             <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.5rem,2.6vw,2rem)", color: "var(--fg-a)" }}>
               Work <span style={{ color: "var(--c2h)" }}>History</span>
             </WipeHeading>
@@ -1860,6 +1850,16 @@ export default function App() {
               {content.experience.map((exp, idx) => (
                 <ExpEntry key={exp.id || idx} exp={exp} idx={idx} visible={expR.visible} />
               ))}
+            </div>
+
+            {/* ── Education ── */}
+            <div className="mt-12">
+              <div style={mono(9, "rgba(var(--c2),0.45)", { marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: "0.3em" })}>EDUCATION</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {content.education.map((edu, idx) => (
+                  <EduEntry key={edu.id || idx} edu={edu} idx={idx} visible={expR.visible} />
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -1973,6 +1973,17 @@ export default function App() {
                     style={{ ...mono(9.5, "var(--fg-b)", { padding: "8px 15px", border: "1px solid rgba(var(--c1),0.12)", letterSpacing: "0.12em", background: "var(--card)" }), opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(8px)", transition: `opacity 0.5s ease ${ti * 40}ms, transform 0.5s ease ${ti * 40}ms, border-color 0.25s ease, color 0.25s ease`, cursor: "default" }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.45)"; (e.currentTarget as HTMLElement).style.color = "var(--c1h)"; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.12)"; (e.currentTarget as HTMLElement).style.color = "var(--fg-b)"; }}>
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="mt-10">
+              <div style={mono(9, "rgba(var(--c1),0.5)", { marginBottom: 16, textTransform: "uppercase" as const, letterSpacing: "0.26em" })}>BEYOND CODE</div>
+              <div className="flex flex-wrap gap-2">
+                {["Drawing", "Voiceover", "Travelling", "Hiking", "Biking", "Sports", "History", "Finance", "Socioeconomics"].map((t, ti) => (
+                  <span key={t}
+                    style={{ ...mono(9.5, "var(--fg-c)", { padding: "8px 15px", border: "1px solid rgba(var(--c1),0.08)", letterSpacing: "0.12em", background: "transparent" }), opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(8px)", transition: `opacity 0.5s ease ${ti * 40}ms, transform 0.5s ease ${ti * 40}ms` }}>
                     {t}
                   </span>
                 ))}
