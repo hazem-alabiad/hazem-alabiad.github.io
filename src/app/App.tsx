@@ -1754,7 +1754,7 @@ export default function App() {
               </div>
 
               <h1 ref={heroNameRef} className="relative leading-[1.02] tracking-tight mb-4 select-none"
-                style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(3.2rem,8.5vw,6.6rem)", letterSpacing: "-0.02em", color: "var(--fg-a)" }}>
+                style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2.6rem,6vw,4.6rem)", letterSpacing: "-0.02em", color: "var(--fg-a)" }}>
                 Hazem <span style={{ background: "linear-gradient(135deg, var(--c1h), var(--c2h))", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", color: "transparent" }}>Alabiad</span>
               </h1>
 
@@ -1853,7 +1853,7 @@ export default function App() {
               </div>
             </div>
 
-            <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2.1rem,5vw,3.4rem)", color: "var(--fg-a)" }}>
+            <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.5rem,2.6vw,2rem)", color: "var(--fg-a)" }}>
               Work <span style={{ color: "var(--c2h)" }}>History</span>
             </WipeHeading>
             <div className="space-y-3">
@@ -1870,7 +1870,7 @@ export default function App() {
         <div ref={projectsR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="02" label="PROJECTS" />
           <div className="transition-all duration-1000" style={{ opacity: projectsR.visible ? 1 : 0, transform: projectsR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2.1rem,5vw,3.4rem)", color: "var(--fg-a)" }}>
+            <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.5rem,2.6vw,2rem)", color: "var(--fg-a)" }}>
               Research <span style={{ color: "var(--c1h)" }}>& Projects</span>
             </WipeHeading>
             <Spotlight className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1933,7 +1933,7 @@ export default function App() {
         <div ref={skillsR.ref} className="max-w-7xl mx-auto">
           <SectionLabel num="03" label="PROFICIENCIES" />
           <div className="transition-all duration-1000" style={{ opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(32px)" }}>
-            <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2.1rem,5vw,3.4rem)", color: "var(--fg-a)" }}>
+            <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.5rem,2.6vw,2rem)", color: "var(--fg-a)" }}>
               Technical <span style={{ color: "var(--c2h)" }}>Proficiencies</span>
             </WipeHeading>
             <Spotlight className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12">
@@ -1989,7 +1989,7 @@ export default function App() {
           <div className="transition-all duration-1000" style={{ opacity: contactR.visible ? 1 : 0, transform: contactR.visible ? "translateY(0)" : "translateY(32px)" }}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div>
-                <WipeHeading className="mb-8" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(2.1rem,5vw,3.4rem)", color: "var(--fg-a)" }}>
+                <WipeHeading className="mb-6" style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: "clamp(1.5rem,2.6vw,2rem)", color: "var(--fg-a)" }}>
                   Get in <span style={{ color: "var(--c1h)" }}>Touch</span>
                 </WipeHeading>
                 <p className="mb-5" style={body(16)}>{get("contactIntro", DEFAULT_CONTENT.contactIntro)}</p>
