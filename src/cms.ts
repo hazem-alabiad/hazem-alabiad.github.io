@@ -82,7 +82,7 @@ export interface CmsContent {
 
 export const DEFAULT_CONTENT: CmsContent = {
   heroTagline:
-    "Software Engineer with 6+ years building production-ready, maintainable systems and pixel-perfect UIs in React, Next.js, TypeScript, and modern tooling. Lead cross-functional teams, improve developer experience, and ship design-driven applications at scale. Now M.A. Computational Linguistics @ Uni Tübingen and Student Assistant at IWM & the Autonomous Learning Lab — bridging engineering with AI, ML, LLMs, NLP, and Cognitive Science.",
+    "Software Engineer with 6+ years shipping production-ready, maintainable systems and pixel-perfect UIs in React, Next.js, and TypeScript. Now M.A. Computational Linguistics @ Uni Tübingen and research assistant on an LLM AI-Tutor and social-media impact studies — bridging engineering with AI, NLP, and Cognitive Science.",
   bio1: "",
   bio2:
     "Open to Working Student & internship roles in NLP, AI/ML, and LLMs — Tübingen, Stuttgart, or remote.",

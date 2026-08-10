@@ -254,7 +254,7 @@ function useReveal(threshold = 0.1) {
 
 const DEFAULTS = {
   heroTagline:
-    "Software Engineer with 6+ years building production-ready, maintainable systems and pixel-perfect UIs in React, Next.js, TypeScript, and modern tooling. Lead cross-functional teams, improve developer experience, and ship design-driven applications at scale. Now M.A. Computational Linguistics @ Uni Tübingen and Student Assistant at IWM & the Autonomous Learning Lab — bridging engineering with AI, ML, LLMs, NLP, and Cognitive Science.",
+    "Software Engineer with 6+ years shipping production-ready, maintainable systems and pixel-perfect UIs in React, Next.js, and TypeScript. Now M.A. Computational Linguistics @ Uni Tübingen and research assistant on an LLM AI-Tutor and social-media impact studies — bridging engineering with AI, NLP, and Cognitive Science.",
   bio1:
     "",
   bio2:
@@ -1758,13 +1758,9 @@ export default function App() {
                 Hazem <span style={{ background: "linear-gradient(135deg, var(--c1h), var(--c2h))", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", color: "transparent" }}>Alabiad</span>
               </h1>
 
-              <p className="mb-2" style={{ ...mono(13, "var(--c1h)", { letterSpacing: "0.12em" }), fontSize: "clamp(12px,1.6vw,16px)" }}>
-                FULL-STACK ENGINEER & AI/NLP RESEARCHER · M.A. COMPUTATIONAL LINGUISTICS
+              <p className="mb-4" style={{ ...mono(13, "var(--c1h)", { letterSpacing: "0.12em" }), fontSize: "clamp(12px,1.6vw,15px)" }}>
+                FULL-STACK ENGINEER · AI / NLP RESEARCHER
               </p>
-              <div className="flex items-center gap-2.5 mb-6">
-                <span style={mono(9, "var(--c3h)", { padding: "3px 9px", border: "1px solid rgba(var(--c3),0.35)", letterSpacing: "0.2em", background: "rgba(var(--c3),0.06)" })}>NOW</span>
-                <span style={mono(11.5, "var(--fg-hero)", { letterSpacing: "0.06em" })}>Student Assistant · LLM AI-Tutor & IWM — Uni Tübingen</span>
-              </div>
 
               <p ref={heroTagRef} {...ep("heroTagline", DEFAULTS.heroTagline, { ...body(17, "var(--fg-hero)"), maxWidth: 600, marginBottom: 24 })}>
                 {get("heroTagline", DEFAULTS.heroTagline)}
@@ -1798,11 +1794,11 @@ export default function App() {
 
             {/* Right — Photo + Enhanced Terminal */}
             <div className="lg:col-span-5 space-y-4">
-              {/* Profile card — compact photo + identity + quick status */}
+              {/* Profile card — compact photo + identity */}
               <div className="flex items-center gap-5">
                 <div className="group relative flex-shrink-0" style={{ filter: "drop-shadow(0 12px 32px rgba(0,0,0,0.35))" }}>
                   <div className="console-frame" style={{
-                    width: 108, height: 108, overflow: "hidden", position: "relative",
+                    width: 96, height: 96, overflow: "hidden", position: "relative",
                     border: "1px solid rgba(var(--c1),0.2)", background: "var(--card-photo)",
                     borderRadius: 2,
                   }}>
@@ -1823,8 +1819,7 @@ export default function App() {
                     <span className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0" style={{ background: "var(--c3h)", boxShadow: "0 0 6px var(--c3h)" }} />
                     <span style={mono(9.5, "var(--fg-c)", { letterSpacing: "0.14em" })}>HAZEM ALABIAD</span>
                   </div>
-                  <div style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 17, color: "var(--fg-a)", letterSpacing: "0.01em" }}>Software Engineer · AI / NLP</div>
-                  <div className="mt-2" style={mono(8.5, "var(--c1h)", { letterSpacing: "0.16em" })}>OPEN TO WORKING STUDENT & INTERNSHIPS</div>
+                  <div style={mono(8.5, "var(--fg-d)", { letterSpacing: "0.14em" })}>TÜBINGEN, GERMANY</div>
                 </div>
               </div>
 
