@@ -25,6 +25,41 @@ function Reveal({ children, className = "", style = {} as React.CSSProperties }:
   return <div ref={ref} className={`reveal ${className}`} style={style}>{children}</div>;
 }
 
+/* ── line icons (inline SVG, currentColor) ───────────────────────────── */
+const ICONS: Record<string, string> = {
+  grad: "M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0zM22 10v6M6 12.5V16a6 3 0 0 0 12 0v-3.5",
+  work: "M12 12h.01M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2m14 7a18.15 18.15 0 0 1-20 0M2 20h20M2 6h20v14H2zM2 13a18.15 18.15 0 0 1 20 0",
+  flask: "M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2M6.453 15h11.094M8.5 2h7",
+  code: "m16 18 6-6-6-6M8 6 2 12l6 6",
+  wrench: "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z",
+  mail: "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm18 2L12 13 2 6",
+  ext: "M7 17 17 7M7 7h10v10",
+};
+function Icon({ name, size = 14, className = "" }: { name: string; size?: number; className?: string }) {
+  return (
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={ICONS[name] || ""} />
+    </svg>
+  );
+}
+
+/* ── scroll progress bar (top) ───────────────────────────────────────── */
+function ScrollProgress() {
+  const [p, setP] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - window.innerHeight;
+      setP(max > 0 ? Math.min(1, window.scrollY / max) : 0);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); };
+  }, []);
+  return <div className="progress-track" aria-hidden="true"><div className="progress-bar" style={{ transform: `scaleX(${p})` }} /></div>;
+}
+
 /* ── boot screen (from old design, kept) ──────────────────────────────── */
 const BOOT_LINES = [
   "[ OK ] Initializing neural interface…",
@@ -78,10 +113,10 @@ const BOOTED_KEY = "hazem_portfolio_booted_v3";
 
 /* ── terminal hero (job stuff + photo) ─────────────────────────────────── */
 const TERM_ROLES = [
-  { t: "Student Assistant · LLM AI-Tutor", p: true },
-  { t: "Research Assistant · Cognitive & AI (IWM)", p: false },
-  { t: "NLP Engineer", p: false },
-  { t: "Full-Stack Engineer", p: false },
+  { t: "NLP / AI / LLM Research", p: true, tag: "focus" },
+  { t: "Full-Stack Engineering", p: true, tag: "focus" },
+  { t: "Student Assistant · LLM AI-Tutor", p: false, tag: "current" },
+  { t: "Research Assistant · Cognitive & AI (IWM)", p: false, tag: "current" },
 ];
 
 function TerminalHero({ content, factLocation }: { content: CmsContent; factLocation: string }) {
@@ -120,19 +155,21 @@ function TerminalHero({ content, factLocation }: { content: CmsContent; factLoca
               <div className="term-output">
                 <div className="term-roles">
                   {TERM_ROLES.map((r, i) => (
-                    <div className="term-role" key={r.t}>
+                    <div className={`term-role ${r.p ? "term-role--prio" : ""}`} key={r.t}>
                       <span className="term-idx">{String(i + 1).padStart(2, "0")}</span>
                       <span className="term-role-name">{r.t}</span>
+                      {r.tag === "focus" && <span className="term-tag term-tag--focus">◆ FOCUS</span>}
+                      {r.tag === "current" && <span className="term-tag">● current</span>}
                       {r.p && <span className="term-priority">◀ PRIORITY</span>}
                     </div>
                   ))}
                 </div>
                 <div className="term-grid">
-                  <div className="term-kv"><span className="term-k">role</span><span className="term-v">"Student Asst. · LLM AI‑Tutor"</span></div>
+                  <div className="term-kv"><span className="term-k">experience</span><span className="term-v">"6+ years"</span></div>
                   <div className="term-kv"><span className="term-k">location</span><span className="term-v">"{factLocation}"</span></div>
                   <div className="term-kv"><span className="term-k">languages</span><span className="term-v">[{content.languages.map((l) => `"${l.name.slice(0, 2).toUpperCase()}"`).join(",")}]</span></div>
                   <div className="term-kv"><span className="term-k">open_to</span><span className="term-v">["Working Student","NLP/AI/LLMs"]</span></div>
-                  <div className="term-kv"><span className="term-k">interests</span><span className="term-v">["drawing","voiceover","travel"]</span></div>
+                  <div className="term-kv"><span className="term-k">education</span><span className="term-v">["M.A. CompLing","B.Sc. CompEng"]</span></div>
                   <div className="term-kv"><span className="term-k">status</span><span className="term-v term-v-green">"Open to opportunities"</span></div>
                 </div>
               </div>
@@ -153,14 +190,6 @@ function TerminalHero({ content, factLocation }: { content: CmsContent; factLoca
               <span className="gloss-word">Full-Stack</span>
               <span className="gloss-word">Engineer</span>
             </div>
-            <div className="gloss-line2">
-              <span className="gloss-word">ADJ-technical</span>
-              <span className="gloss-word">N.AGT-research</span>
-              <span className="gloss-word">CONJ</span>
-              <span className="gloss-word">ADJ-technical</span>
-              <span className="gloss-word">N.AGT-builds</span>
-            </div>
-            <div className="gloss-translation">"studies how language works, and builds the systems that run on it"</div>
           </div>
         </div>
       </div>
@@ -178,27 +207,59 @@ function TerminalHero({ content, factLocation }: { content: CmsContent; factLoca
           <a className="btn" href={content.links.find((l) => l.label === "SCHOLAR")?.href || "#"} target="_blank" rel="noopener noreferrer">Scholar</a>
           <a className="btn" href={(content.cvDataUrl || cvPdf) as string} download="Hazem-Alabiad-CV.pdf">Résumé</a>
         </div>
-        <div className="stats">
-          {content.stats.map((s, i) => (
-            <div className="stat" key={i}>
-              <div className="stat-num">{s.to > 0 ? `${s.to}${s.suffix}` : s.suffix}</div>
-              <div className="stat-label">{s.label}</div>
-            </div>
-          ))}
-        </div>
       </div>
     </header>
   );
 }
 
+/* ── contact form (opens mailto on send) ─────────────────────────────── */
+function ContactForm({ email }: { email: string }) {
+  const [name, setName] = useState("");
+  const [from, setFrom] = useState("");
+  const [subject, setSubject] = useState("");
+  const [msg, setMsg] = useState("");
+  const [sent, setSent] = useState(false);
+
+  function send() {
+    const body = `Name: ${name}\nFrom: ${from}\n\n${msg}`;
+    const mailto = `${email}?subject=${encodeURIComponent(subject || "Hello Hazem")}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
+    setSent(true);
+    setTimeout(() => setSent(false), 3000);
+  }
+
+  return (
+    <div className="contact-form">
+      <div className="contact-row">
+        <input className="contact-input" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
+        <input className="contact-input" placeholder="Your email" type="email" value={from} onChange={(e) => setFrom(e.target.value)} />
+      </div>
+      <input className="contact-input" placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
+      <textarea className="contact-input contact-textarea" placeholder="Your message…" value={msg} onChange={(e) => setMsg(e.target.value)} rows={4} />
+      <button className="btn primary contact-send" onClick={send}>
+        {sent ? "✓ Opening your email client…" : "Send message →"}
+      </button>
+    </div>
+  );
+}
+
+/* ── toast (copied/notification) ──────────────────────────────────────── */
+function Toast({ message, onClose }: { message: string; onClose: () => void }) {
+  useEffect(() => { const t = setTimeout(onClose, 2600); return () => clearTimeout(t); }, [onClose]);
+  return <div className="toast">{message}</div>;
+}
+
 /* ── keyboard shortcuts overlay ───────────────────────────────────────── */
-const SECTIONS = ["home", "experience", "research", "skills", "education", "contact"];
+const SECTIONS = ["home", "education", "experience", "research", "skills", "contact"];
 const SECTION_LABELS: Record<string, string> = { home: "Terminal", experience: "Experience", research: "Research", skills: "Skills", education: "Education", contact: "Contact" };
 
-function Shortcuts({ open, onClose, onJump }: { open: boolean; onClose: () => void; onJump: (id: string) => void }) {
+function Shortcuts({ open, onClose, onJump, search = true }: { open: boolean; onClose: () => void; onJump: (id: string) => void; search?: boolean }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [q, setQ] = useState("");
+  useEffect(() => { if (open) { setQ(""); const t = setTimeout(() => inputRef.current?.focus(), 60); return () => clearTimeout(t); } }, [open]);
   if (!open) return null;
   const keys: [string, string, string?][] = [
-    ["?", "Toggle this help"],
+    ["⌘K / ?", "Toggle this search + shortcuts"],
     ["j / ↓", "Next section"],
     ["k / ↑", "Previous section"],
     ["g", "Go to terminal (top)"],
@@ -209,26 +270,44 @@ function Shortcuts({ open, onClose, onJump }: { open: boolean; onClose: () => vo
     ["1–6", "Jump to section by number"],
     ["Esc", "Close this overlay"],
   ];
+  const query = q.trim().toLowerCase();
+  const sectionMatches = SECTIONS.filter((id) => !query || SECTION_LABELS[id].toLowerCase().includes(query));
+  const go = (id: string) => { onJump(id); onClose(); setQ(""); };
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(15,15,20,0.88)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
-      <div style={{ background: "var(--bg-panel)", border: "1px solid var(--rule)", borderRadius: 6, padding: "32px 36px", maxWidth: 480, width: "90%" }} onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 24 }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, margin: 0 }}>Keyboard shortcuts</h2>
-          <button onClick={onClose} style={{ background: "none", border: "1px solid var(--rule)", borderRadius: 3, color: "var(--ink-dim)", fontFamily: "var(--font-mono)", fontSize: 11, padding: "4px 10px", cursor: "pointer" }}>Esc ✕</button>
+    <div className="sc-overlay-dimmer" onClick={onClose}>
+      <div className="sc-panel" onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 20 }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 24, margin: 0 }}>Quick search</h2>
+          <button onClick={onClose} style={{ background: "none", border: "1px solid var(--rule)", borderRadius: 4, color: "var(--ink-dim)", fontFamily: "var(--font-mono)", fontSize: 11, padding: "4px 10px", cursor: "pointer" }}>Esc ✕</button>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {search && (
+          <input
+            ref={inputRef}
+            className="sc-search"
+            placeholder="Search sections… press Enter to jump"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && sectionMatches.length === 1) go(sectionMatches[0]); }}
+          />
+        )}
+        {query && (
+          <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {sectionMatches.length === 0 && (
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--ink-faint)" }}>No sections match “{q}”.</span>
+            )}
+            {sectionMatches.map((id, i) => (
+              <button key={id} onClick={() => go(id)} style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--ink)", background: "var(--bg-elevated)", border: "1px solid var(--amber-soft)", borderRadius: 6, padding: "7px 14px", cursor: "pointer" }}>
+                {SECTIONS.indexOf(id) + 1}. {SECTION_LABELS[id]}
+              </button>
+            ))}
+          </div>
+        )}
+        <div style={{ marginTop: 22, display: "flex", flexDirection: "column", gap: 12 }}>
           {keys.map(([k, label]) => (
             <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--rule-soft)", paddingBottom: 10 }}>
               <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--ink-dim)" }}>{label}</span>
-              <kbd style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--amber)", border: "1px solid var(--rule)", borderRadius: 3, padding: "2px 8px", minWidth: 56, textAlign: "center" }}>{k}</kbd>
+              <kbd style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--amber)", border: "1px solid var(--rule)", borderRadius: 4, padding: "2px 8px", minWidth: 56, textAlign: "center" }}>{k}</kbd>
             </div>
-          ))}
-        </div>
-        <div style={{ marginTop: 24, display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {SECTIONS.map((id, i) => (
-            <button key={id} onClick={() => { onJump(id); onClose(); }} style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--ink-dim)", background: "var(--bg-elevated)", border: "1px solid var(--rule-soft)", borderRadius: 3, padding: "5px 12px", cursor: "pointer" }}>
-              {i + 1}. {SECTION_LABELS[id]}
-            </button>
           ))}
         </div>
       </div>
@@ -299,6 +378,23 @@ export default function App() {
   const [cmsEnabled, setCmsEnabled] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [toast, setToast] = useState("");
+  const [theme, setTheme] = useState<"dark" | "light">(() => { try { return localStorage.getItem("hazem_theme") === "light" ? "light" : "dark"; } catch { return "dark"; } });
+  const [visits, setVisits] = useState(0);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    try { localStorage.setItem("hazem_theme", theme); } catch { /* empty */ }
+  }, [theme]);
+
+  useEffect(() => {
+    try {
+      const c = parseInt(localStorage.getItem("hazem_visits") || "0", 10);
+      const n = c + 1;
+      localStorage.setItem("hazem_visits", String(n));
+      setVisits(n);
+    } catch { setVisits(1); }
+  }, []);
 
   function save(key: keyof CmsContent, value: string) { setContent((prev) => { const next = { ...prev, [key]: value }; saveContent(next); return next; }); }
   function saveAll(next: CmsContent) { setContent(next); saveContent(next); }
@@ -314,7 +410,9 @@ export default function App() {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
+      if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) { e.preventDefault(); setShortcutsOpen(true); return; }
       if (e.key === "Escape") { setShortcutsOpen(false); return; }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (shortcutsOpen) return;
       switch (e.key) {
         case "?": setShortcutsOpen(true); break;
@@ -326,10 +424,10 @@ export default function App() {
         case "c": window.location.href = email; break;
         case "r": { const a = document.createElement("a"); a.href = cvUrl; a.download = "Hazem-Alabiad-CV.pdf"; a.click(); break; }
         case "1": scrollTo("home"); break;
-        case "2": scrollTo("experience"); break;
-        case "3": scrollTo("research"); break;
-        case "4": scrollTo("skills"); break;
-        case "5": scrollTo("education"); break;
+        case "2": scrollTo("education"); break;
+        case "3": scrollTo("experience"); break;
+        case "4": scrollTo("research"); break;
+        case "5": scrollTo("skills"); break;
         case "6": scrollTo("contact"); break;
       }
     };
@@ -340,91 +438,36 @@ export default function App() {
   const stackTerms = content.skills.filter((s) => s.cat === "stack").flatMap((s) => s.label.split("/").map((t) => t.trim()).filter(Boolean));
   const aiTerms = content.skills.filter((s) => s.cat === "ai").flatMap((s) => s.label.split("/").map((t) => t.trim()).filter(Boolean));
   const devopsTerms = ["Docker", "Git", "Jest", "Cypress", "Puppeteer", "Figma", "MySQL", "Agile", "Linux", "CI/CD"];
-  const statNum = (s: { to: number; suffix: string }) => (s.to > 0 ? `${s.to}${s.suffix}` : s.suffix);
 
   return (
     <>
+      <ScrollProgress />
       {!booted && <BootScreen onDone={() => { setBooted(true); try { localStorage.setItem(BOOTED_KEY, "1"); } catch { /* empty */ } }} />}
 
       <nav>
         <div className="wrap">
           <button className="nav-mark" onClick={() => scrollTo("home")}>H<span>.</span>ALABIAD</button>
           <div className="nav-links">
+            <a href="#education" onClick={() => scrollTo("education")}>Education</a>
             <a href="#experience" onClick={() => scrollTo("experience")}>Experience</a>
             <a href="#research" onClick={() => scrollTo("research")}>Research</a>
             <a href="#skills" onClick={() => scrollTo("skills")}>Skills</a>
-            <a href="#education" onClick={() => scrollTo("education")}>Education</a>
             <a href="#contact" onClick={() => scrollTo("contact")}>Contact</a>
-            <button className="nav-shorts" onClick={() => setShortcutsOpen(true)} title="Keyboard shortcuts (?)">⌘K</button>
+            <button className="nav-shorts" onClick={() => setShortcutsOpen(true)} title="Search & shortcuts (⌘K)">⌘K</button>
+            <button
+              className="nav-theme"
+              onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? "☀" : "☾"}
+            </button>
+            <button className="nav-hire" onClick={() => { navigator.clipboard?.writeText(email.replace("mailto:", "")); setToast("Email copied — hazem.alabiad@icloud.com"); }}>Hire me</button>
           </div>
         </div>
       </nav>
 
       <TerminalHero content={content} factLocation={factLocation} />
-
-      {/* ── EXPERIENCE ──────────────────────────────────────────────────── */}
-      <section id="experience">
-        <div className="wrap">
-          <div className="section-head reveal">
-            <div className="section-gloss"><b>n.</b> — a chronological record of applied work</div>
-            <h2 className="section-title">Exper<em>ience</em></h2>
-          </div>
-          <div className="timeline">
-            {content.experience.map((exp) => (
-              <Reveal key={exp.id}>
-                <div className="entry">
-                  <div className="entry-meta">
-                    <span className="entry-date">{exp.period}</span>
-                    {exp.current && <span className="entry-current">current</span>}
-                  </div>
-                  <h3 className="entry-role">{exp.role}</h3>
-                  <p className="entry-org"><b>{exp.company}</b>{exp.location ? ` · ${exp.location}` : ""}</p>
-                  <ul>{exp.bullets.map((b, j) => <li key={j}>{b}</li>)}</ul>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── RESEARCH & PROJECTS ─────────────────────────────────────────── */}
-      <section id="research">
-        <div className="wrap">
-          <div className="section-head reveal">
-            <div className="section-gloss"><b>n.</b> — inquiry made public and reproducible</div>
-            <h2 className="section-title">Research &amp; Pro<em>jects</em></h2>
-          </div>
-          <div className="cite-list">
-            {content.projects.map((p) => (
-              <Reveal key={p.id}>
-                <div className="cite">
-                  <div className="cite-year">{p.year}</div>
-                  <div>
-                    <h3 className="cite-title">{p.link ? <a href={p.link} target="_blank" rel="noopener noreferrer">{p.name}</a> : p.name}</h3>
-                    <p className="cite-desc">{p.desc}</p>
-                    <div className="cite-tags">{p.tags.map((t) => <span className="cite-tag" key={t}>{t}</span>)}</div>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── SKILLS ──────────────────────────────────────────────────────── */}
-      <section id="skills">
-        <div className="wrap">
-          <div className="section-head reveal">
-            <div className="section-gloss"><b>n.</b> — the working vocabulary, grouped by class</div>
-            <h2 className="section-title">Lexi<em>con</em></h2>
-          </div>
-          <div className="lexicon">
-            <Reveal><div className="lex-row"><div className="lex-class">Full-Stack</div><div className="lex-terms">{stackTerms.map((t) => <span className="term" key={t}>{t}</span>)}</div></div></Reveal>
-            <Reveal><div className="lex-row"><div className="lex-class">AI / NLP</div><div className="lex-terms">{aiTerms.map((t) => <span className="term" key={t}>{t}</span>)}</div></div></Reveal>
-            <Reveal><div className="lex-row"><div className="lex-class">DevOps &amp; Workflow</div><div className="lex-terms">{devopsTerms.map((t) => <span className="term" key={t}>{t}</span>)}</div></div></Reveal>
-          </div>
-        </div>
-      </section>
 
       {/* ── EDUCATION ───────────────────────────────────────────────────── */}
       <section id="education">
@@ -453,9 +496,92 @@ export default function App() {
         </div>
       </section>
 
+      {/* ── EXPERIENCE ──────────────────────────────────────────────────── */}
+      <section id="experience">
+        <div className="wrap">
+          <div className="section-head reveal">
+            <div className="section-gloss"><span className="sec-icon"><Icon name="work" size={11} /></span> n. — a chronological record of applied work</div>
+            <h2 className="section-title">Exper<em>ience</em></h2>
+          </div>
+          <div className="timeline">
+            {content.experience.map((exp) => (
+              <Reveal key={exp.id}>
+                <div className="entry">
+                  <div className="entry-dot" aria-hidden="true" />
+                  <div className="entry-body">
+                    <div className="entry-meta">
+                      <span className="entry-date">{exp.period}</span>
+                      {exp.current && <span className="entry-current">current</span>}
+                      <span className="entry-org-name">{exp.company}</span>
+                      {exp.location ? <span className="entry-loc">{exp.location}</span> : null}
+                    </div>
+                    <h3 className="entry-role">{exp.role}</h3>
+                    <ul>{exp.bullets.map((b, j) => <li key={j}>{b}</li>)}</ul>
+                    {exp.tags?.length > 0 && (
+                      <div className="entry-tags">{exp.tags.map((t) => <span className="entry-tag" key={t}>{t}</span>)}</div>
+                    )}
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── RESEARCH & PROJECTS ─────────────────────────────────────────── */}
+      <section id="research">
+        <div className="wrap">
+          <div className="section-head reveal">
+            <div className="section-gloss"><span className="sec-icon"><Icon name="flask" size={11} /></span> n. — inquiry made public and reproducible</div>
+            <h2 className="section-title">Research &amp; Pro<em>jects</em></h2>
+          </div>
+          <div className="proj-grid">
+            {content.projects.map((p) => (
+              <Reveal key={p.id}>
+                <article className={`proj-card ${p.status === "RESEARCH" ? "proj-card--research" : ""}`}>
+                  <div className="proj-head">
+                    <span className="proj-year">{p.year}</span>
+                    {p.status === "RESEARCH" && <span className="proj-status proj-status--live">research</span>}
+                    {p.status === "COMPLETE" && <span className="proj-status">complete</span>}
+                  </div>
+                  <h3 className="proj-title">
+                    {p.link ? (
+                      <a href={p.link} target="_blank" rel="noopener noreferrer">{p.name} <Icon name="ext" size={13} /></a>
+                    ) : p.name}
+                  </h3>
+                  <p className="proj-desc">{p.desc}</p>
+                  {p.impact && <p className="proj-impact"><span>→</span> {p.impact}</p>}
+                  <div className="proj-tags">{p.tags.map((t) => <span className="proj-tag" key={t}>{t}</span>)}</div>
+                </article>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── SKILLS ──────────────────────────────────────────────────────── */}
+      <section id="skills">
+        <div className="wrap">
+          <div className="section-head reveal">
+            <div className="section-gloss"><b>n.</b> — the working vocabulary, grouped by class</div>
+            <h2 className="section-title">Lexi<em>con</em></h2>
+          </div>
+          <div className="lexicon">
+            <Reveal><div className="lex-row"><div className="lex-class">Full-Stack</div><div className="lex-terms">{stackTerms.map((t) => <span className="term" key={t}>{t}</span>)}</div></div></Reveal>
+            <Reveal><div className="lex-row"><div className="lex-class">AI / NLP</div><div className="lex-terms">{aiTerms.map((t) => <span className="term" key={t}>{t}</span>)}</div></div></Reveal>
+            <Reveal><div className="lex-row"><div className="lex-class">DevOps &amp; Workflow</div><div className="lex-terms">{devopsTerms.map((t) => <span className="term" key={t}>{t}</span>)}</div></div></Reveal>
+          </div>
+        </div>
+      </section>
+
       {/* ── FOOTER / CONTACT ────────────────────────────────────────────── */}
       <footer id="contact">
         <div className="wrap">
+          <div className="footer-band">
+            <span className="footer-band-line" />
+            <span className="footer-band-label">let's talk</span>
+            <span className="footer-band-line" />
+          </div>
           <div className="footer-top">
             <div className="footer-cta">
               <h2>Let's talk.</h2>
@@ -463,21 +589,25 @@ export default function App() {
               <a className="btn primary" href={email}>Get in touch</a>
             </div>
             <div className="footer-links">
-              <a href={email}>{content.links.find((l) => l.label === "EMAIL")?.value || ""}</a>
-              <a href={content.links.find((l) => l.label === "GITHUB")?.href || "#"} target="_blank" rel="noopener noreferrer">github.com/hazem-alabiad</a>
-              <a href={content.links.find((l) => l.label === "LINKEDIN")?.href || "#"} target="_blank" rel="noopener noreferrer">linkedin.com/in/hazemalabiad</a>
-              <a href={content.links.find((l) => l.label === "SCHOLAR")?.href || "#"} target="_blank" rel="noopener noreferrer">scholar.google.com</a>
+              <a className="linked ic-mail" href={email}>{content.links.find((l) => l.label === "EMAIL")?.value || ""}</a>
+              <a className="linked ic-gh" href={content.links.find((l) => l.label === "GITHUB")?.href || "#"} target="_blank" rel="noopener noreferrer">github.com/hazem-alabiad</a>
+              <a className="linked ic-in" href={content.links.find((l) => l.label === "LINKEDIN")?.href || "#"} target="_blank" rel="noopener noreferrer">linkedin.com/in/hazemalabiad</a>
+              <a className="linked ic-go" href={content.links.find((l) => l.label === "SCHOLAR")?.href || "#"} target="_blank" rel="noopener noreferrer">scholar.google.com</a>
             </div>
           </div>
-          <div className="interests reveal">
+          <div className="interests">
             <b>Outside of work:</b> drawing, voiceover, travelling, hiking, biking, sports, and reading about history, finance, and socioeconomics.
           </div>
-          <div {...ep("footerLine", "", {}, save, cmsEnabled)} className="copyright">
-            {get(content, "footerLine", "© 2026 Hazem Alabiad — built with care, tokenized by hand.")}
+          <div className="footer-meta">
+            <span {...ep("footerLine", "", {}, save, cmsEnabled)} className="copyright">
+              {get(content, "footerLine", "© 2026 Hazem Alabiad — tokenized by hand.")}
+            </span>
+            <span className="footer-visits">visits <b>{visits.toLocaleString()}</b></span>
           </div>
         </div>
       </footer>
 
+      {toast && <Toast message={toast} onClose={() => setToast("")} />}
       <Shortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} onJump={scrollTo} />
       <CMSButton enabled={cmsEnabled} onUnlock={() => setCmsEnabled(true)} onDisable={() => setCmsEnabled(false)} onOpenEditor={() => setEditorOpen(true)} />
       {cmsEnabled && editorOpen && (
