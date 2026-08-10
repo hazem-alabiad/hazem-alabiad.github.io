@@ -254,7 +254,7 @@ function useReveal(threshold = 0.1) {
 
 const DEFAULTS = {
   heroTagline:
-    "Software Engineer with 6+ years shipping production-ready, maintainable systems and pixel-perfect UIs in React, Next.js, and TypeScript. Now M.A. Computational Linguistics @ Uni Tübingen and research assistant on an LLM AI-Tutor and social-media impact studies — bridging engineering with AI, NLP, and Cognitive Science.",
+    "Software Engineer with 6+ years shipping production-ready, maintainable systems and pixel-perfect UIs in React, Next.js, and TypeScript. Now M.A. Computational Linguistics @ Uni Tübingen and research assistant on an LLM AI-Tutor and cognitive & AI research — bridging engineering with AI, NLP, and Cognitive Science.",
   bio1:
     "",
   bio2:
@@ -435,9 +435,9 @@ function KeywordMarquee() {
 function CurrentFocus() {
   const { ref, visible } = useReveal(0.15);
   const items = [
-    { tag: "LLM_AI_TUTOR", text: "Building a working-student LLM AI-tutor at Uni Tübingen — retrieval-augmented tutoring for the Autonomous Learning Lab.", hex: "var(--c1h)" },
-    { tag: "IWM_RESEARCH", text: "Social-media & TikTok research at Leibniz-Institut für Wissensmedien (IWM) — scraping, NLP, and behavioral analysis.", hex: "var(--c3h)" },
-    { tag: "M.A._THESIS", text: "Computational Linguistics M.A. at Uni Tübingen — Arabic multiword-expression extraction with LLMs + cross-lingual transfer.", hex: "var(--c2h)" },
+    { tag: "LLM_AI_TUTOR", text: "Retrieval-augmented LLM assistant that teaches — RAG pipelines, adaptive dialogues, and evaluation for lecture-scale tutoring.", hex: "var(--c1h)" },
+    { tag: "IWM_RESEARCH", text: "Cognitive social science & AI research at Leibniz-Institut für Wissensmedien (IWM) — algorithmic influence on learning and behavior.", hex: "var(--c3h)" },
+    { tag: "M.A._THESIS", text: "Arabic multiword-expression extraction with LLMs — cross-lingual transfer of lexicons and neural self-supervision.", hex: "var(--c2h)" },
   ];
   return (
     <section id="focus" className="relative py-16 lg:py-20 px-6" style={{ zIndex: 10, background: "linear-gradient(180deg, transparent, rgba(var(--c1),0.025) 50%, transparent)" }}>
@@ -1460,7 +1460,7 @@ export function markOwner() {
 
 const TERM_ROLES = [
   { t: "Student Assistant · LLM AI-Tutor", p: true },
-  { t: "Student Assistant · IWM Social-Media Research", p: false },
+  { t: "Research Assistant · Cognitive & AI (IWM)", p: false },
   { t: "NLP Engineer", p: false },
   { t: "Full-Stack Engineer", p: false },
 ];
@@ -1561,7 +1561,13 @@ function EnhancedTerminal({ factLocation }: { factLocation: string }) {
             <span style={{ color: "var(--c2h)" }}>location</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c3h)" }}>"{factLocation}"</span>
           </div>
           <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", flexWrap: "wrap", gap: 6, minWidth: 0 })}>
+            <span style={{ color: "var(--c2h)" }}>languages</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c3h)" }}>["AR","TR","EN","DE(B1)"]</span>
+          </div>
+          <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", flexWrap: "wrap", gap: 6, minWidth: 0 })}>
             <span style={{ color: "var(--c2h)" }}>open_to</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c1h)" }}>["Working Student","NLP/AI/LLMs"]</span>
+          </div>
+          <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", flexWrap: "wrap", gap: 6, minWidth: 0 })}>
+            <span style={{ color: "var(--c2h)" }}>interests</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c3h)" }}>["drawing","voiceover","travel"]</span>
           </div>
           <div style={mono(11.5, "var(--fg-b)", { letterSpacing: "0.04em", display: "flex", flexWrap: "wrap", gap: 6, minWidth: 0 })}>
             <span style={{ color: "var(--c2h)" }}>status</span><span style={{ color: "var(--fg-d)" }}>=</span><span style={{ color: "var(--c4h)" }}>"Open to opportunities"</span>
@@ -1817,9 +1823,8 @@ export default function App() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0" style={{ background: "var(--c3h)", boxShadow: "0 0 6px var(--c3h)" }} />
-                    <span style={mono(9.5, "var(--fg-c)", { letterSpacing: "0.14em" })}>HAZEM ALABIAD</span>
+                    <span style={mono(9.5, "var(--fg-c)", { letterSpacing: "0.14em" })}>AVAILABLE FOR WORK</span>
                   </div>
-                  <div style={mono(8.5, "var(--fg-d)", { letterSpacing: "0.14em" })}>TÜBINGEN, GERMANY</div>
                 </div>
               </div>
 
@@ -1954,36 +1959,15 @@ export default function App() {
                 </div>
               </div>
             </Spotlight>
-            <div className="mt-10">
-              <div style={mono(9, "rgba(var(--c1),0.5)", { marginBottom: 14, textTransform: "uppercase" as const, letterSpacing: "0.26em" })}>SPOKEN_LANGUAGES</div>
-              <div className="flex flex-wrap gap-x-10 gap-y-4">
-                {content.languages.map((lang, i) => (
-                  <span key={lang.id} className="flex items-baseline gap-2" style={{ opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(8px)", transition: `opacity 0.6s ease ${i * 60}ms, transform 0.6s ease ${i * 60}ms` }}>
-                    <span style={{ fontFamily: '"Rajdhani", sans-serif', fontWeight: 700, fontSize: 18, color: "var(--fg-a)" }}>{lang.name}</span>
-                    <span style={mono(9.5, lang.level.toLowerCase() === "native" ? "var(--c1h)" : "var(--fg-c)", { letterSpacing: "0.16em" })}>{lang.level.toUpperCase()}</span>
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="mt-10">
-              <div style={mono(9, "rgba(var(--c1),0.5)", { marginBottom: 16, textTransform: "uppercase" as const, letterSpacing: "0.26em" })}>DEVOPS & WORKFLOW</div>
-              <div className="flex flex-wrap gap-2">
+            <div className="mt-8" style={{ borderTop: "1px solid rgba(var(--c1),0.1)", paddingTop: 18 }}>
+              <div className="flex flex-wrap items-center gap-x-10 gap-y-4">
+                <span className="flex items-baseline gap-2" style={mono(9, "rgba(var(--c1),0.5)", { letterSpacing: "0.26em", marginRight: 2 })}>TOOLING & WORKFLOW</span>
                 {["Docker", "Git", "Jest / Cypress / Puppeteer", "Figma", "MySQL", "Agile / Scrum", "Linux", "CI/CD"].map((t, ti) => (
                   <span key={t}
-                    style={{ ...mono(9.5, "var(--fg-b)", { padding: "8px 15px", border: "1px solid rgba(var(--c1),0.12)", letterSpacing: "0.12em", background: "var(--card)" }), opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(8px)", transition: `opacity 0.5s ease ${ti * 40}ms, transform 0.5s ease ${ti * 40}ms, border-color 0.25s ease, color 0.25s ease`, cursor: "default" }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.45)"; (e.currentTarget as HTMLElement).style.color = "var(--c1h)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(var(--c1),0.12)"; (e.currentTarget as HTMLElement).style.color = "var(--fg-b)"; }}>
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="mt-10">
-              <div style={mono(9, "rgba(var(--c1),0.5)", { marginBottom: 16, textTransform: "uppercase" as const, letterSpacing: "0.26em" })}>BEYOND CODE</div>
-              <div className="flex flex-wrap gap-2">
-                {["Drawing", "Voiceover", "Travelling", "Hiking", "Biking", "Sports", "History", "Finance", "Socioeconomics"].map((t, ti) => (
-                  <span key={t}
-                    style={{ ...mono(9.5, "var(--fg-c)", { padding: "8px 15px", border: "1px solid rgba(var(--c1),0.08)", letterSpacing: "0.12em", background: "transparent" }), opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(8px)", transition: `opacity 0.5s ease ${ti * 40}ms, transform 0.5s ease ${ti * 40}ms` }}>
+                    style={{ ...mono(9.5, "var(--fg-b)", { letterSpacing: "0.12em" }), opacity: skillsR.visible ? 1 : 0, transform: skillsR.visible ? "translateY(0)" : "translateY(8px)", transition: `opacity 0.5s ease ${ti * 40}ms, transform 0.5s ease ${ti * 40}ms, color 0.25s ease`, cursor: "default" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--c1h)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--fg-b)"; }}
+                    title={t}>
                     {t}
                   </span>
                 ))}
