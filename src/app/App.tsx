@@ -4,8 +4,22 @@ import {
   type CmsContent,
 } from "../cms";
 import CmsEditor from "../CmsEditor";
+import { BlogIndex, BlogPost } from "../blog/Blog";
 import hazemPhoto from "../imports/hazem-photo.jpeg";
 import cvPdf from "../imports/Hazem-Alabiad-CV.pdf";
+
+/* ── tiny hash router for the blog ────────────────────────────────────── */
+function useBlogRoute() {
+  const [route, setRoute] = useState(() => window.location.hash);
+  useEffect(() => {
+    const onHash = () => setRoute(window.location.hash);
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+  if (route.startsWith("#/blog/")) return { view: "post", slug: route.slice("#/blog/".length) } as const;
+  if (route === "#/blog" || route === "#/blog/") return { view: "blog" } as const;
+  return { view: "home" } as const;
+}
 
 /* ── reveal-on-scroll ─────────────────────────────────────────────────── */
 function Reveal({ children, className = "", style = {} as React.CSSProperties }: {
@@ -381,6 +395,9 @@ export default function App() {
   const [toast, setToast] = useState("");
   const [theme, setTheme] = useState<"dark" | "light">(() => { try { return localStorage.getItem("hazem_theme") === "light" ? "light" : "dark"; } catch { return "dark"; } });
   const [visits, setVisits] = useState(0);
+  const blogRoute = useBlogRoute();
+  const goBlog = (slug?: string) => { window.location.hash = slug ? `#/blog/${slug}` : "#/blog"; window.scrollTo({ top: 0 }); };
+  const exitBlog = () => { window.location.hash = "#/blog"; window.scrollTo({ top: 0 }); };
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -403,7 +420,19 @@ export default function App() {
   const email = content.links.find((l) => l.label === "EMAIL")?.href || `mailto:${content.links.find((l) => l.label === "EMAIL")?.value || ""}`;
   const cvUrl = (content.cvDataUrl || cvPdf) as string;
 
-  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  const scrollTo = (id: string) => {
+    if (blogRoute.view !== "home") {
+      window.location.hash = "";
+      const doScroll = () => {
+        const el = document.getElementById(id);
+        el?.scrollIntoView({ behavior: "smooth" });
+        if (el) window.scrollTo({ top: el.offsetTop - 0 });
+      };
+      setTimeout(doScroll, 80);
+      return;
+    }
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  };
 
   /* keyboard shortcuts */
   useEffect(() => {
@@ -452,6 +481,7 @@ export default function App() {
             <a href="#experience" onClick={() => scrollTo("experience")}>Experience</a>
             <a href="#research" onClick={() => scrollTo("research")}>Research</a>
             <a href="#skills" onClick={() => scrollTo("skills")}>Skills</a>
+            <a href="#blog" onClick={() => goBlog()} className="nav-blog">Blog</a>
             <a href="#contact" onClick={() => scrollTo("contact")}>Contact</a>
             <button className="nav-shorts" onClick={() => setShortcutsOpen(true)} title="Search & shortcuts (⌘K)">⌘K</button>
             <button
@@ -467,7 +497,9 @@ export default function App() {
         </div>
       </nav>
 
-      <TerminalHero content={content} factLocation={factLocation} />
+      {blogRoute.view === "home" && (
+        <>
+          <TerminalHero content={content} factLocation={factLocation} />
 
       {/* ── EDUCATION ───────────────────────────────────────────────────── */}
       <section id="education">
@@ -592,7 +624,7 @@ export default function App() {
               <a className="linked ic-mail" href={email}>{content.links.find((l) => l.label === "EMAIL")?.value || ""}</a>
               <a className="linked ic-gh" href={content.links.find((l) => l.label === "GITHUB")?.href || "#"} target="_blank" rel="noopener noreferrer">github.com/hazem-alabiad</a>
               <a className="linked ic-in" href={content.links.find((l) => l.label === "LINKEDIN")?.href || "#"} target="_blank" rel="noopener noreferrer">linkedin.com/in/hazemalabiad</a>
-              <a className="linked ic-go" href={content.links.find((l) => l.label === "SCHOLAR")?.href || "#"} target="_blank" rel="noopener noreferrer">scholar.google.com</a>
+              <a className="linked ic-go" href={content.links.find((l) => l.label === "SCHOLAR")?.href || "#"} target="_blank" rel="noopener noreferrer">{content.links.find((l) => l.label === "SCHOLAR")?.value || "scholar.google.com/hazem"}</a>
             </div>
           </div>
           <div className="interests">
@@ -606,6 +638,11 @@ export default function App() {
           </div>
         </div>
       </footer>
+        </>
+      )}
+
+      {blogRoute.view === "blog" && <BlogIndex onOpen={(slug) => goBlog(slug)} />}
+      {blogRoute.view === "post" && <BlogPost slug={blogRoute.slug} onBack={exitBlog} />}
 
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
       <Shortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} onJump={scrollTo} />

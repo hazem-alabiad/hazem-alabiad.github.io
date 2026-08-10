@@ -3,7 +3,7 @@
 // these overrides on top of the built-in defaults, so editing in the CMS page
 // updates the whole CV without rebuilding.
 
-export const CMS_STORE_KEY = "hazem-portfolio-cms-settings";
+export const CMS_STORE_KEY = "hazem-portfolio-cms-settings-v4";
 
 export interface CmsExperience {
   id: string;
@@ -158,7 +158,7 @@ experience: [
     { id: "c1", label: "EMAIL", value: "hazem.alabiad@icloud.com", href: "mailto:hazem.alabiad@icloud.com" },
     { id: "c2", label: "GITHUB", value: "github.com/hazem-alabiad", href: "https://github.com/hazem-alabiad" },
     { id: "c3", label: "LINKEDIN", value: "linkedin.com/in/hazemalabiad", href: "https://linkedin.com/in/hazemalabiad" },
-    { id: "c4", label: "SCHOLAR", value: "scholar.google.com", href: "https://scholar.google.com/citations?hl=en&user=UYsJxDYAAAAJ" },
+    { id: "c4", label: "SCHOLAR", value: "scholar.google.com/hazem", href: "https://scholar.google.com/citations?user=UYsJxDYAAAAJ&hl=en" },
   ],
   stats: [
     { to: 6, suffix: "+", label: "Years engineering" },

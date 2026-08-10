@@ -1,0 +1,57 @@
+---
+title: "Shipping a Carbon-Tight React UI at 1M+ Users"
+date: "2026-05-02"
+description: "What six years of shipping production interfaces — Getir, IBM — taught me about keeping a big React codebase fast and accessible."
+tags: ["React", "TypeScript", "Accessibility", "Frontend"]
+accent: "sage"
+---
+
+Every codebase starts small and *beautiful*. Then a feature a month, a team grows, and suddenly your 300-test suite is the only thing keeping the build green. Here's the mental model I keep.
+
+## Performance is a budget, not a feature
+
+An accessibility tree is just data. Same for a virtual DOM. Act like it:
+
+```tsx
+// Memoize the thing that actually re-renders
+const Row = memo(function Row({ item, onOpen }: RowProps) {
+  return (
+    <button onClick={() => onOpen(item.id)} aria-label={`Open ${item.name}`}>
+      {item.name}
+    </button>
+  );
+});
+```
+
+The rule of thumb that has never failed me:
+
+> Render less. If you can't render less, render once. If you can't render once, memoize.
+
+## Accessibility is a contract
+
+At IBM the bar was blunt: *if a screen reader can't complete the task, it's a bug*. Same severity as a crash.
+
+```css
+/* visible focus is not optional */
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+```
+
+The checklist I literally paste into PRs:
+
+- a single clearly-labelled landmark per section
+- `aria-live` regions for async feedback
+- keyboard paths through every dropdown, drawer, and dialog
+- `prefers-reduced-motion` respected — an animation is decoration, not content
+
+## The test suite as documentation
+
+Cypress/Puppeteer get a bad rap for flakiness. Used carefully — component tests for logic, E2E for happy paths — they're the best regression net you can buy for a table-driven data product.
+
+![Automation tests protect your merge flow](/og-image.jpg)
+
+## Takeaway
+
+Fast, accessible, tested — in that order, but never skipping any. It's boring discipline, and boring discipline ships products you're proud to put your name on.
