@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { posts, type Post } from "./posts";
 import { readViews, trackView } from "./analytics";
+import BlogAdmin from "./BlogAdmin";
 
 function fmtDate(iso: string): string {
   if (!iso) return "";
@@ -13,12 +14,15 @@ function fmtDate(iso: string): string {
 
 export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
   const [views] = useState(readViews);
+  const [admin, setAdmin] = useState(false);
   return (
     <section className="blog" id="blog">
       <div className="wrap">
         <div className="section-head reveal in">
-          <div className="section-gloss"><span className="sec-icon">✎</span> n. — field notes, published & reproducible</div>
-          <h2 className="section-title">Notes &amp; <em>Ideas</em></h2>
+          <div className="section-title-row">
+            <span className="section-icon-badge" style={{ fontSize: 22 }}>✎</span>
+            <h2 className="section-title">Notes &amp; <em>Ideas</em></h2>
+          </div>
           <p className="blog-lede">Writing on NLP research, language engineering, and the craft of shipping software. {posts.length} post{posts.length === 1 ? "" : "s"}.</p>
         </div>
         <div className="blog-list">
@@ -36,8 +40,16 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
           ))}
         </div>
         <div className="blog-base">
-          <span>✎ written by hand · analytics via local view counter</span>
+          <span>✎ written by hand · analytics via local view counter · </span>
+          <button
+            className="blog-admin-toggle"
+            onClick={() => setAdmin((a) => !a)}
+            title={admin ? "Close post manager" : "Manage posts (authorized accounts only)"}
+          >
+            {admin ? "close admin ✕" : "manage posts"}
+          </button>
         </div>
+        {admin && <BlogAdmin />}
       </div>
     </section>
   );

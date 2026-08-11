@@ -454,7 +454,6 @@ export default function App() {
   const [content, setContent] = useState<CmsContent>(() => loadContent());
   const [cmsEnabled, setCmsEnabled] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
-  const [cmsToken, setCmsToken] = useState<string>(() => { try { return localStorage.getItem(CMS_TOKEN_KEY) || ""; } catch { return ""; } });
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [theme, setTheme] = useState<"dark" | "light">(() => { try { return localStorage.getItem("hazem_theme") === "light" ? "light" : "dark"; } catch { return "dark"; } });
@@ -577,9 +576,11 @@ export default function App() {
       <section id="education">
         <div className="wrap">
           <Reveal className="section-head">
-          <div className="section-gloss"><span className="sec-icon sec-icon--violet"><Icon name="grad" size={11} /></span> n. — formal training, in reverse</div>
-          <h2 className="section-title">Educ<em>ation</em></h2>
-        </Reveal>
+            <div className="section-title-row">
+              <span className="section-icon-badge section-icon-badge--violet"><Icon name="grad" size={20} /></span>
+              <h2 className="section-title">Educ<em>ation</em></h2>
+            </div>
+          </Reveal>
           <div className="timeline">
             {content.education.map((edu) => (
               <Reveal key={edu.id}>
@@ -609,8 +610,10 @@ export default function App() {
       <section id="experience">
         <div className="wrap">
           <Reveal className="section-head">
-            <div className="section-gloss"><span className="sec-icon sec-icon--sage"><Icon name="work" size={11} /></span> n. — a chronological record of applied work</div>
-            <h2 className="section-title">Exper<em>ience</em></h2>
+            <div className="section-title-row">
+              <span className="section-icon-badge section-icon-badge--sage"><Icon name="work" size={20} /></span>
+              <h2 className="section-title">Exper<em>ience</em></h2>
+            </div>
           </Reveal>
           <div className="timeline">
             {content.experience.map((exp) => (
@@ -641,8 +644,10 @@ export default function App() {
       <section id="research">
         <div className="wrap">
           <Reveal className="section-head">
-            <div className="section-gloss"><span className="sec-icon sec-icon--pink"><Icon name="flask" size={11} /></span> n. — inquiry made public and reproducible</div>
-            <h2 className="section-title">Research &amp; Pro<em>jects</em></h2>
+            <div className="section-title-row">
+              <span className="section-icon-badge section-icon-badge--pink"><Icon name="flask" size={20} /></span>
+              <h2 className="section-title">Research &amp; Pro<em>jects</em></h2>
+            </div>
           </Reveal>
           <div className="proj-grid">
             {content.projects.map((p) => (
@@ -672,8 +677,10 @@ export default function App() {
       <section id="skills">
         <div className="wrap">
           <Reveal className="section-head">
-            <div className="section-gloss"><span className="sec-icon sec-icon--sage"><Icon name="code" size={11} /></span> n. — the working vocabulary, grouped by class</div>
-            <h2 className="section-title">Lexi<em>con</em></h2>
+            <div className="section-title-row">
+              <span className="section-icon-badge section-icon-badge--blue"><Icon name="code" size={20} /></span>
+              <h2 className="section-title">Lexi<em>con</em></h2>
+            </div>
           </Reveal>
           <div className="lexicon">
             <Reveal>
@@ -775,7 +782,6 @@ export default function App() {
           onSave={(c) => { saveAll(c); setEditorOpen(false); }}
           onReset={() => { resetContent(); setContent(loadContent()); setEditorOpen(false); }}
           onClose={() => setEditorOpen(false)}
-          token={cmsToken}
         />
       )}
     </>
