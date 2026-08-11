@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Check, Share2 } from "lucide-react";
 import { posts, type Post } from "./posts";
 import { readViews, trackView, totalViews, type ViewsMap } from "./analytics";
 
@@ -6,6 +7,7 @@ const FONT_SCALE_KEY = "hazem_font_scale";
 const FONT_SIZES = [16, 18, 20, 22];
 
 const profileUrl = (username: string) => `https://linkedin.com/in/${username}`;
+const shareUrl = (slug: string) => `${location.origin}${location.pathname}#/blog/${slug}`;
 const authorOf = (p: Post) => (p.author && p.author.trim()) || "hazem-alabiad";
 
 function fmtDate(iso: string): string {
@@ -80,6 +82,7 @@ export function BlogIndex({ onOpen, onManage }: { onOpen: (slug: string) => void
 export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void }) {
   const post = posts.find((p) => p.slug === slug);
   const [views, setViews] = useState<ViewsMap>(readViews);
+  const [copied, setCopied] = useState(false);
   const [size, setSize] = useState(() => {
     try {
       const v = parseInt(localStorage.getItem(FONT_SCALE_KEY) || "", 10);
@@ -89,6 +92,28 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
   useEffect(() => {
     if (post) setViews(trackView(`post:${post.slug}`));
   }, [slug]);
+
+  useEffect(() => {
+    const prose = document.querySelector(".blog-prose");
+    if (!prose) return;
+    prose.querySelectorAll("pre").forEach((pre) => {
+      if (pre.querySelector(".blog-copy")) return;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "blog-copy";
+      btn.textContent = "copy";
+      btn.title = "Copy code";
+      btn.addEventListener("click", () => {
+        try {
+          navigator.clipboard.writeText(pre.textContent || "").then(() => {
+            btn.textContent = "copied";
+            setTimeout(() => { btn.textContent = "copy"; }, 1600);
+          });
+        } catch { /* clipboard unavailable */ }
+      });
+      pre.appendChild(btn);
+    });
+  }, [slug, size]);
   if (!post) {
     return (
       <section className="blog" id="blog">
@@ -108,6 +133,13 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
     setSize(next);
   };
   const author = authorOf(post);
+  const copyLink = async () => {
+    const done = () => { setCopied(true); setTimeout(() => setCopied(false), 1800); };
+    try {
+      await navigator.clipboard.writeText(shareUrl(post.slug));
+    } catch { /* clipboard unavailable */ }
+    done();
+  };
   return (
     <section className={`blog blog-post blog-post--${accent || "amber"}`} id="blog">
       <div className="wrap">
@@ -126,6 +158,7 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
             <span className="blog-article-author">written by <a href={profileUrl(author)} target="_blank" rel="noopener noreferrer">@{author}</a></span>
           </div>
           <div className="blog-article-tools">
+            <button className="blog-size-btn blog-share-btn" onClick={copyLink} title="Copy link to this post">{copied ? <Check size={13} /> : <Share2 size={13} />}</button>
             <button className="blog-size-btn" onClick={() => idx > 0 && setPersist(FONT_SIZES[idx - 1])} disabled={idx <= 0} title="Smaller text">A−</button>
             <button className="blog-size-btn" onClick={() => idx < FONT_SIZES.length - 1 && setPersist(FONT_SIZES[idx + 1])} disabled={idx >= FONT_SIZES.length - 1} title="Larger text">A+</button>
           </div>
@@ -136,9 +169,6 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
           </div>
           <div className="blog-article-foot">
             <span>Thanks for reading — feedback welcome.</span>
-            <div className="blog-article-social">
-              <a href={profileUrl(author)} target="_blank" rel="noopener noreferrer">@{author}</a>
-            </div>
           </div>
         </article>
       </div>
