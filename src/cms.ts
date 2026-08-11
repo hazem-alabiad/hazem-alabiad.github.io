@@ -94,7 +94,7 @@ export const DEFAULT_CONTENT: CmsContent = {
   factAvailable: "NLP / AI / Full-Stack",
   contactIntro:
     "Open to roles in NLP, AI/LLM engineering, and full-stack software engineering — reach out directly or find me on any of the links below.",
-  footerLine: "© HAZEM ALABIAD — TÜBINGEN, GERMANY",
+  footerLine: "© {year} HAZEM ALABIAD — TÜBINGEN, GERMANY",
   photo: null,
   cvName: "Hazem-Alabiad-CV.pdf",
   cvDataUrl: null,
