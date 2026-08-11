@@ -6,6 +6,7 @@ import { posts } from "./posts";
 import { unfurl, type LinkMeta } from "./unfurl";
 
 const BLOG_TOKEN_KEY = "hazem-blog-token";
+const BLOG_USER_KEY = "hazem-blog-user";
 
 const POST_META = new Map<string, { title: string; description: string; tags: string[] }>();
 for (const p of posts) POST_META.set(p.slug, { title: p.title, description: p.description, tags: p.tags });
@@ -241,7 +242,7 @@ export default function BlogAdmin() {
     setBusy(true); setAuthErr("");
     try {
       const u = await verifyToken(value);
-      try { localStorage.setItem(BLOG_TOKEN_KEY, value); } catch { /* storage unavailable */ }
+      try { localStorage.setItem(BLOG_TOKEN_KEY, value); localStorage.setItem(BLOG_USER_KEY, u.login); } catch { /* storage unavailable */ }
       setUser(u); setToken(value); setStage("ready");
       refresh(value);
     } catch (e) { setAuthErr((e as Error).message); }
@@ -249,9 +250,14 @@ export default function BlogAdmin() {
   }
 
   function lock() {
-    try { localStorage.removeItem(BLOG_TOKEN_KEY); } catch { /* noop */ }
     setUser(null); setToken(""); setDraft(null); setStage("unlock");
   }
+
+  let savedSession: { token: string; login: string } | null = null;
+  try {
+    const t = localStorage.getItem(BLOG_TOKEN_KEY);
+    if (t) savedSession = { token: t, login: localStorage.getItem(BLOG_USER_KEY) || "saved session" };
+  } catch { /* storage unavailable */ }
 
   useEffect(() => {
     let saved = "";
@@ -346,6 +352,14 @@ export default function BlogAdmin() {
             </button>
           </div>
           {authErr && <div style={{ ...MONO, fontSize: 11, color: "var(--red)" }}>✗ {authErr}</div>}
+          {savedSession && (
+            <div style={{ ...MONO, fontSize: 11, color: "var(--ink-faint)", marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}>
+              <span>saved session as @{savedSession.login} — no token needed.</span>
+              <button onClick={() => unlock(savedSession!.token)} disabled={busy} style={chipBtn("var(--sage)", true)}>
+                <Lock size={12} /> RESUME
+              </button>
+            </div>
+          )}
         </Panel>
       )}
 

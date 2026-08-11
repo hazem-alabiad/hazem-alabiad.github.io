@@ -167,7 +167,7 @@ const TERM_ROLES = [
   { t: "Research Assistant · Cognitive & AI (IWM)", p: false, tag: "current" },
 ];
 
-function TerminalHero({ content, factLocation }: { content: CmsContent; factLocation: string }) {
+function TerminalHero({ content, factLocation, visits }: { content: CmsContent; factLocation: string; visits: number }) {
   const [typed, setTyped] = useState(false);
   const [cmd, setCmd] = useState("");
   const reduce = useMemo(() => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches, []);
@@ -261,6 +261,7 @@ function TerminalHero({ content, factLocation }: { content: CmsContent; factLoca
                   <div className="term-kv term-kv--feature"><span className="term-k">experience</span><span className="term-v">"6+ years"</span></div>
                   <div className="term-kv term-kv--feature"><span className="term-k">open_to</span><span className="term-v">["Working Student", "NLP/AI/LLMs"]</span></div>
                   <div className="term-kv"><span className="term-k">languages</span><span className="term-v">[{content.languages.map((l) => `"${l.name.slice(0, 2).toUpperCase()}"`).join(", ")}]</span></div>
+                  <div className="term-kv term-kv--feature"><span className="term-k">visitors</span><span className="term-v">{visits.toLocaleString()}</span></div>
                 </div>
               </div>
             )}
@@ -572,7 +573,7 @@ export default function App() {
 
       {blogRoute.view === "home" && (
         <>
-          <TerminalHero content={content} factLocation={factLocation} />
+          <TerminalHero content={content} factLocation={factLocation} visits={visits} />
 
       {/* ── EDUCATION ───────────────────────────────────────────────────── */}
       <section id="education">
