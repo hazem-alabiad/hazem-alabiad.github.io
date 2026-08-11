@@ -920,6 +920,7 @@ footer {
 .blog-card--violet .blog-card-tags span { color: var(--violet); border-color: var(--violet-soft); background: var(--violet-soft); }
 .blog-card--pink .blog-card-tags span { color: var(--pink); border-color: var(--pink-soft); background: var(--pink-soft); }
 .blog-base { margin-top: 30px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint); }
+.blog-base-views { color: var(--amber); }
 .blog-admin-toggle {
   font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em;
   color: var(--violet); background: none; border: none;

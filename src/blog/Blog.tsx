@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { posts, type Post } from "./posts";
-import { readViews, trackView, type ViewsMap } from "./analytics";
+import { readViews, trackView, totalViews, type ViewsMap } from "./analytics";
 
 const FONT_SCALE_KEY = "hazem_font_scale";
 const FONT_SIZES = [16, 18, 20, 22];
@@ -34,6 +34,7 @@ function relDate(iso: string): string {
 
 export function BlogIndex({ onOpen, onManage }: { onOpen: (slug: string) => void; onManage: () => void }) {
   const [views] = useState(readViews);
+  const total = totalViews(views);
   return (
     <section className="blog" id="blog">
       <div className="wrap">
@@ -62,7 +63,7 @@ export function BlogIndex({ onOpen, onManage }: { onOpen: (slug: string) => void
           ))}
         </div>
         <div className="blog-base">
-          <span>✎ written by hand · analytics via local view counter · </span>
+          <span>✎ written by hand · <span className="blog-base-views">◉ {total} total views</span></span>
           <button
             className="blog-admin-toggle"
             onClick={onManage}
@@ -118,6 +119,8 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
             <span className="blog-article-rel">{relDate(post.date)}</span>
             <span className="blog-article-dot">·</span>
             <span className="blog-article-tags">{post.tags.map((t) => <span key={t}>#{t}</span>)}</span>
+            <span className="blog-article-dot">·</span>
+            <span className="blog-article-views">{views[`post:${post.slug}`] || 0} views</span>
           </div>
           <div className="blog-article-by">
             <span className="blog-article-author">written by <a href={profileUrl(author)} target="_blank" rel="noopener noreferrer">@{author}</a></span>
@@ -125,7 +128,6 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
           <div className="blog-article-tools">
             <button className="blog-size-btn" onClick={() => idx > 0 && setPersist(FONT_SIZES[idx - 1])} disabled={idx <= 0} title="Smaller text">A−</button>
             <button className="blog-size-btn" onClick={() => idx < FONT_SIZES.length - 1 && setPersist(FONT_SIZES[idx + 1])} disabled={idx >= FONT_SIZES.length - 1} title="Larger text">A+</button>
-            <span className="blog-article-views">{views[`post:${post.slug}`] || 0} views</span>
           </div>
           <h1>{post.title}</h1>
           <p className="blog-article-desc">{post.description}</p>
