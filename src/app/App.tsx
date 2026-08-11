@@ -764,7 +764,7 @@ export default function App() {
           </div>
           <div className="footer-meta">
             <span {...ep("footerLine", "", {}, save, cmsEnabled)} className="copyright">
-              {get(content, "footerLine", "© 2026 Hazem Alabiad — tokenized by hand.")}
+              {get(content, "footerLine", "© Hazem Alabiad — Tübingen, Germany").replace("{year}", String(new Date().getFullYear()))}
             </span>
             <span className="footer-visits">visits <b>{visits.toLocaleString()}</b></span>
           </div>

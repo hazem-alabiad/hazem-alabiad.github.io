@@ -44,7 +44,6 @@ export interface CmsProject {
 export interface CmsSkill {
   id: string;
   label: string;
-  level: number;
   cat: "stack" | "ai";
 }
 
@@ -95,8 +94,9 @@ export const DEFAULT_CONTENT: CmsContent = {
   factAvailable: "NLP / AI / Full-Stack",
   contactIntro:
     "Open to roles in NLP, AI/LLM engineering, and full-stack software engineering — reach out directly or find me on any of the links below.",
-  footerLine: "© 2026 HAZEM ALABIAD. TÜBINGEN, GERMANY.",
+  footerLine: "© HAZEM ALABIAD — TÜBINGEN, GERMANY",
   photo: null,
+  cvName: "Hazem-Alabiad-CV.pdf",
   cvDataUrl: null,
 experience: [
     { id: "e1", role: "Research Assistant", company: "University of Tübingen", location: "Autonomous Learning Lab · Tübingen", period: "Jul 2026 – Present", bullets: ["Building an LLM-based AI tutor for university lectures — a conversational agent for student support and adaptive learning."], tags: ["LLMs", "NLP", "Research"], current: true },
