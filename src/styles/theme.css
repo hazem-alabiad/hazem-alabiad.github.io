@@ -58,9 +58,9 @@
 
 /* ── type stacks ── */
 :root {
-  --font-display: 'Newsreader', Georgia, serif;
-  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', 'SF Mono', monospace;
+  --font-display: 'Newsreader', 'Geeza Pro', Georgia, serif;
+  --font-body: 'IBM Plex Sans', 'Geeza Pro', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', 'Geeza Pro', monospace;
   --max-w: 1080px;
 }
 

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { posts, type Post } from "./posts";
 import { readViews, trackView } from "./analytics";
-import BlogAdmin from "./BlogAdmin";
 
 function fmtDate(iso: string): string {
   if (!iso) return "";
@@ -12,9 +11,8 @@ function fmtDate(iso: string): string {
   }
 }
 
-export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
+export function BlogIndex({ onOpen, onManage }: { onOpen: (slug: string) => void; onManage: () => void }) {
   const [views] = useState(readViews);
-  const [admin, setAdmin] = useState(false);
   return (
     <section className="blog" id="blog">
       <div className="wrap">
@@ -43,13 +41,12 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
           <span>✎ written by hand · analytics via local view counter · </span>
           <button
             className="blog-admin-toggle"
-            onClick={() => setAdmin((a) => !a)}
-            title={admin ? "Close post manager" : "Manage posts (authorized accounts only)"}
+            onClick={onManage}
+            title="Manage posts (authorized accounts only)"
           >
-            {admin ? "close admin ✕" : "manage posts"}
+            manage posts
           </button>
         </div>
-        {admin && <BlogAdmin />}
       </div>
     </section>
   );

@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Audiowide&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  --font-display: 'Newsreader', Georgia, serif;
-  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', 'SF Mono', monospace;
+  --font-display: 'Newsreader', 'Geeza Pro', Georgia, serif;
+  --font-body: 'IBM Plex Sans', 'Geeza Pro', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', 'Geeza Pro', monospace;
 }

@@ -5,6 +5,7 @@ import {
 } from "../cms";
 import CmsEditor from "../CmsEditor";
 import { BlogIndex, BlogPost } from "../blog/Blog";
+import BlogAdmin from "../blog/BlogAdmin";
 import hazemPhoto from "../imports/hazem-photo.jpeg";
 import cvPdf from "../imports/Hazem-Alabiad-CV.pdf";
 
@@ -18,6 +19,7 @@ function useBlogRoute() {
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
+  if (route === "#/blog/admin" || route === "#/blog/admin/") return { view: "admin" } as const;
   if (route.startsWith("#/blog/")) return { view: "post", slug: route.slice("#/blog/".length) } as const;
   if (route === "#/blog" || route === "#/blog/") return { view: "blog" } as const;
   return { view: "home" } as const;
@@ -770,7 +772,15 @@ export default function App() {
         </>
       )}
 
-      {blogRoute.view === "blog" && <BlogIndex onOpen={(slug) => goBlog(slug)} />}
+      {blogRoute.view === "blog" && <BlogIndex onOpen={(slug) => goBlog(slug)} onManage={() => goBlog("admin")} />}
+      {blogRoute.view === "admin" && (
+        <section className="blog" id="blog">
+          <div className="wrap">
+            <button className="btn blog-back" onClick={() => goBlog()}>← all notes</button>
+            <BlogAdmin />
+          </div>
+        </section>
+      )}
       {blogRoute.view === "post" && <BlogPost slug={blogRoute.slug} onBack={exitBlog} />}
 
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
