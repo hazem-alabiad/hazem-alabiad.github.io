@@ -454,6 +454,7 @@ export default function App() {
   const [content, setContent] = useState<CmsContent>(() => loadContent());
   const [cmsEnabled, setCmsEnabled] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [cmsToken, setCmsToken] = useState<string>(() => { try { return localStorage.getItem(CMS_TOKEN_KEY) || ""; } catch { return ""; } });
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [theme, setTheme] = useState<"dark" | "light">(() => { try { return localStorage.getItem("hazem_theme") === "light" ? "light" : "dark"; } catch { return "dark"; } });
@@ -769,7 +770,13 @@ export default function App() {
       <Shortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} onJump={scrollTo} />
       <CMSButton enabled={cmsEnabled} onUnlock={() => setCmsEnabled(true)} onDisable={() => setCmsEnabled(false)} onOpenEditor={() => setEditorOpen(true)} />
       {cmsEnabled && editorOpen && (
-        <CmsEditor initial={content} onSave={(c) => { saveAll(c); setEditorOpen(false); }} onReset={() => { resetContent(); setContent(loadContent()); setEditorOpen(false); }} onClose={() => setEditorOpen(false)} />
+        <CmsEditor
+          initial={content}
+          onSave={(c) => { saveAll(c); setEditorOpen(false); }}
+          onReset={() => { resetContent(); setContent(loadContent()); setEditorOpen(false); }}
+          onClose={() => setEditorOpen(false)}
+          token={cmsToken}
+        />
       )}
     </>
   );

@@ -454,6 +454,10 @@ h1.name {
   from { opacity: 0; transform: translate(-50%, 10px); }
   to   { opacity: 1; transform: translate(-50%, 0); }
 }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
 
 /* ============================================================================
    SECTIONS
@@ -806,7 +810,6 @@ footer {
   border: 1px solid var(--rule-soft); border-radius: 12px;
   background: var(--bg-panel);
   box-shadow: 0 10px 28px var(--shadow);
-  max-width: 720px;
 }
 .hobbies-head {
   display: flex; align-items: center; gap: 8px;
