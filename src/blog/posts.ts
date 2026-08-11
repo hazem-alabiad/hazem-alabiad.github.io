@@ -7,6 +7,7 @@ type Post = {
   description: string;
   tags: string[];
   accent?: string;
+  author?: string;
   Component: () => JSX.Element;
 };
 
@@ -23,6 +24,7 @@ export const posts: Post[] = Object.entries(modules)
       description: String(fm.description ?? ""),
       tags: Array.isArray(fm.tags) ? (fm.tags as string[]).map((t) => String(t)) : [],
       accent: typeof fm.accent === "string" ? fm.accent : undefined,
+      author: typeof fm.author === "string" ? fm.author : undefined,
       Component: mod.default,
     };
   })

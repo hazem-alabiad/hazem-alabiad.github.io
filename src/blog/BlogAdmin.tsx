@@ -1,8 +1,9 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
-import { Plus, Trash2, Save, Loader2, Lock, FileText, KeyRound, Search } from "lucide-react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Plus, Trash2, Save, Loader2, Lock, FileText, KeyRound, Search, Link2 } from "lucide-react";
 import { listPosts, readPost, writePost, deletePost, slugify, todayISO, type GhFile } from "../github";
 import { isAuthorized, type BlogAuthorUser } from "./authors";
 import { posts } from "./posts";
+import { unfurl, type LinkMeta } from "./unfurl";
 
 const BLOG_TOKEN_KEY = "hazem-blog-token";
 
@@ -83,10 +84,11 @@ interface BlogDraft {
   description: string;
   tags: string[];
   accent: string;
+  author: string;
   body: string;
 }
 
-const EMPTY_DRAFT: BlogDraft = { isNew: true, slug: "", path: "", title: "", date: todayISO(), description: "", tags: [], accent: "amber", body: "" };
+const EMPTY_DRAFT: BlogDraft = { isNew: true, slug: "", path: "", title: "", date: todayISO(), description: "", tags: [], accent: "amber", author: "hazem-alabiad", body: "" };
 
 function parseFrontmatter(raw: string): { fm: Record<string, string>; body: string } {
   const fm: Record<string, string> = {};
@@ -117,6 +119,7 @@ function buildMdx(d: BlogDraft): string {
   lines.push(`title: "${esc(d.title)}"`);
   lines.push(`date: "${d.date}"`);
   lines.push(`description: "${esc(d.description)}"`);
+  if (d.author && d.author.trim()) lines.push(`author: "${esc(d.author.trim())}"`);
   if (d.tags.length) lines.push(`tags: [${d.tags.map((t) => `"${esc(t)}"`).join(", ")}]`);
   if (d.accent) lines.push(`accent: "${d.accent}"`);
   lines.push("---", "");
@@ -197,6 +200,34 @@ export default function BlogAdmin() {
   const [ok, setOk] = useState("");
   const [q, setQ] = useState("");
   const [mode, setMode] = useState<"write" | "preview">("write");
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const linkAt = useRef<number | null>(null);
+  const [link, setLink] = useState<{ url: string; meta: LinkMeta | null; loading: boolean; error: string } | null>(null);
+
+  function openLink() {
+    const sel = bodyRef.current?.selectionStart ?? draft?.body.length ?? 0;
+    linkAt.current = sel;
+    setLink({ url: "", meta: null, loading: false, error: "" });
+  }
+
+  async function fetchLink() {
+    if (!link || !link.url.trim()) return;
+    setLink({ ...link, loading: true, error: "" });
+    try {
+      const meta = await unfurl(link.url.trim());
+      setLink({ ...link, loading: false, meta });
+    } catch (e) {
+      setLink({ ...link, loading: false, error: (e as Error).message });
+    }
+  }
+
+  function insertLink() {
+    if (!draft || !link?.meta) return;
+    const at = linkAt.current ?? draft.body.length;
+    const md = `[${link.meta.title}](${link.meta.url})`;
+    setDraft({ ...draft, body: draft.body.slice(0, at) + md + draft.body.slice(at) });
+    setLink(null);
+  }
 
   async function refresh(activeToken: string) {
     setLoading(true); setErr("");
@@ -235,7 +266,7 @@ export default function BlogAdmin() {
     try {
       const raw = await readPost(token, p.path);
       const { fm, body } = parseFrontmatter(raw);
-      setDraft({ isNew: false, slug: p.name.replace(/\.mdx$/, ""), path: p.path, sha: p.sha, title: fm.title ?? "", date: fm.date ?? todayISO(), description: fm.description ?? "", tags: parseTags(fm.tags), accent: fm.accent || "amber", body });
+      setDraft({ isNew: false, slug: p.name.replace(/\.mdx$/, ""), path: p.path, sha: p.sha, title: fm.title ?? "", date: fm.date ?? todayISO(), description: fm.description ?? "", tags: parseTags(fm.tags), accent: fm.accent || "amber", author: typeof fm.author === "string" && fm.author.trim() ? fm.author.trim() : "hazem-alabiad", body });
     } catch (e) { setErr((e as Error).message); }
     finally { setBusy(false); }
   }
@@ -384,6 +415,12 @@ export default function BlogAdmin() {
                   <Label>TAGS (comma-separated)</Label>
                   {input(draft.tags.join(", "), (s) => setDraft({ ...draft, tags: s.split(",").map((t) => t.trim()).filter(Boolean) }))}
                 </div>
+                <div>
+                  <Label>AUTHOR — @username (links to LinkedIn)</Label>
+                  {input(draft.author, (s) => setDraft({ ...draft, author: s }))}
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
                   <Label>ACCENT</Label>
                   <select value={draft.accent} onChange={(e) => setDraft({ ...draft, accent: e.target.value })} style={FIELD}>

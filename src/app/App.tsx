@@ -259,8 +259,8 @@ function TerminalHero({ content, factLocation }: { content: CmsContent; factLoca
                     </div>
                   ))}
                   <div className="term-kv term-kv--feature"><span className="term-k">experience</span><span className="term-v">"6+ years"</span></div>
-                  <div className="term-kv term-kv--feature"><span className="term-k">open_to</span><span className="term-v">["Working Student","NLP/AI/LLMs"]</span></div>
-                  <div className="term-kv"><span className="term-k">languages</span><span className="term-v">[{content.languages.map((l) => `"${l.name.slice(0, 2).toUpperCase()}"`).join(",")}]</span></div>
+                  <div className="term-kv term-kv--feature"><span className="term-k">open_to</span><span className="term-v">["Working Student", "NLP/AI/LLMs"]</span></div>
+                  <div className="term-kv"><span className="term-k">languages</span><span className="term-v">[{content.languages.map((l) => `"${l.name.slice(0, 2).toUpperCase()}"`).join(", ")}]</span></div>
                 </div>
               </div>
             )}

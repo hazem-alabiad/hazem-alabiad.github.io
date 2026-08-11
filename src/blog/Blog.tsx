@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { posts, type Post } from "./posts";
-import { readViews, trackView } from "./analytics";
+import { readViews, trackView, type ViewsMap } from "./analytics";
+
+const FONT_SCALE_KEY = "hazem_font_scale";
+const FONT_SIZES = [16, 18, 20, 22];
+
+const profileUrl = (username: string) => `https://linkedin.com/in/${username}`;
+const authorOf = (p: Post) => (p.author && p.author.trim()) || "hazem-alabiad";
 
 function fmtDate(iso: string): string {
   if (!iso) return "";
@@ -8,6 +14,21 @@ function fmtDate(iso: string): string {
     return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
   } catch {
     return iso;
+  }
+}
+
+function relDate(iso: string): string {
+  if (!iso) return "";
+  try {
+    const days = Math.round((Date.now() - new Date(iso).getTime()) / 864e5);
+    if (days < 1) return "today";
+    if (days === 1) return "yesterday";
+    if (days < 7) return `${days} days ago`;
+    if (days < 30) return `${Math.round(days / 7)} weeks ago`;
+    if (days < 365) return `${Math.round(days / 30)} months ago`;
+    return `${Math.round(days / 365)} years ago`;
+  } catch {
+    return "";
   }
 }
 
@@ -27,13 +48,16 @@ export function BlogIndex({ onOpen, onManage }: { onOpen: (slug: string) => void
           {posts.map((p: Post) => (
             <article className={`blog-card blog-card--${p.accent || "amber"}`} key={p.slug} onClick={() => onOpen(p.slug)}>
               <div className="blog-card-top">
-                <span className="blog-card-date">{fmtDate(p.date)}</span>
+                <span className="blog-card-date">{fmtDate(p.date)} <span className="blog-card-rel">· {relDate(p.date)}</span></span>
                 <span className="blog-card-views">{views[p.slug] || 0} views</span>
               </div>
               <h3>{p.title}</h3>
               <p>{p.description}</p>
-              <div className="blog-card-tags">{p.tags.map((t) => <span key={t}>{t}</span>)}</div>
-              <span className="blog-card-more">read →</span>
+              <div className="blog-card-tags">{p.tags.map((t) => <span key={t}>#{t}</span>)}</div>
+              <div className="blog-card-foot">
+                <a className="blog-card-author" href={profileUrl(authorOf(p))} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>✍ @{authorOf(p)}</a>
+                <span className="blog-card-more">read →</span>
+              </div>
             </article>
           ))}
         </div>
@@ -54,8 +78,15 @@ export function BlogIndex({ onOpen, onManage }: { onOpen: (slug: string) => void
 
 export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void }) {
   const post = posts.find((p) => p.slug === slug);
+  const [views, setViews] = useState<ViewsMap>(readViews);
+  const [size, setSize] = useState(() => {
+    try {
+      const v = parseInt(localStorage.getItem(FONT_SCALE_KEY) || "", 10);
+      return FONT_SIZES.includes(v) ? v : 18;
+    } catch { return 18; }
+  });
   useEffect(() => {
-    if (post) trackView(`post:${post.slug}`);
+    if (post) setViews(trackView(`post:${post.slug}`));
   }, [slug]);
   if (!post) {
     return (
@@ -70,6 +101,12 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
     );
   }
   const { Component, accent } = post;
+  const idx = FONT_SIZES.indexOf(size);
+  const setPersist = (next: number) => {
+    try { localStorage.setItem(FONT_SCALE_KEY, String(next)); } catch { /* ignore */ }
+    setSize(next);
+  };
+  const author = authorOf(post);
   return (
     <section className={`blog blog-post blog-post--${accent || "amber"}`} id="blog">
       <div className="wrap">
@@ -78,15 +115,28 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
           <div className="blog-article-meta">
             <span className="blog-article-date">{fmtDate(post.date)}</span>
             <span className="blog-article-dot">·</span>
-            <span className="blog-article-tags">{post.tags.join(" · ")}</span>
+            <span className="blog-article-rel">{relDate(post.date)}</span>
+            <span className="blog-article-dot">·</span>
+            <span className="blog-article-tags">{post.tags.map((t) => <span key={t}>#{t}</span>)}</span>
+          </div>
+          <div className="blog-article-by">
+            <span className="blog-article-author">written by <a href={profileUrl(author)} target="_blank" rel="noopener noreferrer">@{author}</a></span>
+          </div>
+          <div className="blog-article-tools">
+            <button className="blog-size-btn" onClick={() => idx > 0 && setPersist(FONT_SIZES[idx - 1])} disabled={idx <= 0} title="Smaller text">A−</button>
+            <button className="blog-size-btn" onClick={() => idx < FONT_SIZES.length - 1 && setPersist(FONT_SIZES[idx + 1])} disabled={idx >= FONT_SIZES.length - 1} title="Larger text">A+</button>
+            <span className="blog-article-views">{views[`post:${post.slug}`] || 0} views</span>
           </div>
           <h1>{post.title}</h1>
           <p className="blog-article-desc">{post.description}</p>
-          <div className="blog-prose">
+          <div className="blog-prose" style={{ fontSize: size, ["--prose-scale" as string]: (size / 17).toFixed(3) }}>
             <Component />
           </div>
           <div className="blog-article-foot">
             <span>Thanks for reading — feedback welcome.</span>
+            <div className="blog-article-social">
+              <a href={profileUrl(author)} target="_blank" rel="noopener noreferrer">@{author}</a>
+            </div>
           </div>
         </article>
       </div>
