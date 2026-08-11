@@ -11,6 +11,8 @@ export interface CmsExperience {
   company: string;
   location: string;
   period: string;
+  start?: { m: number; y: number } | null;
+  end?: { m: number; y: number } | null;
   bullets: string[];
   tags: string[];
   current: boolean;
@@ -139,17 +141,17 @@ experience: [
     { id: "p4", name: "Automated Essay Grading", desc: "LSTM-based automated essay grading pipeline with multi-trait scoring, NLP preprocessing, and attention mechanisms for feature extraction.", impact: "Grades essays across multiple traits in one automated pass.", tags: ["LSTM", "NLP", "Python", "TensorFlow"], status: "COMPLETE", year: "2019", link: "https://github.com/hazem-alabiad" },
   ],
   skills: [
-    { id: "s1", label: "React.js / Next.js / TypeScript / JavaScript (ES6+)", level: 98, cat: "stack" },
-    { id: "s2", label: "GraphQL / Apollo Federation", level: 90, cat: "stack" },
-    { id: "s3", label: "Node.js / WebSocket", level: 87, cat: "stack" },
-    { id: "s4", label: "Redux", level: 86, cat: "stack" },
-    { id: "s5", label: "Elasticsearch", level: 82, cat: "stack" },
-    { id: "s6", label: "Python", level: 96, cat: "ai" },
-    { id: "s7", label: "LLMs / NLP", level: 93, cat: "ai" },
-    { id: "s8", label: "TensorFlow / Transfer Learning", level: 86, cat: "ai" },
-    { id: "s9", label: "Data Engineering", level: 84, cat: "ai" },
-    { id: "s10", label: "R / Pandas", level: 82, cat: "ai" },
-    { id: "s11", label: "Machine Learning Pipelines", level: 85, cat: "ai" },
+    { id: "s1", label: "React.js / Next.js / TypeScript / JavaScript (ES6+)", cat: "stack" },
+    { id: "s2", label: "GraphQL / Apollo Federation", cat: "stack" },
+    { id: "s3", label: "Node.js / WebSocket", cat: "stack" },
+    { id: "s4", label: "Redux", cat: "stack" },
+    { id: "s5", label: "Elasticsearch", cat: "stack" },
+    { id: "s6", label: "Python", cat: "ai" },
+    { id: "s7", label: "LLMs / NLP", cat: "ai" },
+    { id: "s8", label: "TensorFlow / Transfer Learning", cat: "ai" },
+    { id: "s9", label: "Data Engineering", cat: "ai" },
+    { id: "s10", label: "R / Pandas", cat: "ai" },
+    { id: "s11", label: "Machine Learning Pipelines", cat: "ai" },
   ],
   languages: [
     { id: "l1", name: "Arabic", level: "Native" },

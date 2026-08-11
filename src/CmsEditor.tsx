@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
-import { X, Plus, Trash2, FileUp, Lock, Save, RotateCcw } from "lucide-react";
+import { X, Plus, Trash2, FileUp, Lock, Save, RotateCcw, GitBranch } from "lucide-react";
+import hazemPhoto from "./imports/hazem-photo.jpeg";
 import {
   uid,
   type CmsContent,
@@ -33,6 +34,46 @@ const inputStyle = (w = "auto"): CSSProperties => ({
   display: "block",
 });
 
+const tokenize = (s: string): string[] => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").split(" ").filter((t) => t.length > 2);
+
+function repoScore(projectName: string, repo: { name: string; description?: string | null }): number {
+  const p = tokenize(projectName);
+  const hay = new Set(tokenize(`${repo.name} ${repo.description || ""}`));
+  if (!p.length) return 0;
+  return p.filter((t) => hay.has(t)).length / p.length;
+}
+
+const MONTHS = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
+const MONTH_INDEX: Record<string, number> = { JAN: 1, FEB: 2, MAR: 3, APR: 4, MAY: 5, JUN: 6, JUL: 7, AUG: 8, SEP: 9, OCT: 10, NOV: 11, DEC: 12 };
+
+function fmtPeriod(start: { m: number; y: number } | null | undefined, end: { m: number; y: number } | null | undefined, current: boolean): string {
+  const s = start && start.y ? `${MONTHS[start.m || 0] || ""} ${start.y}`.trim() : "";
+  const e = end && end.y ? `${MONTHS[end.m || 0] || ""} ${end.y}`.trim() : "";
+  if (!s && !e) return "";
+  return `${s}${s ? " – " : ""}${current || !e ? "Present" : e}`;
+}
+
+function periodStart(period: string): number {
+  const parts = period.toUpperCase().split(/[\s–—\-/]+/).filter(Boolean);
+  let year = 0, month = 0;
+  for (const p of parts) {
+    const y = parseInt(p, 10);
+    if (!Number.isNaN(y) && y >= 1900 && y <= 2100) { if (year === 0 || y < year) year = y; }
+    else if (MONTH_INDEX[p]) { if (month === 0 || MONTH_INDEX[p] < month) month = MONTH_INDEX[p]; }
+  }
+  return year * 100 + month;
+}
+
+function dateKey(item: { start?: { m: number; y: number } | null; period?: string }): number {
+  const st = item.start && item.start.y ? item.start.y * 100 + (item.start.m || 0) : 0;
+  return st || periodStart(item.period || "");
+}
+
+function byDate(a: { current?: boolean; start?: { m: number; y: number } | null; period?: string }, b: { current?: boolean; start?: { m: number; y: number } | null; period?: string }): number {
+  if (!!a.current !== !!b.current) return a.current ? -1 : 1;
+  return dateKey(b) - dateKey(a);
+}
+
 function Label({ children }: { children: ReactNode }) {
   return (
     <div style={{ ...MONO, fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 6 }}>
@@ -64,6 +105,26 @@ function AddButton({ onClick, children = "ADD" }: { onClick: () => void; childre
   );
 }
 
+function DateFields({ value, onChange, disabled }: { value: { m: number; y: number } | null | undefined; onChange: (v: { m: number; y: number } | null) => void; disabled?: boolean }) {
+  const m = value?.m || 0;
+  const y = value?.y || 0;
+  return (
+    <div style={{ display: "flex", gap: 6 }}>
+      <select value={m} disabled={disabled}
+        onChange={(e) => onChange({ m: parseInt(e.target.value, 10) || 0, y })}
+        style={{ ...FIELD, width: 92, flexShrink: 0, padding: "7px 8px" }}>
+        <option value={0}>—</option>
+        {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((mm, i) => (
+          <option key={mm} value={i + 1}>{mm}</option>
+        ))}
+      </select>
+      <input type="number" min={1990} max={2100} placeholder="YYYY" value={y || ""} disabled={disabled}
+        onChange={(e) => { const v = parseInt(e.target.value, 10); onChange({ m, y: Number.isNaN(v) ? 0 : v }); }}
+        style={inputStyle("100%")} />
+    </div>
+  );
+}
+
 
 /* ── Editor shell ────────────────────────────────────────────────────────── */
 
@@ -80,12 +141,40 @@ export default function CmsEditor({
 }) {
   const [draft, setDraft] = useState<CmsContent>(() => structuredClone(initial));
   const [saved, setSaved] = useState(false);
+  const [gh, setGh] = useState<{ busy: boolean; msg: string }>({ busy: false, msg: "" });
+
+  async function fetchRepoLinks() {
+    setGh({ busy: true, msg: "querying github…" });
+    try {
+      const res = await fetch("https://api.github.com/users/hazem-alabiad/repos?per_page=100&sort=updated");
+      const repos = await res.json();
+      if (!Array.isArray(repos)) throw new Error(repos?.message || "GitHub API error");
+      let matched = 0;
+      const next = draft.projects.map((proj) => {
+        let best: { name: string; html_url: string; description?: string | null } | null = null;
+        let bestScore = 0;
+        for (const repo of repos) {
+          const s = repoScore(proj.name, repo);
+          if (s > bestScore) { bestScore = s; best = repo; }
+        }
+        if (best && bestScore >= 0.45) { matched++; return { ...proj, link: best.html_url }; }
+        return proj;
+      });
+      set("projects", next);
+      setGh({ busy: false, msg: `matched ${matched}/${draft.projects.length} repos` });
+    } catch (e) {
+      setGh({ busy: false, msg: `✗ ${(e as Error).message}` });
+    }
+  }
 
   useEffect(() => { document.body.style.overflow = "hidden"; return () => { document.body.style.overflow = ""; }; }, []);
 
   const set = <K extends keyof CmsContent>(key: K, val: CmsContent[K]) => setDraft((d) => ({ ...d, [key]: val }));
 
-  const save = () => { onSave(structuredClone(draft)); setSaved(true); setTimeout(() => setSaved(false), 1600); };
+  const save = () => {
+    onSave(structuredClone({ ...draft, experience: [...draft.experience].sort(byDate), education: [...draft.education].sort(byDate) }));
+    setSaved(true); setTimeout(() => setSaved(false), 1600);
+  };
 
   const readFile = (file: File | undefined, cb: (dataUrl: string) => void) => {
     if (!file) return;
@@ -124,7 +213,7 @@ export default function CmsEditor({
                     onChange={(e) => readFile(e.target.files?.[0], (d) => set("photo", d))}
                     style={{ display: "none" }} id="cms-photo" />
                   <label htmlFor="cms-photo" style={{ cursor: "pointer", display: "block", position: "relative" }}>
-                    <img src={draft.photo ?? "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23131015'/%3E%3C/svg%3E"}
+                    <img src={draft.photo ?? (hazemPhoto as string)}
                       style={{ width: 200, height: 200, objectFit: "cover", borderRadius: 12, border: "2px dashed var(--amber-soft)" }} alt="Portrait" />
                     <span style={{ position: "absolute", bottom: 8, left: 8, ...MONO, fontSize: 9, letterSpacing: "0.15em", color: "var(--amber-ink)", background: "var(--amber)", padding: "4px 8px", borderRadius: 4 }}>
                       {draft.photo ? "REPLACE IMG" : "UPLOAD IMG"}
@@ -132,7 +221,7 @@ export default function CmsEditor({
                   </label>
                   {draft.photo && (
                     <button onClick={() => set("photo", null)} style={{ ...MONO, fontSize: 9, color: "var(--red)", background: "none", border: "none", cursor: "pointer", marginTop: 8 }}>
-                      REMOVE PICTURE
+                      <X size={11} style={{ verticalAlign: "-1px" }} /> REMOVE CUSTOM PHOTO (fallback to default)
                     </button>
                   )}
                 </div>
@@ -191,10 +280,19 @@ export default function CmsEditor({
                     <div><Label>ROLE</Label><input value={exp.role} onChange={(e) => updExp(i, { role: e.target.value })} style={inputStyle("100%")} /></div>
                     <div><Label>COMPANY</Label><input value={exp.company} onChange={(e) => updExp(i, { company: e.target.value })} style={inputStyle("100%")} /></div>
                     <div><Label>LOCATION</Label><input value={exp.location} onChange={(e) => updExp(i, { location: e.target.value })} style={inputStyle("100%")} /></div>
-                    <div><Label>PERIOD</Label><input value={exp.period} onChange={(e) => updExp(i, { period: e.target.value })} style={inputStyle("100%")} /></div>
-                    <div style={{ display: "flex", alignItems: "flex-end" }}>
+                  </div>
+                  <div style={{ display: "flex", gap: 14, marginTop: 10, alignItems: "flex-end" }}>
+                    <div style={{ flex: 1 }}>
+                      <Label>START</Label>
+                      <DateFields value={exp.start} onChange={(s) => updExp(i, { start: s, period: fmtPeriod(s, exp.end, exp.current) })} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <Label>END</Label>
+                      <DateFields value={exp.current ? null : exp.end} disabled={exp.current} onChange={(e) => updExp(i, { end: e, period: fmtPeriod(exp.start, e, exp.current) })} />
+                    </div>
+                    <div style={{ paddingBottom: 2 }}>
                       <label style={{ ...MONO, fontSize: 10, color: "var(--sage)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-                        <input type="checkbox" checked={exp.current} onChange={(e) => updExp(i, { current: e.target.checked })} /> CURRENT
+                        <input type="checkbox" checked={exp.current} onChange={(e) => updExp(i, { current: e.target.checked, period: fmtPeriod(exp.start, exp.end, e.target.checked) })} /> CURRENT
                       </label>
                     </div>
                   </div>
@@ -208,7 +306,7 @@ export default function CmsEditor({
                   </div>
                 </div>
               ))}
-              <AddButton onClick={() => set("experience", [...draft.experience, { id: uid(), role: "", company: "", location: "", period: "", bullets: [""], tags: [], current: false }])} />
+              <AddButton onClick={() => set("experience", [...draft.experience, { id: uid(), role: "", company: "", location: "", period: "", start: null, end: null, bullets: [""], tags: [], current: false }])}>ADD EXPERIENCE</AddButton>
             </Section>
 
             {/* Education */}
@@ -223,10 +321,19 @@ export default function CmsEditor({
                     <div><Label>DEGREE</Label><input value={edu.degree} onChange={(e) => updEdu(i, { degree: e.target.value })} style={inputStyle("100%")} /></div>
                     <div><Label>SCHOOL</Label><input value={edu.school} onChange={(e) => updEdu(i, { school: e.target.value })} style={inputStyle("100%")} /></div>
                     <div><Label>LOCATION</Label><input value={edu.location} onChange={(e) => updEdu(i, { location: e.target.value })} style={inputStyle("100%")} /></div>
-                    <div><Label>PERIOD</Label><input value={edu.period} onChange={(e) => updEdu(i, { period: e.target.value })} style={inputStyle("100%")} /></div>
-                    <div style={{ display: "flex", alignItems: "flex-end" }}>
+                  </div>
+                  <div style={{ display: "flex", gap: 14, marginTop: 10, alignItems: "flex-end" }}>
+                    <div style={{ flex: 1 }}>
+                      <Label>START</Label>
+                      <DateFields value={edu.start} onChange={(s) => updEdu(i, { start: s, period: fmtPeriod(s, edu.end, edu.current) })} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <Label>END</Label>
+                      <DateFields value={edu.current ? null : edu.end} disabled={edu.current} onChange={(e) => updEdu(i, { end: e, period: fmtPeriod(edu.start, e, edu.current) })} />
+                    </div>
+                    <div style={{ paddingBottom: 2 }}>
                       <label style={{ ...MONO, fontSize: 10, color: "var(--sage)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-                        <input type="checkbox" checked={edu.current} onChange={(e) => updEdu(i, { current: e.target.checked })} /> CURRENT
+                        <input type="checkbox" checked={edu.current} onChange={(e) => updEdu(i, { current: e.target.checked, period: fmtPeriod(edu.start, edu.end, e.target.checked) })} /> CURRENT
                       </label>
                     </div>
                   </div>
@@ -236,7 +343,7 @@ export default function CmsEditor({
                   </div>
                 </div>
               ))}
-              <AddButton onClick={() => set("education", [...draft.education, { id: uid(), degree: "", school: "", location: "", period: "", detail: "", current: false }])} />
+              <AddButton onClick={() => set("education", [...draft.education, { id: uid(), degree: "", school: "", location: "", period: "", start: null, end: null, detail: "", current: false }])}>ADD EDUCATION</AddButton>
             </Section>
 
             {/* Projects */}
@@ -268,6 +375,13 @@ export default function CmsEditor({
                 </div>
               ))}
               <AddButton onClick={() => set("projects", [...draft.projects, { id: uid(), name: "", desc: "", tags: [], status: "ACTIVE", year: "2026", link: "https://github.com/hazem-alabiad" }])} />
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
+                <button onClick={fetchRepoLinks} disabled={gh.busy}
+                  style={{ ...MONO, fontSize: 10, letterSpacing: "0.16em", color: "var(--blue)", background: "var(--bg-elevated)", border: "1px solid var(--blue)", padding: "8px 12px", cursor: "pointer", borderRadius: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                  <GitBranch size={12} /> {gh.busy ? "FETCHING…" : "FETCH LINKS FROM GITHUB"}
+                </button>
+                {gh.msg && <span style={{ ...MONO, fontSize: 10, color: gh.msg.startsWith("✗") ? "var(--red)" : "var(--sage)" }}>{gh.msg}</span>}
+              </div>
             </Section>
 
             {/* Skills */}
