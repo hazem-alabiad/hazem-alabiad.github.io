@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Check, Share2 } from "lucide-react";
+import { Check, PenLine, Share2 } from "lucide-react";
 import { posts, type Post } from "./posts";
 import { readViews, trackView, type ViewsMap } from "./analytics";
 import { AdUnit } from "../Adsense";
+import { PitchModal } from "./Pitch";
 
 const FONT_SCALE_KEY = "hazem_font_scale";
 const FONT_SIZES = [16, 18, 20, 22];
@@ -37,6 +38,7 @@ function relDate(iso: string): string {
 
 export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
   const [views] = useState(readViews);
+  const [pitch, setPitch] = useState(false);
   return (
     <section className="blog" id="blog">
       <div className="wrap">
@@ -44,9 +46,13 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
           <div className="section-title-row">
             <span className="section-icon-badge" style={{ fontSize: 22 }}>✎</span>
             <h2 className="section-title">Notes &amp; <em>Ideas</em></h2>
+            <button className="blog-pitch" onClick={() => setPitch(true)} title="Guest writers: pitch a post via GitHub">
+              <PenLine size={13} /> Pitch a post
+            </button>
           </div>
           <p className="blog-lede">Writing on NLP research, language engineering, and the craft of shipping software. {posts.length} post{posts.length === 1 ? "" : "s"}.</p>
         </div>
+        {pitch && <PitchModal open={pitch} onClose={() => setPitch(false)} />}
         <AdUnit slot="0123456789" className="ad-slot--top" />
         <div className="blog-list">
           {posts.map((p: Post) => (

@@ -6,6 +6,8 @@ import {
 import CmsEditor from "../CmsEditor";
 import { BlogIndex, BlogPost } from "../blog/Blog";
 import BlogAdmin from "../blog/BlogAdmin";
+import { posts } from "../blog/posts";
+import { useSEO } from "../blog/seo";
 import hazemPhoto from "../imports/hazem-photo.jpeg";
 import cvPdf from "../imports/Hazem-Alabiad-CV.pdf";
 
@@ -463,6 +465,8 @@ export default function App() {
   const [theme, setTheme] = useState<"dark" | "light">(() => { try { return localStorage.getItem("hazem_theme") === "light" ? "light" : "dark"; } catch { return "dark"; } });
   const [visits, setVisits] = useState(0);
   const blogRoute = useBlogRoute();
+  const activePost = blogRoute.view === "post" ? posts.find((p) => p.slug === blogRoute.slug) : undefined;
+  useSEO(blogRoute.view, activePost);
   const goBlog = (slug?: string) => { window.location.hash = slug ? `#/blog/${slug}` : "#/blog"; window.scrollTo({ top: 0 }); };
   const exitBlog = () => { window.location.hash = "#/blog"; window.scrollTo({ top: 0 }); };
 
