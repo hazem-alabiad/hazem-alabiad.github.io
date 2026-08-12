@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Check, Share2 } from "lucide-react";
 import { posts, type Post } from "./posts";
-import { readViews, trackView, totalViews, type ViewsMap } from "./analytics";
+import { readViews, trackView, type ViewsMap } from "./analytics";
+import { AdUnit } from "../Adsense";
 
 const FONT_SCALE_KEY = "hazem_font_scale";
 const FONT_SIZES = [16, 18, 20, 22];
@@ -34,9 +35,8 @@ function relDate(iso: string): string {
   }
 }
 
-export function BlogIndex({ onOpen, onManage }: { onOpen: (slug: string) => void; onManage: () => void }) {
+export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
   const [views] = useState(readViews);
-  const total = totalViews(views);
   return (
     <section className="blog" id="blog">
       <div className="wrap">
@@ -47,6 +47,7 @@ export function BlogIndex({ onOpen, onManage }: { onOpen: (slug: string) => void
           </div>
           <p className="blog-lede">Writing on NLP research, language engineering, and the craft of shipping software. {posts.length} post{posts.length === 1 ? "" : "s"}.</p>
         </div>
+        <AdUnit slot="0123456789" className="ad-slot--top" />
         <div className="blog-list">
           {posts.map((p: Post) => (
             <article className={`blog-card blog-card--${p.accent || "amber"}`} key={p.slug} onClick={() => onOpen(p.slug)}>
@@ -63,16 +64,6 @@ export function BlogIndex({ onOpen, onManage }: { onOpen: (slug: string) => void
               </div>
             </article>
           ))}
-        </div>
-        <div className="blog-base">
-          <span>✎ written by hand · <span className="blog-base-views">◉ {total} total views</span></span>
-          <button
-            className="blog-admin-toggle"
-            onClick={onManage}
-            title="Manage posts (authorized accounts only)"
-          >
-            manage posts
-          </button>
         </div>
       </div>
     </section>
@@ -171,6 +162,7 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
             <span>Thanks for reading — feedback welcome.</span>
           </div>
         </article>
+        <AdUnit slot="0123456789" />
       </div>
     </section>
   );

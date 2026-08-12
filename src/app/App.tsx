@@ -795,7 +795,7 @@ export default function App() {
         </>
       )}
 
-      {blogRoute.view === "blog" && <BlogIndex onOpen={(slug) => goBlog(slug)} onManage={() => goBlog("admin")} />}
+      {blogRoute.view === "blog" && <BlogIndex onOpen={(slug) => goBlog(slug)} />}
       {blogRoute.view === "admin" && (
         <section className="blog" id="blog">
           <div className="wrap">

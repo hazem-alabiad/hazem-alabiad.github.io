@@ -980,16 +980,24 @@ footer {
 .blog-card--sage .blog-card-tags span { color: var(--sage); border-color: var(--sage-soft); background: var(--sage-soft); }
 .blog-card--violet .blog-card-tags span { color: var(--violet); border-color: var(--violet-soft); background: var(--violet-soft); }
 .blog-card--pink .blog-card-tags span { color: var(--pink); border-color: var(--pink-soft); background: var(--pink-soft); }
-.blog-base { margin-top: 30px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint); }
-.blog-base-views { color: var(--amber); }
-.blog-admin-toggle {
-  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em;
-  color: var(--violet); background: none; border: none;
-  border-bottom: 1px dotted var(--violet-soft);
-  padding: 0; cursor: pointer;
-  transition: color .15s ease, border-color .15s ease;
+
+/* ad units */
+.ad-slot {
+  margin: 30px 0;
+  padding: 14px 0 6px;
+  border-top: 1px dashed var(--rule-soft);
+  min-height: 90px;
+  text-align: center;
+  overflow: hidden;
 }
-.blog-admin-toggle:hover { color: var(--amber); border-bottom-color: var(--amber); }
+.ad-slot--top { margin: 22px 0 26px; }
+.ad-label {
+  display: block;
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+.ad-slot ins { width: 100%; max-width: 100%; min-width: 0; display: block; }
 
 /* post */
 .blog-back { margin-bottom: 26px; }
