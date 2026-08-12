@@ -458,6 +458,7 @@ export default function App() {
   const [cmsEnabled, setCmsEnabled] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [theme, setTheme] = useState<"dark" | "light">(() => { try { return localStorage.getItem("hazem_theme") === "light" ? "light" : "dark"; } catch { return "dark"; } });
   const [visits, setVisits] = useState(0);
@@ -516,7 +517,7 @@ export default function App() {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
       if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) { e.preventDefault(); setShortcutsOpen(true); return; }
-      if (e.key === "Escape") { setShortcutsOpen(false); return; }
+      if (e.key === "Escape") { setShortcutsOpen(false); setMenuOpen(false); return; }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (shortcutsOpen) return;
       switch (e.key) {
@@ -549,7 +550,7 @@ export default function App() {
 
       <nav>
         <div className="wrap">
-          <button className="nav-mark" onClick={() => scrollTo("home")}>H<span>.</span>ALABIAD</button>
+          <button className="nav-mark" onClick={() => { setMenuOpen(false); scrollTo("home"); }}>H<span>.</span>ALABIAD</button>
           <div className="nav-links">
             <a href="#education" onClick={() => scrollTo("education")}>Education</a>
             <a href="#experience" onClick={() => scrollTo("experience")}>Experience</a>
@@ -567,6 +568,27 @@ export default function App() {
               {theme === "dark" ? "☀" : "☾"}
             </button>
             <button className="nav-hire" onClick={() => { navigator.clipboard?.writeText(email.replace("mailto:", "")); setToast("Email copied — hazem.alabiad@icloud.com"); }}>Hire me</button>
+          </div>
+          <button
+            className={`nav-toggle ${menuOpen ? "open" : ""}`}
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            aria-controls="nav-menu"
+          >
+            <span /><span /><span />
+          </button>
+        </div>
+        <div className={`nav-menu ${menuOpen ? "open" : ""}`} id="nav-menu">
+          <a href="#education" onClick={() => { setMenuOpen(false); scrollTo("education"); }}>Education</a>
+          <a href="#experience" onClick={() => { setMenuOpen(false); scrollTo("experience"); }}>Experience</a>
+          <a href="#research" onClick={() => { setMenuOpen(false); scrollTo("research"); }}>Research</a>
+          <a href="#skills" onClick={() => { setMenuOpen(false); scrollTo("skills"); }}>Skills</a>
+          <a href="#blog" onClick={(e) => { e.preventDefault(); setMenuOpen(false); goBlog(); }}>Blog</a>
+          <a href="#contact" onClick={() => { setMenuOpen(false); scrollTo("contact"); }}>Contact</a>
+          <div className="nav-menu-actions">
+            <button className="nav-shorts" onClick={() => { setMenuOpen(false); setShortcutsOpen(true); }} title="Search & shortcuts (⌘K)">⌘K</button>
+            <button className="nav-hire" onClick={() => { navigator.clipboard?.writeText(email.replace("mailto:", "")); setToast("Email copied — hazem.alabiad@icloud.com"); setMenuOpen(false); }}>Hire me</button>
           </div>
         </div>
       </nav>
