@@ -6,6 +6,7 @@ import {
 import CmsEditor from "../CmsEditor";
 import { BlogIndex, BlogPost } from "../blog/Blog";
 import BlogAdmin from "../blog/BlogAdmin";
+import { BlogManagerProvider } from "../blog/manager";
 import { posts } from "../blog/posts";
 import { useSEO } from "../blog/seo";
 import hazemPhoto from "../imports/hazem-photo.jpeg";
@@ -169,7 +170,7 @@ const TERM_ROLES = [
   { t: "Research Assistant · Cognitive & AI (IWM)", p: false, tag: "current" },
 ];
 
-function TerminalHero({ content, factLocation, visits }: { content: CmsContent; factLocation: string; visits: number }) {
+function TerminalHero({ content, factLocation }: { content: CmsContent; factLocation: string }) {
   const [typed, setTyped] = useState(false);
   const [cmd, setCmd] = useState("");
   const reduce = useMemo(() => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches, []);
@@ -180,6 +181,34 @@ function TerminalHero({ content, factLocation, visits }: { content: CmsContent; 
     const text = "./job --status";
     const iv = setInterval(() => { setCmd(text.slice(0, i + 1)); i++; if (i >= text.length) { clearInterval(iv); setTimeout(() => setTyped(true), 250); } }, 45);
     return () => clearInterval(iv);
+  }, [reduce]);
+
+  useEffect(() => {
+    if (reduce) return;
+    let iv: ReturnType<typeof setInterval> | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const replay = () => {
+      if (iv) clearInterval(iv);
+      if (timer) clearTimeout(timer);
+      setTyped(false);
+      setCmd("");
+      let i = 0;
+      const text = "./job --status";
+      iv = setInterval(() => { setCmd(text.slice(0, i + 1)); i++; if (i >= text.length) { clearInterval(iv); timer = setTimeout(() => setTyped(true), 250); } }, 45);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "r" && e.key !== "R") return;
+      const target = e.target as HTMLElement;
+      if (target.closest("input, textarea, [contenteditable]")) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      replay();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      if (iv) clearInterval(iv);
+      if (timer) clearTimeout(timer);
+    };
   }, [reduce]);
 
   const email = content.links.find((l) => l.label === "EMAIL")?.href || `mailto:${content.links.find((l) => l.label === "EMAIL")?.value || ""}`;
@@ -230,41 +259,43 @@ function TerminalHero({ content, factLocation, visits }: { content: CmsContent; 
             <span className="term-title">hazem@tübingen — zsh — 80×24</span>
           </div>
           <div className="term-body">
-            <div className="term-line"><span className="term-ok">✓</span> hazem-alabiad.ini loaded — 4 roles, {factLocation}</div>
+            <div className="term-line"><span className="term-ok">✓</span> hazem-alabiad.ini loaded — {TERM_ROLES.length} roles · {factLocation}</div>
             <div className="term-line">
-              <span className="term-arrow">➜</span> <span className="term-path">~/portfolio</span>{cmd}<span className="term-cursor" />
+              <span className="term-arrow">➜</span> <span className="term-path">~/portfolio</span> <span className="term-cmd">{cmd}</span><span className={`term-cursor${reduce ? " term-cursor--static" : ""}`} />
             </div>
 
             {typed && (
               <div className="term-output">
+                <div className="term-sub"><span className="term-arrow">➜</span> cat roles.toml</div>
                 <div className="term-roles">
                   {TERM_ROLES.map((r, i) => (
                     <div className={`term-role ${r.p ? "term-role--prio" : ""}`} key={r.t}>
                       <span className="term-idx">{String(i + 1).padStart(2, "0")}</span>
                       <span className="term-role-name">{r.t}</span>
-                      {r.tag === "focus" && <span className="term-tag term-tag--focus">◆ FOCUS</span>}
-                      {r.tag === "current" && <span className="term-tag">● current</span>}
-                      {r.p && <span className="term-priority">◀ PRIORITY</span>}
+                      <span className="term-fill" />
+                      {r.tag === "focus" && <span className="term-tag term-tag--focus">focus</span>}
+                      {r.tag === "current" && <span className="term-tag">current</span>}
+                      {r.p && <span className="term-priority">◀ priority</span>}
                     </div>
                   ))}
                 </div>
-                <div className="term-grid">
+                <div className="term-sub"><span className="term-arrow">➜</span> cat status.json</div>
+                <div className="term-rows">
                   {content.education.filter((e) => e.current).map((e) => (
                     <div className="term-current" key={e.id}>
-                      <span className="term-current-ic"><Icon name="grad" size={16} /></span>
-                      <span className="term-current-v">
-                        <strong>{e.degree}</strong>
-                        <span className="term-current-school">{e.school} · <em>{e.location}</em></span>
-                        <span className="term-current-period">{e.period}</span>
-                      </span>
-                      <span className="term-tag term-tag--now">● current</span>
+                      <span className="term-arrow">›</span>
+                      <span className="term-current-degree">{e.degree}</span>
+                      <span className="term-current-school">· {e.school} · <em>{e.location}</em></span>
+                      <span className="term-current-period">· {e.period}</span>
+                      <span className="term-fill" />
+                      <span className="term-tag">current</span>
                     </div>
                   ))}
-                  <div className="term-kv term-kv--feature"><span className="term-k">experience</span><span className="term-v">"6+ years"</span></div>
-                  <div className="term-kv term-kv--feature"><span className="term-k">open_to</span><span className="term-v">["Working Student", "NLP/AI/LLMs"]</span></div>
-                  <div className="term-kv"><span className="term-k">languages</span><span className="term-v">[{content.languages.map((l) => `"${l.name.slice(0, 2).toUpperCase()}"`).join(", ")}]</span></div>
-                  <div className="term-kv term-kv--feature"><span className="term-k">visitors</span><span className="term-v">{visits.toLocaleString()}</span></div>
+                  <div className="term-kv term-kv--feature"><span className="term-k">experience</span><span className="term-ec">=&gt;</span><span className="term-v">"6+ years"</span></div>
+                  <div className="term-kv term-kv--feature"><span className="term-k">open_to</span><span className="term-ec">=&gt;</span><span className="term-v">["Working Student", "NLP/AI/LLMs"]</span></div>
+                  <div className="term-kv"><span className="term-k">languages</span><span className="term-ec">=&gt;</span><span className="term-v">[{content.languages.map((l) => `"${l.name.slice(0, 2).toUpperCase()}"`).join(", ")}]</span></div>
                 </div>
+                <div className="term-comment"># press <kbd>R</kbd> to replay the boot</div>
               </div>
             )}
           </div>
@@ -558,7 +589,7 @@ export default function App() {
         case "G": scrollTo("contact"); break;
         case "t": scrollTo("home"); break;
         case "c": window.location.href = email; break;
-        case "r": { const a = document.createElement("a"); a.href = cvUrl; a.download = "Hazem-Alabiad-CV.pdf"; a.click(); break; }
+        case "d": { const a = document.createElement("a"); a.href = cvUrl; a.download = "Hazem-Alabiad-CV.pdf"; a.click(); break; }
         case "1": scrollTo("home"); break;
         case "2": scrollTo("education"); break;
         case "3": scrollTo("experience"); break;
@@ -625,7 +656,7 @@ export default function App() {
 
       {blogRoute.view === "home" && (
         <>
-          <TerminalHero content={content} factLocation={factLocation} visits={visits} />
+          <TerminalHero content={content} factLocation={factLocation} />
 
       {/* ── EDUCATION ───────────────────────────────────────────────────── */}
       <section id="education">
@@ -825,16 +856,18 @@ export default function App() {
         </>
       )}
 
-      {blogRoute.view === "blog" && <BlogIndex onOpen={(slug) => goBlog(slug)} />}
-      {blogRoute.view === "admin" && (
-        <section className="blog" id="blog">
-          <div className="wrap">
-            <button className="btn blog-back" onClick={() => goBlog()}>← all notes</button>
-            <BlogAdmin />
-          </div>
-        </section>
-      )}
-      {blogRoute.view === "post" && <BlogPost slug={blogRoute.slug} onBack={exitBlog} />}
+      <BlogManagerProvider>
+        {blogRoute.view === "blog" && <BlogIndex onOpen={(slug) => goBlog(slug)} />}
+        {blogRoute.view === "admin" && (
+          <section className="blog" id="blog">
+            <div className="wrap">
+              <button className="btn blog-back" onClick={() => goBlog()}>← all notes</button>
+              <BlogAdmin />
+            </div>
+          </section>
+        )}
+        {blogRoute.view === "post" && <BlogPost slug={blogRoute.slug} onBack={exitBlog} />}
+      </BlogManagerProvider>
 
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
       <Shortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} onJump={scrollTo} onOpenPost={goBlog} />

@@ -1,14 +1,10 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Check, Pencil, Plus, Search, Share2, Trash2, X } from "lucide-react";
+import { Check, Lock, Pencil, Plus, Search, Share2, Trash2, X } from "lucide-react";
 import { posts, type Post } from "./posts";
 import { readViews, trackView, type ViewsMap } from "./analytics";
 import { AdUnit } from "../Adsense";
-import { listPosts, readPost, writePost, deletePost, slugify, POSTS_DIR } from "../github";
-import {
-  verifyToken, saveBlogSession, loadBlogSession, clearBlogSession,
-  parseFrontmatter, parseTags, buildMdx, EditorPanel,
-  chipBtn, FIELD, MONO, EMPTY_DRAFT, type BlogDraft,
-} from "./editor";
+import { EditorPanel, FIELD } from "./editor";
+import { useBlogManager } from "./manager";
 import { OWNER_LOGIN } from "./authors";
 
 const FONT_SCALE_KEY = "hazem_font_scale";
@@ -49,86 +45,7 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const query = q.trim().toLowerCase();
 
-  const [mgr, setMgr] = useState<{ login: string } | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [unlockOpen, setUnlockOpen] = useState(false);
-  const [pat, setPat] = useState("");
-  const [authBusy, setAuthBusy] = useState(false);
-  const [authErr, setAuthErr] = useState("");
-  const [draft, setDraft] = useState<BlogDraft | null>(null);
-  const [publishing, setPublishing] = useState(false);
-  const [mgrErr, setMgrErr] = useState("");
-  const [mgrOk, setMgrOk] = useState("");
-
-  useEffect(() => {
-    const saved = loadBlogSession();
-    if (saved) {
-      verifyToken(saved.token)
-        .then((u) => { setMgr({ login: u.login }); setToken(saved.token); })
-        .catch(() => { clearBlogSession(); });
-    }
-  }, []);
-
-  async function unlock(v: string) {
-    if (!v.trim()) return;
-    setAuthBusy(true); setAuthErr("");
-    try {
-      const u = await verifyToken(v);
-      saveBlogSession(v, u.login);
-      setMgr({ login: u.login }); setToken(v); setUnlockOpen(false); setPat("");
-    } catch (e) { setAuthErr((e as Error).message); }
-    finally { setAuthBusy(false); }
-  }
-
-  function lock() {
-    clearBlogSession();
-    setMgr(null); setToken(null); setDraft(null); setMgrErr(""); setMgrOk("");
-  }
-
-  function startNew() {
-    setMgrErr(""); setMgrOk("");
-    setDraft({ ...EMPTY_DRAFT });
-  }
-
-  async function openForEdit(p: Post) {
-    if (!token) return;
-    setMgrErr(""); setMgrOk("");
-    try {
-      const raw = await readPost(token, `${POSTS_DIR}/${p.slug}.mdx`);
-      const { fm, body } = parseFrontmatter(raw);
-      setDraft({ isNew: false, slug: p.slug, path: `${POSTS_DIR}/${p.slug}.mdx`, title: fm.title ?? p.title, date: fm.date ?? p.date, description: fm.description ?? p.description, tags: fm.tags ? parseTags(fm.tags) : p.tags, accent: p.accent || "amber", author: OWNER_LOGIN, body });
-    } catch (e) { setMgrErr((e as Error).message); }
-  }
-
-  async function saveDraft() {
-    if (!token || !draft) return;
-    if (!draft.title.trim()) { setMgrErr("Title is required."); return; }
-    const slug = draft.isNew ? slugify(draft.title) : draft.slug;
-    const d = { ...draft, slug, path: draft.isNew ? `${POSTS_DIR}/${slug}.mdx` : draft.path };
-    setPublishing(true); setMgrErr(""); setMgrOk("");
-    try {
-      await writePost(token, d.path, buildMdx(d), d.sha);
-      setMgrOk(`Saved ${d.path} — the site rebuilds on the next deploy.`);
-      setDraft(null);
-    } catch (e) { setMgrErr((e as Error).message); }
-    finally { setPublishing(false); }
-  }
-
-  async function removePost(p: Post) {
-    if (!token) return;
-    const path = `${POSTS_DIR}/${p.slug}.mdx`;
-    if (!confirm(`Delete "${p.slug}.mdx" from the repo? This triggers a redeploy.`)) return;
-    setPublishing(true); setMgrErr(""); setMgrOk("");
-    try {
-      const files = await listPosts(token);
-      const f = files.find((x) => x.path === path);
-      if (!f) throw new Error(`Could not find ${path} in the repo (has it been deployed?).`);
-      await deletePost(token, path, f.sha);
-      setMgrOk(`Deleted ${p.slug}.mdx.`);
-      if (draft?.path === path) setDraft(null);
-    } catch (e) { setMgrErr((e as Error).message); }
-    finally { setPublishing(false); }
-  }
+  const { mgr, unlockOpen, setUnlockOpen, pat, setPat, unlock, lock, draft, setDraft, publishing, mgrErr, mgrOk, authBusy, authErr, startNew, openForEdit, saveDraft, removePost } = useBlogManager();
 
   const score = (p: Post): number => {
     if (!query) return 0;
@@ -193,7 +110,6 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
           <div className="blog-manage">
             {mgr ? (
               <>
-                <span className="blog-manage-user">✓ @{mgr.login}</span>
                 <button className="blog-manage-btn blog-manage-btn--add" onClick={startNew}><Plus size={12} /> NEW POST</button>
                 <button className="blog-manage-btn" onClick={lock}>LOCK</button>
               </>
@@ -247,8 +163,8 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
                 <div className="blog-card-actions">
                   {mgr && (
                     <>
-                      <button className="blog-card-manage" title="Edit post" onClick={(e) => { e.stopPropagation(); openForEdit(p); }}><Pencil size={12} /> EDIT</button>
-                      <button className="blog-card-manage blog-card-manage--danger" title="Delete post" onClick={(e) => { e.stopPropagation(); removePost(p); }}><Trash2 size={12} /> DELETE</button>
+                      <button className="blog-card-manage blog-card-manage--ionly" title="Edit post" aria-label={`Edit ${p.slug}`} onClick={(e) => { e.stopPropagation(); openForEdit(p); }}><Pencil size={12} /></button>
+                      <button className="blog-card-manage blog-card-manage--danger blog-card-manage--ionly" title="Delete post" aria-label={`Delete ${p.slug}`} onClick={(e) => { e.stopPropagation(); removePost(p); }}><Trash2 size={12} /></button>
                     </>
                   )}
                   <span className="blog-card-more">read →</span>
@@ -272,6 +188,8 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
       return FONT_SIZES.includes(v) ? v : 18;
     } catch { return 18; }
   });
+  const { mgr, lock, unlockOpen, setUnlockOpen, pat, setPat, unlock, openForEdit, removePost, draft, mgrErr, mgrOk, publishing, saveDraft, setDraft, authBusy, authErr } = useBlogManager();
+
   useEffect(() => {
     if (post) setViews(trackView(`post:${post.slug}`));
   }, [slug]);
@@ -341,10 +259,41 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
             <span className="blog-article-author">written by <a href={profileUrl(author)} target="_blank" rel="noopener noreferrer">@{author}</a></span>
           </div>
           <div className="blog-article-tools">
+            {mgr ? (
+              <>
+                <button className="blog-size-btn blog-post-manage" title="Edit this post" onClick={() => openForEdit(post)}><Pencil size={12} /> EDIT</button>
+                <button className="blog-size-btn blog-post-manage blog-post-manage--danger" title="Delete this post" onClick={() => { if (removePost) removePost(post); }}><Trash2 size={12} /> DELETE</button>
+                <button className="blog-size-btn blog-post-manage" title="Lock management" onClick={() => lock()}><Lock size={12} /> LOCK</button>
+              </>
+            ) : (
+              <button className="blog-size-btn blog-post-manage" title="Manage posts" onClick={() => setUnlockOpen((o) => !o)}><Pencil size={12} /> MANAGE</button>
+            )}
             <button className="blog-size-btn blog-share-btn" onClick={copyLink} title="Copy link to this post">{copied ? <Check size={13} /> : <Share2 size={13} />}</button>
             <button className="blog-size-btn" onClick={() => idx > 0 && setPersist(FONT_SIZES[idx - 1])} disabled={idx <= 0} title="Smaller text">A−</button>
             <button className="blog-size-btn" onClick={() => idx < FONT_SIZES.length - 1 && setPersist(FONT_SIZES[idx + 1])} disabled={idx >= FONT_SIZES.length - 1} title="Larger text">A+</button>
           </div>
+          {unlockOpen && !mgr && (
+            <div className="blog-unlock blog-unlock--article">
+              <p className="blog-unlock-hint">Only the site owner can manage posts. Paste a GitHub PAT with repo contents access — it is verified against @{OWNER_LOGIN}.</p>
+              <div className="blog-unlock-row">
+                <input type="password" value={pat} placeholder="GitHub PAT" onChange={(e) => setPat(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") unlock(pat); }} style={{ ...FIELD, flex: 1 }} />
+                <button onClick={() => unlock(pat)} disabled={authBusy} className="blog-manage-btn blog-manage-btn--add">{authBusy ? "CHECKING…" : "UNLOCK"}</button>
+                <button onClick={() => setUnlockOpen(false)} className="blog-manage-btn">CANCEL</button>
+              </div>
+              {authErr && <p className="blog-mgr-err">✗ {authErr}</p>}
+            </div>
+          )}
+          {mgrErr && <p className="blog-mgr-err">✗ {mgrErr}</p>}
+          {mgrOk && <p className="blog-mgr-ok">✓ {mgrOk}</p>}
+          {draft && (
+            <EditorPanel
+              draft={draft}
+              onDraft={(d) => setDraft(d)}
+              busy={publishing}
+              onSave={saveDraft}
+              onCancel={() => setDraft(null)}
+            />
+          )}
           <h1>{post.title}</h1>
           <p className="blog-article-desc">{post.description}</p>
           <div className="blog-prose" style={{ fontSize: size, ["--prose-scale" as string]: (size / 17).toFixed(3) }}>
