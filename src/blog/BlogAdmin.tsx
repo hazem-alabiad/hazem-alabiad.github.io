@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Plus, Trash2, Save, Loader2, Lock, FileText, KeyRound, Search, Link2 } from "lucide-react";
 import { listPosts, readPost, writePost, deletePost, slugify, todayISO, type GhFile } from "../github";
-import { isAuthorized, type BlogAuthorUser } from "./authors";
+import { isAuthorized, OWNER_LOGIN, type BlogAuthorUser } from "./authors";
 import { posts } from "./posts";
 import { unfurl, type LinkMeta } from "./unfurl";
 
@@ -71,7 +71,7 @@ async function verifyToken(token: string): Promise<BlogAuthorUser> {
   const data = await res.json();
   if (!res.ok) throw new Error(data?.message || `Verification failed (HTTP ${res.status}).`);
   const user: BlogAuthorUser = { login: data.login as string, email: (data.email as string | null) ?? null };
-  if (!isAuthorized(user)) throw new Error(`Account "@${user.login}" is not an authorized blog author.`);
+  if (!isAuthorized(user)) throw new Error(`Only the site owner (@${OWNER_LOGIN}) can manage posts.`);
   return user;
 }
 
@@ -89,7 +89,7 @@ interface BlogDraft {
   body: string;
 }
 
-const EMPTY_DRAFT: BlogDraft = { isNew: true, slug: "", path: "", title: "", date: todayISO(), description: "", tags: [], accent: "amber", author: "hazem-alabiad", body: "" };
+const EMPTY_DRAFT: BlogDraft = { isNew: true, slug: "", path: "", title: "", date: todayISO(), description: "", tags: [], accent: "amber", author: OWNER_LOGIN, body: "" };
 
 function parseFrontmatter(raw: string): { fm: Record<string, string>; body: string } {
   const fm: Record<string, string> = {};
@@ -272,7 +272,7 @@ export default function BlogAdmin() {
     try {
       const raw = await readPost(token, p.path);
       const { fm, body } = parseFrontmatter(raw);
-      setDraft({ isNew: false, slug: p.name.replace(/\.mdx$/, ""), path: p.path, sha: p.sha, title: fm.title ?? "", date: fm.date ?? todayISO(), description: fm.description ?? "", tags: parseTags(fm.tags), accent: fm.accent || "amber", author: typeof fm.author === "string" && fm.author.trim() ? fm.author.trim() : "hazem-alabiad", body });
+      setDraft({ isNew: false, slug: p.name.replace(/\.mdx$/, ""), path: p.path, sha: p.sha, title: fm.title ?? "", date: fm.date ?? todayISO(), description: fm.description ?? "", tags: parseTags(fm.tags), accent: fm.accent || "amber", author: OWNER_LOGIN, body });
     } catch (e) { setErr((e as Error).message); }
     finally { setBusy(false); }
   }
@@ -336,7 +336,7 @@ export default function BlogAdmin() {
       {stage === "unlock" && (
         <Panel title="BLOG ADMIN — UNLOCK">
           <div style={{ ...MONO, fontSize: 11, color: "var(--ink-faint)", lineHeight: 1.7 }}>
-            Post editing is restricted to authorized GitHub accounts. Enter a PAT with repo contents access — the account is checked against the blog author allow-list.
+            Post editing is restricted to the site owner. Enter a PAT with repo contents access — the account is checked against the owner GitHub account.
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <input
@@ -428,10 +428,6 @@ export default function BlogAdmin() {
                 <div>
                   <Label>TAGS (comma-separated)</Label>
                   {input(draft.tags.join(", "), (s) => setDraft({ ...draft, tags: s.split(",").map((t) => t.trim()).filter(Boolean) }))}
-                </div>
-                <div>
-                  <Label>AUTHOR — @username (links to LinkedIn)</Label>
-                  {input(draft.author, (s) => setDraft({ ...draft, author: s }))}
                 </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
