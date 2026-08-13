@@ -838,7 +838,9 @@ export default function App() {
 
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
       <Shortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} onJump={scrollTo} onOpenPost={goBlog} />
-      <CMSButton enabled={cmsEnabled} onUnlock={() => setCmsEnabled(true)} onDisable={() => setCmsEnabled(false)} onOpenEditor={() => setEditorOpen(true)} />
+      {blogRoute.view === "home" && (
+        <CMSButton enabled={cmsEnabled} onUnlock={() => setCmsEnabled(true)} onDisable={() => setCmsEnabled(false)} onOpenEditor={() => setEditorOpen(true)} />
+      )}
       {cmsEnabled && editorOpen && (
         <CmsEditor
           initial={content}
