@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
-import { Check, PenLine, Share2 } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Check, Search, Share2, X } from "lucide-react";
 import { posts, type Post } from "./posts";
 import { readViews, trackView, type ViewsMap } from "./analytics";
 import { AdUnit } from "../Adsense";
-import { PitchModal } from "./Pitch";
 
 const FONT_SCALE_KEY = "hazem_font_scale";
 const FONT_SIZES = [16, 18, 20, 22];
@@ -38,7 +37,45 @@ function relDate(iso: string): string {
 
 export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
   const [views] = useState(readViews);
-  const [pitch, setPitch] = useState(false);
+  const [q, setQ] = useState("");
+  const [active, setActive] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const query = q.trim().toLowerCase();
+
+  const score = (p: Post): number => {
+    if (!query) return 0;
+    const t = p.title.toLowerCase().includes(query) ? 4 : 0;
+    const d = p.description.toLowerCase().includes(query) ? 2 : 0;
+    const tg = p.tags.some((x) => x.toLowerCase().includes(query)) ? 2 : 0;
+    const sl = p.slug.includes(query) ? 1 : 0;
+    return t + d + tg + sl;
+  };
+  const hits = posts
+    .map((p) => ({ p, s: score(p) }))
+    .filter((x) => x.s > 0)
+    .sort((a, b) => b.s - a.s)
+    .map((x) => x.p);
+
+  const highlight = (text: string): ReactNode => {
+    if (!query) return text;
+    const i = text.toLowerCase().indexOf(query);
+    if (i < 0) return text;
+    return (
+      <>
+        {text.slice(0, i)}
+        <mark className="blog-search-hit">{text.slice(i, i + query.length)}</mark>
+        {text.slice(i + query.length)}
+      </>
+    );
+  };
+
+  const onKey = (e: React.KeyboardEvent) => {
+    if (!hits.length) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => (a + 1) % hits.length); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => (a - 1 + hits.length) % hits.length); }
+    else if (e.key === "Enter" && active >= 0) { onOpen(hits[active].slug); }
+  };
+
   return (
     <section className="blog" id="blog">
       <div className="wrap">
@@ -46,24 +83,38 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
           <div className="section-title-row">
             <span className="section-icon-badge" style={{ fontSize: 22 }}>✎</span>
             <h2 className="section-title">Notes &amp; <em>Ideas</em></h2>
-            <button className="blog-pitch" onClick={() => setPitch(true)} title="Guest writers: pitch a post via GitHub">
-              <PenLine size={13} /> Pitch a post
-            </button>
           </div>
           <p className="blog-lede">Writing on NLP research, language engineering, and the craft of shipping software. {posts.length} post{posts.length === 1 ? "" : "s"}.</p>
         </div>
-        {pitch && <PitchModal open={pitch} onClose={() => setPitch(false)} />}
+        <div className="blog-search">
+          <Search size={15} className="blog-search-ic" />
+          <input
+            ref={inputRef}
+            className="blog-search-input"
+            placeholder="Search the blog — title, tag, or topic…"
+            value={q}
+            onChange={(e) => { setQ(e.target.value); setActive(-1); }}
+            onKeyDown={onKey}
+            aria-label="Search the blog"
+          />
+          {q && <button className="blog-search-clear" onClick={() => { setQ(""); setActive(-1); inputRef.current?.focus(); }} aria-label="Clear search"><X size={13} /></button>}
+        </div>
+        {query && (
+          <div className="blog-search-status">
+            {hits.length === 0 ? "No posts match your search." : `${hits.length} match${hits.length === 1 ? "" : "es"}${active >= 0 ? ` — ${active + 1}/${hits.length} (↑↓ to navigate, ↵ to open)` : ""}`}
+          </div>
+        )}
         <AdUnit slot="0123456789" className="ad-slot--top" />
         <div className="blog-list">
-          {posts.map((p: Post) => (
-            <article className={`blog-card blog-card--${p.accent || "amber"}`} key={p.slug} onClick={() => onOpen(p.slug)}>
+          {(query ? hits : posts).map((p: Post, i) => (
+            <article className={`blog-card blog-card--${p.accent || "amber"}${query && i === active ? " blog-card--active" : ""}`} key={p.slug} onClick={() => onOpen(p.slug)}>
               <div className="blog-card-top">
                 <span className="blog-card-date">{fmtDate(p.date)} <span className="blog-card-rel">· {relDate(p.date)}</span></span>
                 <span className="blog-card-views">{views[p.slug] || 0} views</span>
               </div>
-              <h3>{p.title}</h3>
-              <p>{p.description}</p>
-              <div className="blog-card-tags">{p.tags.map((t) => <span key={t}>#{t}</span>)}</div>
+              <h3>{highlight(p.title)}</h3>
+              <p>{highlight(p.description)}</p>
+              <div className="blog-card-tags">{p.tags.map((t) => <span key={t}>{highlight(`#${t}`)}</span>)}</div>
               <div className="blog-card-foot">
                 <a className="blog-card-author" href={profileUrl(authorOf(p))} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>✍ @{authorOf(p)}</a>
                 <span className="blog-card-more">read →</span>

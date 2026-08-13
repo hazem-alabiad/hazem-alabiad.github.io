@@ -318,10 +318,11 @@ function Toast({ message, onClose }: { message: string; onClose: () => void }) {
 const SECTIONS = ["home", "education", "experience", "research", "skills", "contact"];
 const SECTION_LABELS: Record<string, string> = { home: "Terminal", experience: "Experience", research: "Research", skills: "Skills", education: "Education", contact: "Contact" };
 
-function Shortcuts({ open, onClose, onJump, search = true }: { open: boolean; onClose: () => void; onJump: (id: string) => void; search?: boolean }) {
+function Shortcuts({ open, onClose, onJump, onOpenPost, search = true }: { open: boolean; onClose: () => void; onJump: (id: string) => void; onOpenPost?: (slug: string) => void; search?: boolean }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState("");
-  useEffect(() => { if (open) { setQ(""); const t = setTimeout(() => inputRef.current?.focus(), 60); return () => clearTimeout(t); } }, [open]);
+  const [active, setActive] = useState(-1);
+  useEffect(() => { if (open) { setQ(""); setActive(-1); const t = setTimeout(() => inputRef.current?.focus(), 60); return () => clearTimeout(t); } }, [open]);
   if (!open) return null;
   const keys: [string, string, string?][] = [
     ["⌘K / ?", "Toggle this search + shortcuts"],
@@ -337,7 +338,26 @@ function Shortcuts({ open, onClose, onJump, search = true }: { open: boolean; on
   ];
   const query = q.trim().toLowerCase();
   const sectionMatches = SECTIONS.filter((id) => !query || SECTION_LABELS[id].toLowerCase().includes(query));
-  const go = (id: string) => { onJump(id); onClose(); setQ(""); };
+  const postMatches = query && onOpenPost
+    ? posts
+        .map((p) => ({ p, s: (p.title.toLowerCase().includes(query) ? 3 : 0) + (p.tags.some((t) => t.toLowerCase().includes(query)) ? 2 : 0) + (p.description.toLowerCase().includes(query) ? 1 : 0) }))
+        .filter((x) => x.s > 0)
+        .sort((a, b) => b.s - a.s)
+        .map((x) => x.p)
+        .slice(0, 6)
+    : [];
+  const total = sectionMatches.length + postMatches.length;
+  const results: { id: string; label: string; sub: string; go: () => void }[] = [
+    ...sectionMatches.map((id) => ({ id, label: SECTION_LABELS[id], sub: "section", go: () => { onJump(id); onClose(); } })),
+    ...postMatches.map((p) => ({ id: p.slug, label: p.title, sub: "blog post", go: () => { onOpenPost?.(p.slug); onClose(); } })),
+  ];
+  const clamped = active < 0 ? -1 : Math.min(active, total - 1);
+  const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => (total ? (a + 1) % total : -1)); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => (total ? (a - 1 + total) % total : -1)); }
+    else if (e.key === "Enter" && clamped >= 0 && results[clamped]) { results[clamped].go(); }
+    else if (e.key === "Enter" && sectionMatches.length === 1 && !postMatches.length) { onJump(sectionMatches[0]); onClose(); }
+  };
   return (
     <div className="sc-overlay-dimmer" onClick={onClose}>
       <div className="sc-panel" onClick={(e) => e.stopPropagation()}>
@@ -349,20 +369,26 @@ function Shortcuts({ open, onClose, onJump, search = true }: { open: boolean; on
           <input
             ref={inputRef}
             className="sc-search"
-            placeholder="Search sections… press Enter to jump"
+            placeholder="Search sections or blog posts…"
             value={q}
-            onChange={(e) => setQ(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && sectionMatches.length === 1) go(sectionMatches[0]); }}
+            onChange={(e) => { setQ(e.target.value); setActive(-1); }}
+            onKeyDown={onKey}
           />
         )}
         {query && (
-          <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {sectionMatches.length === 0 && (
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--ink-faint)" }}>No sections match “{q}”.</span>
+          <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 6 }}>
+            {total === 0 && (
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--ink-faint)" }}>No results for “{q}”.</span>
             )}
-            {sectionMatches.map((id, i) => (
-              <button key={id} onClick={() => go(id)} style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--ink)", background: "var(--bg-elevated)", border: "1px solid var(--amber-soft)", borderRadius: 6, padding: "7px 14px", cursor: "pointer" }}>
-                {SECTIONS.indexOf(id) + 1}. {SECTION_LABELS[id]}
+            {results.map((r, i) => (
+              <button
+                key={r.id}
+                onClick={() => { setActive(i); r.go(); }}
+                onMouseEnter={() => setActive(i)}
+                style={{ textAlign: "left", fontFamily: "var(--font-body)", fontSize: 14, color: "var(--ink)", background: i === clamped ? "var(--bg-elevated)" : "transparent", border: i === clamped ? "1px solid var(--amber-soft)" : "1px solid transparent", borderRadius: 8, padding: "9px 14px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}
+              >
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--ink-faint)", letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0 }}>{r.sub}</span>
               </button>
             ))}
           </div>
@@ -518,10 +544,10 @@ export default function App() {
   /* keyboard shortcuts */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
       if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) { e.preventDefault(); setShortcutsOpen(true); return; }
       if (e.key === "Escape") { setShortcutsOpen(false); setMenuOpen(false); return; }
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (shortcutsOpen) return;
       switch (e.key) {
@@ -811,7 +837,7 @@ export default function App() {
       {blogRoute.view === "post" && <BlogPost slug={blogRoute.slug} onBack={exitBlog} />}
 
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
-      <Shortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} onJump={scrollTo} />
+      <Shortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} onJump={scrollTo} onOpenPost={goBlog} />
       <CMSButton enabled={cmsEnabled} onUnlock={() => setCmsEnabled(true)} onDisable={() => setCmsEnabled(false)} onOpenEditor={() => setEditorOpen(true)} />
       {cmsEnabled && editorOpen && (
         <CmsEditor
