@@ -285,8 +285,9 @@ function TerminalHero({ content, factLocation }: { content: CmsContent; factLoca
                     <div className="term-current" key={e.id}>
                       <span className="term-arrow">›</span>
                       <span className="term-current-degree">{e.degree}</span>
-                      <span className="term-current-school">· {e.school} · <em>{e.location}</em></span>
-                      <span className="term-current-period">· {e.period}</span>
+                      <span className="term-current-sep">· {e.school}</span>
+                      <span className="term-current-sep">· <em>{e.location}</em></span>
+                      <span className="term-current-sep term-current-period">· {e.period}</span>
                       <span className="term-fill" />
                       <span className="term-tag">current</span>
                     </div>
@@ -775,7 +776,7 @@ export default function App() {
                   <span className="lex-class-ic"><Icon name="code" size={15} /></span>
                   <span className="lex-class">Full-Stack</span>
                 </div>
-                <div className="lex-terms lex-terms--padded">{content.skills.filter((s) => s.cat === "stack").map((s) => <span className="term term--prio" key={s.id}>{s.label}</span>)}</div>
+                <div className="lex-terms lex-terms--padded">{content.skills.filter((s) => s.cat === "stack").map((s, i) => <span className="term term--prio" style={{ "--i": i } as React.CSSProperties} key={s.id}>{s.label}</span>)}</div>
               </div>
             </Reveal>
             <Reveal>
@@ -784,7 +785,7 @@ export default function App() {
                   <span className="lex-class-ic"><Icon name="flask" size={15} /></span>
                   <span className="lex-class">AI / NLP</span>
                 </div>
-                <div className="lex-terms lex-terms--padded">{content.skills.filter((s) => s.cat === "ai").map((s) => <span className="term term--prio term--violet" key={s.id}>{s.label}</span>)}</div>
+                <div className="lex-terms lex-terms--padded">{content.skills.filter((s) => s.cat === "ai").map((s, i) => <span className="term term--prio term--violet" style={{ "--i": i } as React.CSSProperties} key={s.id}>{s.label}</span>)}</div>
               </div>
             </Reveal>
             <Reveal>
@@ -793,7 +794,7 @@ export default function App() {
                   <span className="lex-class-ic"><Icon name="wrench" size={15} /></span>
                   <span className="lex-class">DevOps &amp; Workflow</span>
                 </div>
-                <div className="lex-terms lex-terms--padded">{devopsTerms.map((t) => <span className="term" key={t}>{t}</span>)}</div>
+                <div className="lex-terms lex-terms--padded">{devopsTerms.map((t, i) => <span className="term" style={{ "--i": i } as React.CSSProperties} key={t}>{t}</span>)}</div>
               </div>
             </Reveal>
           </div>

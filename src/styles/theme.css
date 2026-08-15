@@ -255,6 +255,7 @@ header.hero {
 
 /* terminal window — an emulator, not a glassy card */
 .term-window {
+  position: relative;
   border: 1px solid var(--rule);
   border-radius: 8px;
   overflow: hidden;
@@ -262,6 +263,20 @@ header.hero {
   box-shadow: 0 24px 60px var(--shadow), 0 0 0 1px var(--rule-soft);
   margin-bottom: 28px;
   font-family: var(--font-mono);
+}
+/* CRT scan sweep — a soft beam drifts down the terminal; transform/opacity only */
+.term-window::after {
+  content: "";
+  position: absolute; left: 0; right: 0; top: -22%; height: 22%;
+  z-index: 2; pointer-events: none;
+  background: linear-gradient(180deg, transparent, var(--sage-soft), transparent);
+  opacity: 0;
+  animation: term-scan 6s ease-in-out 1.6s infinite;
+}
+@keyframes term-scan {
+  0%, 58% { opacity: 0; transform: translateY(0); }
+  62% { opacity: .55; }
+  96%, 100% { opacity: 0; transform: translateY(560%); }
 }
 .term-titlebar {
   display: flex; align-items: center; gap: 8px;
@@ -348,9 +363,9 @@ header.hero {
 }
 .term-current .term-arrow { color: var(--sage); }
 .term-current-degree { color: var(--ink); font-weight: 600; }
-.term-current-school { color: var(--ink-dim); }
-.term-current-school em { font-style: normal; color: var(--sage); }
-.term-current-period { color: var(--ink-faint); font-size: 12px; }
+.term-current-sep { color: var(--ink-dim); white-space: nowrap; }
+.term-current-sep em { font-style: normal; color: var(--sage); }
+.term-current-period { color: var(--ink-faint); font-size: 12px; white-space: nowrap; }
 
 /* dim comment footer, terminal-style */
 .term-comment { color: var(--ink-faint); font-size: 12.5px; margin-top: 14px; opacity: .85; }
@@ -435,6 +450,35 @@ h1.name {
 .bio strong { color: var(--ink); font-weight: 600; }
 
 .cta-row { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* scroll cue — mouse pill with an animated dot */
+.hero-scroll {
+  display: inline-flex; align-items: center; gap: 12px;
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em;
+  color: var(--ink-faint); text-decoration: none;
+  transition: color .2s ease;
+}
+.hero-scroll:hover { color: var(--amber); }
+.hero-scroll-line {
+  position: relative; flex-shrink: 0;
+  width: 18px; height: 26px;
+  border: 1px solid var(--rule); border-radius: 10px;
+  transition: border-color .2s ease;
+}
+.hero-scroll-line::before {
+  content: "";
+  position: absolute; left: 50%; top: 5px;
+  width: 2px; height: 5px; border-radius: 2px;
+  background: var(--amber);
+  transform: translateX(-50%);
+  animation: scroll-cue 1.9s ease-in-out infinite;
+}
+.hero-scroll:hover .hero-scroll-line { border-color: var(--amber-soft); }
+@keyframes scroll-cue {
+  0% { opacity: 0; transform: translate(-50%, 0); }
+  35% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, 9px); }
+}
 
 @media (max-width: 980px) {
   .hero-grid { grid-template-columns: 1fr; gap: 36px; }
@@ -580,6 +624,18 @@ h2.section-title em { color: var(--amber); font-style: italic; }
   transition: border-color .2s ease, box-shadow .2s ease;
 }
 .entry-dot::after { content: ""; width: 4px; height: 4px; border-radius: 50%; background: var(--sage); transition: background .2s ease; }
+/* one-shot radar ping when the entry reveals */
+.entry-dot::before {
+  content: "";
+  position: absolute; inset: -3px; border-radius: 50%;
+  border: 1px solid var(--sage);
+  opacity: 0;
+}
+.reveal.in .entry-dot::before { animation: entry-ping .9s ease-out .2s; }
+@keyframes entry-ping {
+  0% { opacity: .7; transform: scale(.35); }
+  70%, 100% { opacity: 0; transform: scale(1.2); }
+}
 .entry:hover .entry-dot { border-color: var(--amber); box-shadow: 0 0 0 3px var(--bg), 0 0 14px var(--amber-soft); }
 .entry:hover .entry-dot::after { background: var(--amber); }
 .entry:hover .entry-role { color: var(--amber); }
@@ -638,6 +694,11 @@ h2.section-title em { color: var(--amber); font-style: italic; }
    RESEARCH & PROJECTS — cards
    ========================================================================== */
 .proj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+/* rows cascade in one beat after the other */
+.proj-grid > .reveal { transition-delay: 0ms; }
+.proj-grid > .reveal:nth-child(2) { transition-delay: 60ms; }
+.proj-grid > .reveal:nth-child(3) { transition-delay: 120ms; }
+.proj-grid > .reveal:nth-child(4) { transition-delay: 180ms; }
 @media (min-width: 1100px) { .proj-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 680px) { .proj-grid { grid-template-columns: 1fr; } }
 .proj-card {
@@ -747,6 +808,15 @@ section:hover .sec-icon svg { transform: rotate(8deg) scale(1.15); }
 }
 .term--prio { border-color: var(--sage-soft); color: var(--ink); background: transparent; }
 .term--violet { border-color: var(--violet-soft); }
+/* chips stamp in one by one once their card is on screen */
+.reveal.in .lex-terms .term {
+  animation: chip-in .42s cubic-bezier(.2,.7,.3,1) both;
+  animation-delay: calc(var(--i, 0) * 34ms + 140ms);
+}
+@keyframes chip-in {
+  from { opacity: 0; transform: translateY(6px) scale(.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
 
 /* ============================================================================
    EDUCATION
@@ -821,7 +891,15 @@ footer {
   border-bottom: 2px solid var(--amber-soft);
   transition: border-color .15s ease, color .15s ease;
 }
+.footer-email::after {
+  content: "▍";
+  margin-left: 4px;
+  color: var(--amber);
+  opacity: 0;
+  transition: opacity .15s ease;
+}
 .footer-email:hover { border-color: var(--amber); color: var(--amber); }
+.footer-email:hover::after { opacity: 1; animation: blink 1.1s step-end infinite; }
 .footer-cta p { color: var(--ink-dim); font-size: 16px; max-width: 440px; margin: 0 0 22px; }
 
 /* contact form */
@@ -1234,13 +1312,16 @@ footer {
   .term-line { font-size: 12.5px; line-height: 1.8; }
   .term-cursor { width: 7px; height: 14px; transform: translateY(2px); }
   .term-sub { font-size: 12px; }
-  .term-role { font-size: 12.5px; line-height: 2.3; gap: 8px; }
+  .term-role { font-size: 12.5px; line-height: 2.3; gap: 8px; flex-wrap: wrap; row-gap: 2px; }
   .term-idx { min-width: 26px; font-size: 11px; }
+  .term-role-name { white-space: normal; }
+  .term-fill { display: none; }
   .term-tag { font-size: 9px; }
   .term-priority { display: none; }
   .term-kv { font-size: 12.5px; gap: 10px; flex-wrap: wrap; }
   .term-k { min-width: 9ch; font-size: 11px; }
-  .term-current { font-size: 12.5px; gap: 8px; }
+  .term-current { font-size: 12.5px; gap: 8px; flex-wrap: wrap; white-space: normal; }
+  .term-current-sep { white-space: normal; }
   .term-current-period { font-size: 11px; }
   .term-comment { font-size: 11.5px; }
 
