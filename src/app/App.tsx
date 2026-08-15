@@ -11,6 +11,7 @@ import { posts } from "../blog/posts";
 import { useSEO } from "../blog/seo";
 import hazemPhoto from "../imports/hazem-photo.jpeg";
 import cvPdf from "../imports/Hazem-Alabiad-CV.pdf";
+import qrSvg from "../imports/portfolio-qr.svg?raw";
 
 const CMS_TOKEN_KEY = "hazem-cms-token";
 
@@ -44,6 +45,35 @@ function Reveal({ children, className = "", style = {} as React.CSSProperties }:
     return () => io.disconnect();
   }, []);
   return <div ref={ref} className={`reveal ${className}`} style={style}>{children}</div>;
+}
+
+/* ── ambient drifting terminal glyphs (subtle, behind content) ─────────── */
+function BgGlyphs() {
+  const glyphs = useMemo(() => {
+    const chars = ["$", ">", "_", "01", "0x", "::", "#", "%", "@", "~", "λ", "π", "Ω", "EOF", ":=", "&&", "||", "√", "Δ", "µ"];
+    const accents = ["", "", "", "", "", "var(--amber)", "", "", "", "var(--sage)", "", "", "var(--violet)", "", "", "", "", "", "", ""];
+    return Array.from({ length: 18 }, (_, i) => ({
+      ch: chars[i % chars.length],
+      x: `${Math.random() * 100}%`,
+      fs: `${9 + Math.random() * 6}px`,
+      g: (0.03 + Math.random() * 0.025).toFixed(3),
+      dur: `${22 + Math.random() * 20}s`,
+      delay: `-${Math.random() * 40}s`,
+      color: accents[i] || "var(--ink-faint)",
+    }));
+  }, []);
+  return (
+    <div className="bg-glyphs" aria-hidden="true">
+      {glyphs.map((g, i) => (
+        <span
+          key={i}
+          style={{ "--x": g.x, "--fs": g.fs, "--g": g.g, "--dur": g.dur, "--delay": g.delay, color: g.color } as React.CSSProperties}
+        >
+          {g.ch}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 /* ── line icons (inline SVG, currentColor) ───────────────────────────── */
@@ -657,6 +687,7 @@ export default function App() {
 
       {blogRoute.view === "home" && (
         <>
+          <BgGlyphs />
           <TerminalHero content={content} factLocation={factLocation} />
 
       {/* ── EDUCATION ───────────────────────────────────────────────────── */}
@@ -819,6 +850,10 @@ export default function App() {
               <a className="linked ic-gh" href={content.links.find((l) => l.label === "GITHUB")?.href || "#"} target="_blank" rel="noopener noreferrer"><Icon name="gh" size={15} />github.com/hazem-alabiad</a>
               <a className="linked ic-in" href={content.links.find((l) => l.label === "LINKEDIN")?.href || "#"} target="_blank" rel="noopener noreferrer"><Icon name="in" size={15} />linkedin.com/in/hazemalabiad</a>
               <a className="linked ic-go" href={content.links.find((l) => l.label === "SCHOLAR")?.href || "#"} target="_blank" rel="noopener noreferrer"><Icon name="scholar" size={15} />{content.links.find((l) => l.label === "SCHOLAR")?.value || "scholar.google.com/hazem"}</a>
+            </div>
+            <div className="footer-qr">
+              <div className="footer-qr-tile" dangerouslySetInnerHTML={{ __html: qrSvg }} />
+              <span className="footer-qr-caption">scan me</span>
             </div>
           </div>
           <div className="hobbies">
