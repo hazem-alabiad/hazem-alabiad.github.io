@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Plus, Trash2, Loader2, Lock, FileText, KeyRound, Search } from "lucide-react";
 import { listPosts, readPost, writePost, deletePost, slugify } from "../github";
 import {
-  verifyToken, saveBlogSession, loadBlogSession, clearBlogSession,
+  verifyToken, saveBlogSession, loadBlogSession, clearBlogSession, sanitizeToken,
   parseFrontmatter, parseTags, buildMdx, EditorPanel,
   Panel, chipBtn, FIELD, MONO, type BlogDraft,
 } from "./editor";
@@ -37,13 +37,14 @@ export default function BlogAdmin() {
   }
 
   async function unlock(value: string) {
-    if (!value.trim()) return;
+    const token = sanitizeToken(value);
+    if (!token) return;
     setBusy(true); setAuthErr("");
     try {
-      const u = await verifyToken(value);
-      saveBlogSession(value, u.login);
-      setUser(u); setToken(value); setStage("ready");
-      refresh(value);
+      const u = await verifyToken(token);
+      saveBlogSession(token, u.login);
+      setUser(u); setToken(token); setStage("ready");
+      refresh(token);
     } catch (e) { setAuthErr((e as Error).message); }
     finally { setBusy(false); }
   }

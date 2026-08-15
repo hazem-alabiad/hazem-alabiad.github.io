@@ -60,7 +60,13 @@ function modeBtn(active: boolean): CSSProperties {
   };
 }
 
-export async function verifyToken(token: string): Promise<BlogAuthorUser> {
+export function sanitizeToken(token: string): string {
+  return token.replace(/[^\x20-\x7E]/g, "").trim();
+}
+
+export async function verifyToken(raw: string): Promise<BlogAuthorUser> {
+  const token = sanitizeToken(raw);
+  if (!token) throw new Error("Token is empty or contains unsupported characters.");
   const res = await fetch("https://api.github.com/user", {
     headers: { Authorization: `token ${token}`, "User-Agent": "hazem-portfolio" },
   });
@@ -72,7 +78,7 @@ export async function verifyToken(token: string): Promise<BlogAuthorUser> {
 }
 
 export function saveBlogSession(token: string, login: string) {
-  try { localStorage.setItem(BLOG_TOKEN_KEY, token); localStorage.setItem(BLOG_USER_KEY, login); } catch { /* storage unavailable */ }
+  try { localStorage.setItem(BLOG_TOKEN_KEY, sanitizeToken(token)); localStorage.setItem(BLOG_USER_KEY, login); } catch { /* storage unavailable */ }
 }
 
 export function loadBlogSession(): { token: string; login: string } | null {

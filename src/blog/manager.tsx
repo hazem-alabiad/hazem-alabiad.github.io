@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { posts, type Post } from "./posts";
 import { listPosts, readPost, writePost, deletePost, slugify, POSTS_DIR } from "../github";
 import {
-  verifyToken, saveBlogSession, loadBlogSession, clearBlogSession,
+  verifyToken, saveBlogSession, loadBlogSession, clearBlogSession, sanitizeToken,
   parseFrontmatter, parseTags, buildMdx, EMPTY_DRAFT, type BlogDraft,
 } from "./editor";
 import { OWNER_LOGIN } from "./authors";
@@ -59,12 +59,13 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function unlock(v: string) {
-    if (!v.trim()) return;
+    const value = sanitizeToken(v);
+    if (!value) return;
     setAuthBusy(true); setAuthErr("");
     try {
-      const u = await verifyToken(v);
-      saveBlogSession(v, u.login);
-      setMgr({ login: u.login }); setToken(v); setUnlockOpen(false); setPat("");
+      const u = await verifyToken(value);
+      saveBlogSession(value, u.login);
+      setMgr({ login: u.login }); setToken(value); setUnlockOpen(false); setPat("");
     } catch (e) { setAuthErr((e as Error).message); }
     finally { setAuthBusy(false); }
   }

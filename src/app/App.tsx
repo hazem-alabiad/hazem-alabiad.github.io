@@ -487,13 +487,14 @@ function CMSButton({ onUnlock, enabled, onDisable, onOpenEditor }: {
   const [err, setErr] = useState("");
 
   async function verify(value: string) {
-    if (!value.trim()) return;
+    const token = value.replace(/[^\x20-\x7E]/g, "").trim();
+    if (!token) return;
     setBusy(true); setErr("");
     try {
-      const res = await fetch("https://api.github.com/user", { headers: { Authorization: `token ${value.trim()}`, "User-Agent": "hazem-portfolio" } });
+      const res = await fetch("https://api.github.com/user", { headers: { Authorization: `token ${token}`, "User-Agent": "hazem-portfolio" } });
       const data = await res.json();
       if (data.login === "hazem-alabiad") {
-        try { localStorage.setItem(CMS_TOKEN_KEY, value.trim()); } catch { /* storage unavailable */ }
+        try { localStorage.setItem(CMS_TOKEN_KEY, token); } catch { /* storage unavailable */ }
         setOpen(false); onUnlock();
       } else setErr("Token does not match owner.");
     } catch { setErr("Verification failed."); }
