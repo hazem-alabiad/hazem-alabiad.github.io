@@ -17,8 +17,6 @@ import { ScrollProgress } from "./components/ScrollProgress";
 import { BackToTop } from "./components/BackToTop";
 import { Toast } from "./components/Toast";
 import { CMSButton } from "./components/CMSButton";
-import { ContactForm } from "./components/ContactForm";
-import { UniCrest } from "./components/UniCrest";
 
 const BlogIndex = lazy(() => import("../blog/Blog").then(m => ({ default: m.BlogIndex })));
 const BlogPost = lazy(() => import("../blog/Blog").then(m => ({ default: m.BlogPost })));

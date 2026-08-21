@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Plus, Trash2, Loader2, Lock, FileText, KeyRound, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Plus, Loader2, Lock, FileText, KeyRound, Search } from "lucide-react";
 import { listPosts, readPost, writePost, deletePost, slugify } from "../github";
 import {
   verifyToken, saveBlogSession, loadBlogSession, clearBlogSession, sanitizeToken,

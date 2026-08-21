@@ -24,6 +24,8 @@ export interface CmsEducation {
   school: string;
   location: string;
   period: string;
+  start?: { m: number; y: number } | null;
+  end?: { m: number; y: number } | null;
   detail: string;
   focus: string[];
   badges: string[];
@@ -44,6 +46,7 @@ export interface CmsProject {
 export interface CmsSkill {
   id: string;
   label: string;
+  level?: number;
   cat: "stack" | "ai";
 }
 

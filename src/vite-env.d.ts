@@ -1,5 +1,15 @@
 /// <reference types="vite/client" />
 
+declare module '*.webp' {
+  const src: string
+  export default src
+}
+
+declare module '*.pdf' {
+  const src: string
+  export default src
+}
+
 declare module '*.mdx' {
   import { type ComponentType } from 'react'
   export const frontmatter: Record<string, unknown>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Icon } from "./Icon";
 import { type CmsContent } from "../../cms";
 import hazemPhoto from "../../imports/hazem-photo.webp";

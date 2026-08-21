@@ -1,5 +1,6 @@
 // Blog content loader — Vite eagerly imports every MDX post at build time.
 // Frontmatter is exposed via remark-mdx-frontmatter as a named export.
+import type { ReactNode } from "react";
 type Post = {
   slug: string;
   title: string;
@@ -8,10 +9,10 @@ type Post = {
   tags: string[];
   accent?: string;
   author?: string;
-  Component: () => JSX.Element;
+  Component: () => ReactNode;
 };
 
-const modules = import.meta.glob<{ default: () => JSX.Element; frontmatter: Record<string, unknown> }>("./posts/*.mdx", { eager: true });
+const modules = import.meta.glob<{ default: () => ReactNode; frontmatter: Record<string, unknown> }>("./posts/*.mdx", { eager: true });
 
 export const posts: Post[] = Object.entries(modules)
   .map(([file, mod]) => {

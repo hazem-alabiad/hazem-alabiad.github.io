@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
-import { X, Plus, Trash2, FileUp, Lock, Save, RotateCcw, GitBranch } from "lucide-react";
+import { X, Plus, Trash2, FileUp, Lock, RotateCcw, GitBranch } from "lucide-react";
 import hazemPhoto from "./imports/hazem-photo.webp";
 import {
   uid,
@@ -343,7 +343,7 @@ export default function CmsEditor({
                   </div>
                 </div>
               ))}
-              <AddButton onClick={() => set("education", [...draft.education, { id: uid(), degree: "", school: "", location: "", period: "", start: null, end: null, detail: "", current: false }])}>ADD EDUCATION</AddButton>
+              <AddButton onClick={() => set("education", [...draft.education, { id: uid(), degree: "", school: "", location: "", period: "", start: null, end: null, detail: "", focus: [], badges: [], current: false }])}>ADD EDUCATION</AddButton>
             </Section>
 
             {/* Projects */}
@@ -374,7 +374,7 @@ export default function CmsEditor({
                   </div>
                 </div>
               ))}
-              <AddButton onClick={() => set("projects", [...draft.projects, { id: uid(), name: "", desc: "", tags: [], status: "ACTIVE", year: "2026", link: "https://github.com/hazem-alabiad" }])} />
+              <AddButton onClick={() => set("projects", [...draft.projects, { id: uid(), name: "", desc: "", impact: "", tags: [], status: "ACTIVE", year: "2026", link: "https://github.com/hazem-alabiad" }])} />
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
                 <button onClick={fetchRepoLinks} disabled={gh.busy}
                   style={{ ...MONO, fontSize: 10, letterSpacing: "0.16em", color: "var(--blue)", background: "var(--bg-elevated)", border: "1px solid var(--blue)", padding: "8px 12px", cursor: "pointer", borderRadius: 6, display: "flex", alignItems: "center", gap: 8 }}>
