@@ -11,7 +11,7 @@ import { Icon } from "./components/Icon";
 import { BootScreen } from "./components/BootScreen";
 import { TerminalHero } from "./components/TerminalHero";
 import { Shortcuts } from "./components/Shortcuts";
-import { BgGlyphs } from "./components/BgGlyphs";
+const BgGlyphs = lazy(() => import("./components/BgGlyphs").then(m => ({ default: m.BgGlyphs })));
 import { Reveal } from "./components/Reveal";
 import { ScrollProgress } from "./components/ScrollProgress";
 import { BackToTop } from "./components/BackToTop";
@@ -190,7 +190,7 @@ function AppContent() {
           <Route path="/" element={
           <>
             <SEOWrapper view="home" />
-            <BgGlyphs />
+            <Suspense fallback={null}><BgGlyphs /></Suspense>
             <TerminalHero content={content} factLocation={factLocation} scrollTo={scrollTo} />
             
             <section id="education">

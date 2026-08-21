@@ -114,7 +114,7 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
                 <button className="blog-manage-btn" onClick={lock}>LOCK</button>
               </>
             ) : (
-              <button className="blog-lock-btn" onClick={() => setUnlockOpen((o) => !o)} title="Owner login — manage posts" aria-label="Owner login – manage posts"><Lock size={13} /></button>
+              <button className="blog-lock-btn" onClick={() => setUnlockOpen(!unlockOpen)} title="Owner login — manage posts" aria-label="Owner login – manage posts"><Lock size={13} /></button>
             )}
           </div>
         </div>
@@ -266,11 +266,11 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
                 <button className="blog-size-btn blog-post-manage" title="Lock management" onClick={() => lock()}><Lock size={12} /> LOCK</button>
               </>
             ) : (
-              <button className="blog-size-btn blog-lock-btn" title="Owner login — manage posts" aria-label="Owner login – manage posts" onClick={() => setUnlockOpen((o) => !o)}><Lock size={13} /></button>
+              <button className="blog-size-btn blog-lock-btn" title="Owner login — manage posts" aria-label="Owner login – manage posts" onClick={() => setUnlockOpen(!unlockOpen)}><Lock size={13} /></button>
             )}
-            <button className="blog-size-btn blog-share-btn" onClick={copyLink} title="Copy link to this post">{copied ? <Check size={13} /> : <Share2 size={13} />}</button>
-            <button className="blog-size-btn" onClick={() => idx > 0 && setPersist(FONT_SIZES[idx - 1])} disabled={idx <= 0} title="Smaller text">A−</button>
-            <button className="blog-size-btn" onClick={() => idx < FONT_SIZES.length - 1 && setPersist(FONT_SIZES[idx + 1])} disabled={idx >= FONT_SIZES.length - 1} title="Larger text">A+</button>
+            <button className="blog-size-btn blog-share-btn" onClick={copyLink} title="Copy link to this post" aria-label="Copy link to this post">{copied ? <Check size={13} /> : <Share2 size={13} />}</button>
+            <button className="blog-size-btn" onClick={() => idx > 0 && setPersist(FONT_SIZES[idx - 1])} disabled={idx <= 0} title="Smaller text" aria-label="Decrease text size">A−</button>
+            <button className="blog-size-btn" onClick={() => idx < FONT_SIZES.length - 1 && setPersist(FONT_SIZES[idx + 1])} disabled={idx >= FONT_SIZES.length - 1} title="Larger text" aria-label="Increase text size">A+</button>
           </div>
           {unlockOpen && !mgr && (
             <div className="blog-unlock blog-unlock--article">
