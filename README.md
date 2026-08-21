@@ -34,18 +34,16 @@ git clone https://github.com/hazem-alabiad/hazem-alabiad.github.io.git
 cd hazem-alabiad.github.io
 ```
 
-2. Install dependencies:
+2. Install dependencies (strictly use `pnpm`):
 
 ```bash
-npm install
-# or
 pnpm install
 ```
 
 3. Start the development server:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ### Running Tests
@@ -53,7 +51,7 @@ npm run dev
 The project uses [Vitest](https://vitest.dev/) and React Testing Library for unit testing.
 
 ```bash
-npm run test
+pnpm run test
 ```
 
 ## 🛠️ Built With
