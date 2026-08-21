@@ -312,13 +312,14 @@ header.hero {
   96%, 100% { opacity: 0; transform: translateY(560%); }
 }
 .term-titlebar {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; justify-content: space-between;
   height: 38px; padding: 0 12px;
   border-bottom: 1px solid var(--rule-soft);
   background: var(--bg-elevated);
   position: relative;
 }
-.term-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+.term-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; margin-right: 8px; }
+.term-dot:last-of-type { margin-right: 0; }
 .term-dot-red { background: #ff5f57; }
 .term-dot-yellow { background: #febc2e; }
 .term-dot-green { background: #28c840; }
