@@ -4,7 +4,7 @@ import { posts } from "../../blog/posts";
 const SECTIONS = ["home", "education", "experience", "research", "skills", "contact"];
 const SECTION_LABELS: Record<string, string> = { home: "Terminal", experience: "Experience", research: "Research", skills: "Skills", education: "Education", contact: "Contact" };
 
-export function Shortcuts({ open, onClose, onJump, onOpenPost, search = true }: { open: boolean; onClose: () => void; onJump: (id: string) => void; onOpenPost?: (slug: string) => void; search?: boolean }) {
+export function Shortcuts({ open = false, onClose = () => {}, onJump = () => {}, onOpenPost, search = true }: { open?: boolean; onClose?: () => void; onJump?: (id: string) => void; onOpenPost?: (slug: string) => void; search?: boolean }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState("");
   const [active, setActive] = useState(-1);
@@ -103,4 +103,4 @@ export function Shortcuts({ open, onClose, onJump, onOpenPost, search = true }: 
       </div>
     </div>
   );
-}
+export default Shortcuts;

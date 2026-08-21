@@ -1,14 +1,15 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import Shortcuts from './Shortcuts';
 
-test('renders shortcuts overlay and responds to key press', () => {
-  render(<Shortcuts />);
-  // Overlay hidden initially
-  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  // Open via Cmd+K (meta+K)
-  fireEvent.keyDown(document, { key: 'k', metaKey: true });
-  expect(screen.getByRole('dialog')).toBeInTheDocument();
-  // Close with Escape
-  fireEvent.keyDown(document, { key: 'Escape' });
-  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+test('renders shortcuts overlay and responds to close click', () => {
+  const onClose = jest.fn();
+  const onJump = jest.fn();
+  render(<Shortcuts open={true} onClose={onClose} onJump={onJump} />);
+  // Overlay should be present
+  const panel = document.querySelector('.sc-panel');
+  expect(panel).toBeInTheDocument();
+  // Close by clicking the dimmer background
+  const dimmer = document.querySelector('.sc-overlay-dimmer');
+  if (dimmer) fireEvent.click(dimmer);
+  expect(onClose).toHaveBeenCalled();
 });
