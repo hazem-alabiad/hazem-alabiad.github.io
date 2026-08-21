@@ -14,6 +14,7 @@ import { Shortcuts } from "./components/Shortcuts";
 import { BgGlyphs } from "./components/BgGlyphs";
 import { Reveal } from "./components/Reveal";
 import { ScrollProgress } from "./components/ScrollProgress";
+import { BackToTop } from "./components/BackToTop";
 import { Toast } from "./components/Toast";
 import { CMSButton } from "./components/CMSButton";
 import { ContactForm } from "./components/ContactForm";
@@ -147,7 +148,9 @@ function AppContent() {
 
   return (
     <>
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       <ScrollProgress />
+      <BackToTop />
       {!booted && <BootScreen onDone={() => { setBooted(true); try { localStorage.setItem(BOOTED_KEY, "1"); } catch { /* empty */ } }} />}
 
       <nav>
@@ -182,8 +185,9 @@ function AppContent() {
         </div>
       </nav>
 
-      <Routes>
-        <Route path="/" element={
+      <main id="main-content">
+        <Routes>
+          <Route path="/" element={
           <>
             <SEOWrapper view="home" />
             <BgGlyphs />
@@ -348,7 +352,8 @@ function AppContent() {
             </Suspense>
           </BlogManagerProvider>
         } />
-      </Routes>
+        </Routes>
+      </main>
 
       <footer id="contact">
         <div className="wrap">

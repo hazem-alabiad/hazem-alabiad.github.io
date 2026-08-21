@@ -19,12 +19,13 @@ const ICONS: Record<string, string> = {
   book: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z",
   chart: "M3 3v18h18M18 17V9M13 17V5M8 17v-3",
   scales: "M12 3v18M8 21h8M6 7h12M6 7 3 14h6zM18 7l-3 7h6z",
-  refresh: "M2 12A10 10 0 1 0 12 2v3m0-3h-3", // approximate replay/refresh icon
+  refresh: "M2 12A10 10 0 1 0 12 2v3m0-3h-3",
+  "chevron-up": "M18 15l-6-6-6 6",
 };
 
 export function Icon({ name, size = 14, className = "" }: { name: string; size?: number; className?: string }) {
   return (
-    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
       <path d={ICONS[name] || ""} />
     </svg>
   );
