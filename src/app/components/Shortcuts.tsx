@@ -60,45 +60,45 @@ export function Shortcuts({ open, onClose, onJump, onOpenPost, search = true }: 
   return (
     <div className="sc-overlay-dimmer" onClick={onClose}>
       <div className="sc-panel" onClick={(e) => e.stopPropagation()}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 20 }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 24, margin: 0 }}>Quick search</h2>
-          <button onClick={onClose} style={{ background: "none", border: "1px solid var(--rule)", borderRadius: 4, color: "var(--ink-dim)", fontFamily: "var(--font-mono)", fontSize: 11, padding: "4px 10px", cursor: "pointer" }}>Esc ✕</button>
-        </div>
         {search && (
           <input
             ref={inputRef}
             className="sc-search"
-            placeholder="Search sections or blog posts…"
+            placeholder="Search commands, sections, or posts…"
             value={q}
             onChange={(e) => { setQ(e.target.value); setActive(-1); }}
             onKeyDown={onKey}
           />
         )}
-        {query && (
-          <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 6 }}>
-            {total === 0 && (
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--ink-faint)" }}>No results for “{q}”.</span>
-            )}
-            {results.map((r, i) => (
-              <button
-                key={r.id}
-                onClick={() => { setActive(i); r.go(); }}
-                onMouseEnter={() => setActive(i)}
-                style={{ textAlign: "left", fontFamily: "var(--font-body)", fontSize: 14, color: "var(--ink)", background: i === clamped ? "var(--bg-elevated)" : "transparent", border: i === clamped ? "1px solid var(--amber-soft)" : "1px solid transparent", borderRadius: 8, padding: "9px 14px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}
-              >
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</span>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--ink-faint)", letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0 }}>{r.sub}</span>
-              </button>
-            ))}
-          </div>
-        )}
-        <div style={{ marginTop: 22, display: "flex", flexDirection: "column", gap: 12 }}>
-          {keys.map(([k, label]) => (
-            <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--rule-soft)", paddingBottom: 10 }}>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--ink-dim)" }}>{label}</span>
-              <kbd style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--amber)", border: "1px solid var(--rule)", borderRadius: 4, padding: "2px 8px", minWidth: 56, textAlign: "center" }}>{k}</kbd>
+        <div className="sc-body">
+          {query && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {total === 0 && (
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--ink-faint)", padding: "8px 12px" }}>No results for “{q}”.</span>
+              )}
+              {results.map((r, i) => (
+                <button
+                  key={r.id}
+                  onClick={() => { setActive(i); r.go(); }}
+                  onMouseEnter={() => setActive(i)}
+                  style={{ textAlign: "left", fontFamily: "var(--font-body)", fontSize: 15, color: "var(--ink)", background: i === clamped ? "var(--amber-soft)" : "transparent", border: i === clamped ? "1px solid var(--amber-soft)" : "1px solid transparent", borderRadius: 8, padding: "10px 16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, transition: "background 0.1s ease" }}
+                >
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</span>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--ink-faint)", letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0 }}>{r.sub}</span>
+                </button>
+              ))}
             </div>
-          ))}
+          )}
+          {!query && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {keys.map(([k, label]) => (
+                <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--rule-soft)", paddingBottom: 10, paddingTop: 6 }}>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--ink-dim)" }}>{label}</span>
+                  <kbd style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--amber)", background: "var(--bg-elevated)", border: "1px solid var(--rule)", borderRadius: 4, padding: "4px 8px", minWidth: 56, textAlign: "center", boxShadow: "0 2px 0 var(--rule-soft)" }}>{k}</kbd>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
