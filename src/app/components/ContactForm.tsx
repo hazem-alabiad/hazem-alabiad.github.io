@@ -18,11 +18,23 @@ export function ContactForm({ email }: { email: string }) {
   return (
     <div className="contact-form">
       <div className="contact-row">
-        <input className="contact-input" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
-        <input className="contact-input" placeholder="Your email" type="email" value={from} onChange={(e) => setFrom(e.target.value)} />
+        <div className="float-label">
+          <input className="contact-input" id="cf-name" placeholder=" " value={name} onChange={(e) => setName(e.target.value)} />
+          <label htmlFor="cf-name">Your name</label>
+        </div>
+        <div className="float-label">
+          <input className="contact-input" id="cf-email" placeholder=" " type="email" value={from} onChange={(e) => setFrom(e.target.value)} />
+          <label htmlFor="cf-email">Your email</label>
+        </div>
       </div>
-      <input className="contact-input" placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
-      <textarea className="contact-input contact-textarea" placeholder="Your message…" value={msg} onChange={(e) => setMsg(e.target.value)} rows={4} />
+      <div className="float-label">
+        <input className="contact-input" id="cf-subject" placeholder=" " value={subject} onChange={(e) => setSubject(e.target.value)} />
+        <label htmlFor="cf-subject">Subject</label>
+      </div>
+      <div className="float-label">
+        <textarea className="contact-input contact-textarea" id="cf-msg" placeholder=" " value={msg} onChange={(e) => setMsg(e.target.value)} rows={4} />
+        <label htmlFor="cf-msg">Your message…</label>
+      </div>
       <button className="btn primary contact-send" onClick={send}>
         {sent ? "✓ Opening your email client…" : "Send message →"}
       </button>
