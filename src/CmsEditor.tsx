@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { X, Plus, Trash2, FileUp, Lock, Save, RotateCcw, GitBranch } from "lucide-react";
-import hazemPhoto from "./imports/hazem-photo.jpeg";
+import hazemPhoto from "./imports/hazem-photo.webp";
 import {
   uid,
   type CmsContent,
