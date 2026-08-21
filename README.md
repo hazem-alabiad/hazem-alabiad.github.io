@@ -1,6 +1,7 @@
 # Hazem Alabiad — Interactive Portfolio
 
 [![Build & Test](https://github.com/hazem-alabiad/hazem-alabiad.github.io/actions/workflows/test.yml/badge.svg)](https://github.com/hazem-alabiad/hazem-alabiad.github.io/actions/workflows/test.yml)
+[![Coverage](https://codecov.io/gh/hazem-alabiad/hazem-alabiad.github.io/branch/main/graph/badge.svg)](https://codecov.io/gh/hazem-alabiad/hazem-alabiad.github.io)
 [![Deploy](https://github.com/hazem-alabiad/hazem-alabiad.github.io/actions/workflows/deploy.yml/badge.svg)](https://github.com/hazem-alabiad/hazem-alabiad.github.io/actions/workflows/deploy.yml)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-6-purple.svg)](https://vitejs.dev/)
@@ -20,18 +21,21 @@ A modern, highly interactive personal portfolio and blog built with **React**, *
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js (v20+ recommended)
 - `npm` or `pnpm`
 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/hazem-alabiad/hazem-alabiad.github.io.git
 cd hazem-alabiad.github.io
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 # or
@@ -39,6 +43,7 @@ pnpm install
 ```
 
 3. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -46,11 +51,13 @@ npm run dev
 ### Running Tests
 
 The project uses [Vitest](https://vitest.dev/) and React Testing Library for unit testing.
+
 ```bash
 npm run test
 ```
 
 ## 🛠️ Built With
+
 - [React](https://react.dev/)
 - [Vite](https://vitejs.dev/)
 - [Vitest](https://vitest.dev/)
@@ -58,4 +65,5 @@ npm run test
 - [Radix UI](https://www.radix-ui.com/)
 
 ## 📝 License
+
 This project is for personal portfolio usage. Source code structure by [Figma Make](https://www.figma.com/design/VvROVzACoQnqVIeJCLAiLg/Revamp-Portfolio-Design).
