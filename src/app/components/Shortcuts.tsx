@@ -103,4 +103,5 @@ export function Shortcuts({ open = false, onClose = () => {}, onJump = () => {},
       </div>
     </div>
   );
-export default Shortcuts;
+}
+
