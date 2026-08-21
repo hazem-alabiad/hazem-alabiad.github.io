@@ -355,7 +355,7 @@ header.hero {
   font-family: var(--font-mono); font-size: 14px; line-height: 2.15;
 }
 .term-idx { color: var(--ink-faint); font-size: 12px; min-width: 30px; user-select: none; }
-.term-role-name { color: var(--ink); }
+.term-role-name { color: var(--ink); white-space: nowrap; }
 .term-role--prio .term-role-name { color: var(--amber); }
 .term-fill {
   flex: 1 1 auto; min-width: 12px;
@@ -384,8 +384,9 @@ header.hero {
 
 /* current role — plain line with prompt marker */
 .term-current {
-  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  display: flex; align-items: baseline; gap: 10px;
   font-family: var(--font-mono); font-size: 13.5px; line-height: 1.9;
+  white-space: nowrap;
 }
 .term-current .term-arrow { color: var(--sage); }
 .term-current-degree { color: var(--ink); font-weight: 600; }
