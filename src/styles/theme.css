@@ -390,11 +390,13 @@ header.hero {
 
 /* current role — plain line with prompt marker */
 .term-current {
-  display: flex; align-items: baseline; gap: 10px;
+  display: flex; align-items: flex-start; gap: 10px;
   font-family: var(--font-mono); font-size: 13.5px; line-height: 1.9;
-  white-space: nowrap;
 }
-.term-current .term-arrow { color: var(--sage); }
+.term-current .term-arrow { color: var(--sage); padding-top: 1px; flex-shrink: 0; }
+.term-current-content {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; flex: 1;
+}
 .term-current-degree { color: var(--ink); font-weight: 600; }
 .term-current-sep { color: var(--ink-dim); white-space: nowrap; }
 .term-current-sep em { font-style: normal; color: var(--sage); }

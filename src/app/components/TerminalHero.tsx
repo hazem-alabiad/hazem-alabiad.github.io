@@ -74,7 +74,7 @@ export function TerminalHero({ content, factLocation, scrollTo }: { content: Cms
         {/* identity: photo + name + status */}
         <div className="hero-top">
           <div className="hero-photo">
-            <img src={content.photo || (hazemPhoto as string)} alt="Hazem Alabiad" />
+            <img src={content.photo || (hazemPhoto as string)} alt="Hazem Alabiad" fetchPriority="high" loading="eager" width="120" height="120" />
           </div>
           <div className="hero-id">
             <p className="hero-eyebrow">— cv.status —</p>
@@ -148,12 +148,14 @@ export function TerminalHero({ content, factLocation, scrollTo }: { content: Cms
                   {content.education.filter((e) => e.current).map((e) => (
                     <div className="term-current" key={e.id}>
                       <span className="term-arrow">›</span>
-                      <span className="term-current-degree">{e.degree}</span>
-                      <span className="term-current-sep">· {e.school}</span>
-                      <span className="term-current-sep">· <em>{e.location}</em></span>
-                      <span className="term-current-sep term-current-period">· {e.period}</span>
-                      <span className="term-fill" />
-                      <span className="term-tag">current</span>
+                      <div className="term-current-content">
+                        <span className="term-current-degree">{e.degree}</span>
+                        <span className="term-current-sep">· {e.school}</span>
+                        <span className="term-current-sep">· <em>{e.location}</em></span>
+                        <span className="term-current-sep term-current-period">· {e.period}</span>
+                        <span className="term-fill" />
+                        <span className="term-tag">current</span>
+                      </div>
                     </div>
                   ))}
                   <div className="term-kv term-kv--feature"><span className="term-k">experience</span><span className="term-ec">=&gt;</span><span className="term-v">"6+ years"</span></div>
