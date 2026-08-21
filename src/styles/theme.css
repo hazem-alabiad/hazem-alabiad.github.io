@@ -321,7 +321,7 @@ header.hero {
   font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.06em;
   color: var(--ink-faint); user-select: none; white-space: nowrap;
 }
-.term-body { padding: 16px 18px 20px; }
+.term-body { padding: 16px 18px 20px; overflow-x: auto; }
 
 /* monospaced text output */
 .term-line {
@@ -355,7 +355,7 @@ header.hero {
   font-family: var(--font-mono); font-size: 14px; line-height: 2.15;
 }
 .term-idx { color: var(--ink-faint); font-size: 12px; min-width: 30px; user-select: none; }
-.term-role-name { color: var(--ink); white-space: nowrap; }
+.term-role-name { color: var(--ink); }
 .term-role--prio .term-role-name { color: var(--amber); }
 .term-fill {
   flex: 1 1 auto; min-width: 12px;
@@ -384,9 +384,8 @@ header.hero {
 
 /* current role — plain line with prompt marker */
 .term-current {
-  display: flex; align-items: baseline; gap: 10px;
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
   font-family: var(--font-mono); font-size: 13.5px; line-height: 1.9;
-  white-space: nowrap;
 }
 .term-current .term-arrow { color: var(--sage); }
 .term-current-degree { color: var(--ink); font-weight: 600; }
@@ -1452,4 +1451,51 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
   .reveal { opacity: 1; transform: none; }
+}
+
+/* ============================================================================
+   A11Y ENHANCEMENTS
+   ========================================================================== */
+*:focus-visible {
+  outline: 2px solid var(--amber) !important;
+  outline-offset: 2px !important;
+}
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--bg);
+  color: var(--amber);
+  padding: 8px;
+  z-index: 100000;
+  transition: top 0.2s;
+}
+
+.skip-link:focus-visible {
+  top: 0;
+}
+
+.back-to-top {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--rule);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: all 0.2s ease;
+  border: 1px solid var(--rule-light);
+}
+.back-to-top:hover {
+  background: var(--amber);
+  color: #000;
+  transform: translateY(-2px);
 }
