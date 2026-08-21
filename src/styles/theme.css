@@ -540,8 +540,10 @@ h1.name {
 }
 .btn svg { width: 14px; height: 14px; }
 .btn:hover { border-color: var(--sage); background: var(--bg-elevated); transform: translateY(-1px); box-shadow: 0 6px 16px var(--shadow); }
+.btn:active { transform: translateY(1px); box-shadow: 0 2px 6px var(--shadow); }
 .btn.primary { background: var(--amber); color: var(--amber-ink); border-color: var(--amber); }
 .btn.primary:hover { background: var(--amber); border-color: var(--amber); box-shadow: 0 8px 20px var(--amber-soft); }
+.btn.primary:active { transform: translateY(1px); box-shadow: 0 2px 8px var(--amber-soft); }
 /* colorful link hover: leave the neutral styling, colour each target */
 .btn gh:hover { border-color: var(--violet); }
 .btn.ic-gh:hover { border-color: var(--violet); color: var(--violet); }
@@ -562,6 +564,11 @@ h1.name {
   box-shadow: 0 10px 26px var(--sage-soft), 0 0 0 1px var(--sage);
   transform: translateY(-2px);
   filter: brightness(1.08);
+}
+.btn-cv:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 12px var(--sage-soft);
+  filter: brightness(0.95);
 }
 .btn-cv svg {
   width: 15px; height: 15px;
@@ -676,6 +683,7 @@ h2.section-title em { color: var(--amber); font-style: italic; }
 .entry:hover .entry-role { color: var(--amber); }
 .entry-body { background: var(--bg-panel); border: 1px solid var(--rule-soft); border-radius: 10px; padding: 20px 22px; transition: all .3s cubic-bezier(0.2, 0.8, 0.2, 1); }
 .entry:hover .entry-body { border-color: var(--amber-soft); background: var(--bg-elevated); transform: translateY(-3px) translateX(2px); box-shadow: 0 12px 24px var(--shadow), 0 0 0 1px var(--amber-soft) inset; }
+.entry:active .entry-body { transform: translateY(-1px) translateX(1px); box-shadow: 0 4px 12px var(--shadow), 0 0 0 1px var(--amber-soft) inset; }
 .entry-meta {
   display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
   font-family: var(--font-mono);
@@ -746,6 +754,7 @@ h2.section-title em { color: var(--amber); font-style: italic; }
   transition: all .3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .proj-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px var(--shadow), 0 0 0 1px var(--amber-soft) inset; border-color: var(--amber-soft); }
+.proj-card:active { transform: translateY(-1px); box-shadow: 0 4px 16px var(--shadow), 0 0 0 1px var(--amber-soft) inset; }
 .proj-card--research { border-top: 2px solid var(--amber); }
 .proj-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .proj-year { font-family: var(--font-mono); font-size: 13px; color: var(--ink-faint); letter-spacing: 0.04em; }
@@ -806,6 +815,7 @@ section:hover .sec-icon svg { transform: rotate(8deg) scale(1.15); }
 .lex-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px var(--shadow), 0 0 0 1px var(--sage-soft) inset; border-color: var(--sage-soft); }
 .lex-card:nth-child(2):hover { border-color: var(--violet-soft); box-shadow: 0 16px 40px var(--shadow), 0 0 0 1px var(--violet-soft) inset; }
 .lex-card:nth-child(3):hover { border-color: var(--amber-soft); box-shadow: 0 16px 40px var(--shadow), 0 0 0 1px var(--amber-soft) inset; }
+.lex-card:active { transform: translateY(-1px); box-shadow: 0 4px 16px var(--shadow), 0 0 0 1px var(--sage-soft) inset; }
 .lex-card:nth-child(2) { border-top-color: var(--violet); }
 .lex-card:nth-child(3) { border-top-color: var(--amber); }
 .lex-head { display: flex; align-items: center; gap: 10px; }
@@ -1104,6 +1114,7 @@ footer {
 .blog-card--sage:hover { border-color: var(--sage-soft); box-shadow: 0 16px 40px var(--shadow), 0 0 0 1px var(--sage-soft) inset; }
 .blog-card--violet:hover { border-color: var(--violet-soft); box-shadow: 0 16px 40px var(--shadow), 0 0 0 1px var(--violet-soft) inset; }
 .blog-card--pink:hover { border-color: var(--pink-soft); box-shadow: 0 16px 40px var(--shadow), 0 0 0 1px var(--pink-soft) inset; }
+.blog-card:active { transform: translateY(-1px); box-shadow: 0 4px 16px var(--shadow), 0 0 0 1px var(--amber-soft) inset; }
 .blog-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .blog-card-date { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-faint); letter-spacing: 0.04em; }
 .blog-card-views { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); }
