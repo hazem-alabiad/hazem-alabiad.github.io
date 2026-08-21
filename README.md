@@ -3,8 +3,10 @@
 [![Build & Test](https://github.com/hazem-alabiad/hazem-alabiad.github.io/actions/workflows/test.yml/badge.svg)](https://github.com/hazem-alabiad/hazem-alabiad.github.io/actions/workflows/test.yml)
 [![Coverage](https://codecov.io/gh/hazem-alabiad/hazem-alabiad.github.io/branch/main/graph/badge.svg)](https://codecov.io/gh/hazem-alabiad/hazem-alabiad.github.io)
 [![Deploy](https://github.com/hazem-alabiad/hazem-alabiad.github.io/actions/workflows/deploy.yml/badge.svg)](https://github.com/hazem-alabiad/hazem-alabiad.github.io/actions/workflows/deploy.yml)
-[![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
-[![Vite](https://img.shields.io/badge/Vite-6-purple.svg)](https://vitejs.dev/)
+[![React](https://img.shields.io/badge/React-18.3-61DAFB.svg?logo=react&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-6.3-646CFF.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1-38B2AC.svg?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![pnpm](https://img.shields.io/badge/pnpm-9.15-F69220.svg?logo=pnpm&logoColor=white)](https://pnpm.io/)
 [![Umami Analytics](https://img.shields.io/badge/Analytics-Umami-blue.svg)](https://cloud.umami.is/)
 
 A modern, highly interactive personal portfolio and blog built with **React**, **Vite**, and **Tailwind CSS**. It features a custom design system with rich glassmorphism aesthetics, a macOS-style terminal emulator, and an integrated markdown blog.
