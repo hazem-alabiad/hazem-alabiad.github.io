@@ -290,6 +290,12 @@ header.hero {
   box-shadow: 0 24px 60px var(--shadow), 0 0 0 1px var(--rule-soft);
   margin-bottom: 28px;
   font-family: var(--font-mono);
+  transition: transform .4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow .4s ease, border-color .4s ease;
+}
+.term-window:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 32px 80px var(--shadow), 0 0 0 1px var(--rule-soft);
+  border-color: var(--amber-soft);
 }
 /* CRT scan sweep — a soft beam drifts down the terminal; transform/opacity only */
 .term-window::after {
@@ -666,8 +672,8 @@ h2.section-title em { color: var(--amber); font-style: italic; }
 .entry:hover .entry-dot { border-color: var(--amber); box-shadow: 0 0 0 3px var(--bg), 0 0 14px var(--amber-soft); }
 .entry:hover .entry-dot::after { background: var(--amber); }
 .entry:hover .entry-role { color: var(--amber); }
-.entry-body { background: var(--bg-panel); border: 1px solid var(--rule-soft); border-radius: 10px; padding: 20px 22px; transition: border-color .2s ease, background-color .2s ease, transform .2s ease; }
-.entry:hover .entry-body { border-color: var(--rule); background: var(--bg-elevated); transform: translateX(2px); }
+.entry-body { background: var(--bg-panel); border: 1px solid var(--rule-soft); border-radius: 10px; padding: 20px 22px; transition: all .3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.entry:hover .entry-body { border-color: var(--amber-soft); background: var(--bg-elevated); transform: translateY(-3px) translateX(2px); box-shadow: 0 12px 24px var(--shadow), 0 0 0 1px var(--amber-soft) inset; }
 .entry-meta {
   display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
   font-family: var(--font-mono);
@@ -1452,6 +1458,30 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
   .reveal { opacity: 1; transform: none; }
+}
+
+/* ============================================================================
+   A11Y & UX ENHANCEMENTS
+   ========================================================================== */
+::selection {
+  background: var(--amber-soft);
+  color: var(--ink);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border: 2px solid var(--bg);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--rule-light);
 }
 
 /* ============================================================================
