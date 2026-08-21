@@ -74,7 +74,8 @@ export function TerminalHero({ content, factLocation, scrollTo }: { content: Cms
         {/* identity: photo + name + status */}
         <div className="hero-top">
           <div className="hero-photo">
-            <img src={content.photo || (hazemPhoto as string)} alt="Hazem Alabiad" fetchPriority="high" loading="eager" width="120" height="120" />
+            {/* @ts-ignore: React 18.3 types mismatch for fetchpriority */}
+            <img src={content.photo || (hazemPhoto as string)} alt="Hazem Alabiad" fetchpriority="high" loading="eager" width="120" height="120" />
           </div>
           <div className="hero-id">
             <p className="hero-eyebrow">— cv.status —</p>
