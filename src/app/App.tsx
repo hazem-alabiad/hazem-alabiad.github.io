@@ -1,5 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from "react";
-import { HashRouter, Routes, Route, useNavigate, useParams, useLocation } from "react-router";
+import { HashRouter, Routes, Route, useNavigate, useParams, useLocation } from "react-router-dom";
 import { loadContent, saveContent, resetContent, type CmsContent } from "../cms";
 import CmsEditor from "../CmsEditor";
 import { BlogManagerProvider } from "../blog/manager";
