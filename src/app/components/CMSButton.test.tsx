@@ -35,42 +35,34 @@ describe('CMSButton', () => {
   })
 
   it('calls onUnlock on successful verification', async () => {
-    const onUnlock = vi.fn()
-    // Mock successful fetch
-    vi.mocked(fetch).mockResolvedValueOnce({
-      json: async () => ({ login: 'hazem-alabiad' })
-    } as Response)
+    const onUnlock = vi.fn().mockResolvedValue(undefined)
 
     render(<CMSButton onUnlock={onUnlock} enabled={false} onDisable={vi.fn()} onOpenEditor={vi.fn()} />)
-    
+
     // Open modal
     fireEvent.click(screen.getByText('CMS'))
-    
+
     // Enter token
     const input = screen.getByPlaceholderText('GitHub PAT')
     fireEvent.change(input, { target: { value: 'valid-token' } })
-    
+
     // Submit
     fireEvent.click(screen.getByText('UNLOCK'))
-    
+
     await waitFor(() => {
-      expect(onUnlock).toHaveBeenCalled()
-      expect(localStorage.setItem).toHaveBeenCalledWith('hazem-cms-token', 'valid-token')
+      expect(onUnlock).toHaveBeenCalledWith('valid-token')
     })
   })
 
   it('shows error on failed verification', async () => {
-    // Mock failed fetch
-    vi.mocked(fetch).mockResolvedValueOnce({
-      json: async () => ({ login: 'wrong-user' })
-    } as Response)
+    const onUnlock = vi.fn().mockRejectedValue(new Error('Token does not match owner.'))
 
-    render(<CMSButton onUnlock={vi.fn()} enabled={false} onDisable={vi.fn()} onOpenEditor={vi.fn()} />)
+    render(<CMSButton onUnlock={onUnlock} enabled={false} onDisable={vi.fn()} onOpenEditor={vi.fn()} />)
     fireEvent.click(screen.getByText('CMS'))
-    
+
     fireEvent.change(screen.getByPlaceholderText('GitHub PAT'), { target: { value: 'wrong-token' } })
     fireEvent.click(screen.getByText('UNLOCK'))
-    
+
     await waitFor(() => {
       expect(screen.getByText('Token does not match owner.')).toBeInTheDocument()
     })

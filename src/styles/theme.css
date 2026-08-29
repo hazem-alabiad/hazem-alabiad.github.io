@@ -1400,15 +1400,37 @@ footer {
 /* ============================================================================
    CMS unlock button (kept minimal)
    ========================================================================== */
+/* CMS lives bottom-left, Back-to-Top lives bottom-right — they never overlap.
+   Both respect iOS safe-area insets. Position is set via .cms-fixed-wrap class;
+   inline style in CMSButton is fallback only. */
+.cms-fixed-wrap {
+  position: fixed;
+  left: max(18px, env(safe-area-inset-left, 0px));
+  bottom: max(18px, env(safe-area-inset-bottom, 0px));
+  z-index: 1000;
+  display: flex;
+  gap: 8px;
+  max-width: calc(100vw - 24px);
+}
 .cms-unlock {
-  position: fixed; right: 18px; bottom: 18px; z-index: 60;
+  position: static;
   font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em;
   color: var(--ink-faint); background: var(--bg-panel);
   border: 1px solid var(--rule-soft); border-radius: 6px;
   padding: 8px 12px; cursor: pointer;
   transition: border-color .15s ease, color .15s ease;
+  min-height: 36px;
+  white-space: nowrap;
 }
 .cms-unlock:hover { border-color: var(--amber); color: var(--ink); }
+
+.cms-panel {
+  background: var(--bg-panel); border: 1px solid var(--rule);
+  border-radius: 8px; padding: 14px;
+  width: min(280px, calc(100vw - 36px));
+  box-sizing: border-box;
+  box-shadow: 0 12px 32px var(--shadow);
+}
 
 /* ============================================================================
    MOBILE / SMALL SCREENS
@@ -1475,6 +1497,20 @@ footer {
   .blog-post-manage, .blog-share-btn { display: inline-flex !important; padding: 8px 14px; }
   .blog-lock-btn { width: 34px; height: 34px; }
 
+  /* floating buttons: CMS bottom-left (44px touch target), back-to-top bottom-right */
+  .cms-fixed-wrap {
+    left: max(12px, env(safe-area-inset-left, 0px)) !important;
+    bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
+    gap: 8px;
+  }
+  .cms-unlock { padding: 10px 14px; font-size: 12px; min-height: 44px; }
+  .cms-panel { width: min(280px, calc(100vw - 24px)); }
+  .back-to-top {
+    right: max(12px, env(safe-area-inset-right, 0px)) !important;
+    bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
+    width: 44px; height: 44px;
+  }
+
   /* misc */
   .footer-top { gap: 28px; }
   .footer-qr { margin: 0 auto; }
@@ -1539,8 +1575,8 @@ footer {
 
 .back-to-top {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  right: max(24px, env(safe-area-inset-right, 0px));
   width: 44px;
   height: 44px;
   border-radius: 50%;
