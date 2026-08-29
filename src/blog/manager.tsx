@@ -23,6 +23,8 @@ interface BlogManagerValue {
   mgrOk: string;
   authBusy: boolean;
   authErr: string;
+  hiddenSlugs: Set<string>;
+  visiblePosts: Post[];
   startNew: () => void;
   openForEdit: (p: Post) => Promise<void>;
   saveDraft: () => Promise<void>;
@@ -48,6 +50,10 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
   const [publishing, setPublishing] = useState(false);
   const [mgrErr, setMgrErr] = useState("");
   const [mgrOk, setMgrOk] = useState("");
+  const [hiddenSlugs, setHiddenSlugs] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("hazem-hidden-posts") || "[]")); } catch { return new Set(); }
+  });
+  const visiblePosts = posts.filter((p) => !hiddenSlugs.has(p.slug));
 
   useEffect(() => {
     const saved = loadBlogSession();
@@ -129,7 +135,13 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
       const f = files.find((x) => x.path === path);
       if (!f) throw new Error(`Could not find ${path} in the repo (has it been deployed?). Check that the file exists on the ${GH_BRANCH} branch.`);
       await deletePost(token, path, f.sha);
-      setMgrOk(`Deleted ${p.slug}.mdx — the site rebuilds on the next deploy; the post will disappear after Pages rebuilds.`);
+      // optimistic hide: commit to main triggers deploy workflow (on.push.main) automatically — no manual trigger needed, but hide instantly
+      setHiddenSlugs((prev) => {
+        const next = new Set(prev); next.add(p.slug);
+        try { localStorage.setItem("hazem-hidden-posts", JSON.stringify([...next])); } catch { /* ignore */ }
+        return next;
+      });
+      setMgrOk(`Deleted ${p.slug}.mdx — commit pushed to ${GH_BRANCH}, Pages is rebuilding now (takes ~1-2 min). The post is hidden locally and will disappear for everyone after deploy.`);
       if (draft?.path === path) setDraft(null);
     } catch (e) { const msg = (e as any)?.message || String(e); setMgrErr(`Delete failed: ${msg} — check that your PAT has 'repo' (contents:write) scope and that the file still exists.`); }
     finally { setPublishing(false); }
@@ -138,6 +150,7 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
   const value: BlogManagerValue = {
     mgr, token, unlockOpen, setUnlockOpen, pat, setPat, unlock, lock,
     draft, setDraft, publishing, mgrErr, mgrOk, authBusy, authErr,
+    hiddenSlugs, visiblePosts,
     startNew, openForEdit, saveDraft, removePost,
   };
 

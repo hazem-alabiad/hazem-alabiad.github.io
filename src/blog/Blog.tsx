@@ -45,7 +45,7 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const query = q.trim().toLowerCase();
 
-  const { mgr, unlockOpen, setUnlockOpen, pat, setPat, unlock, lock, draft, setDraft, publishing, mgrErr, mgrOk, authBusy, authErr, startNew, openForEdit, saveDraft, removePost } = useBlogManager();
+  const { mgr, unlockOpen, setUnlockOpen, pat, setPat, unlock, lock, draft, setDraft, publishing, mgrErr, mgrOk, authBusy, authErr, visiblePosts, startNew, openForEdit, saveDraft, removePost } = useBlogManager();
 
   const score = (p: Post): number => {
     if (!query) return 0;
@@ -55,7 +55,7 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
     const sl = p.slug.includes(query) ? 1 : 0;
     return t + d + tg + sl;
   };
-  const hits = posts
+  const hits = visiblePosts
     .map((p) => ({ p, s: score(p) }))
     .filter((x) => x.s > 0)
     .sort((a, b) => b.s - a.s)
@@ -81,7 +81,7 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
     else if (e.key === "Enter" && active >= 0) { onOpen(hits[active].slug); }
   };
 
-  const shown = query ? hits : posts;
+  const shown = query ? hits : visiblePosts;
 
   return (
     <section className="blog" id="blog">
@@ -91,7 +91,7 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
             <span className="section-icon-badge" style={{ fontSize: 22 }}>✎</span>
             <h2 className="section-title">Notes &amp; <em>Ideas</em></h2>
           </div>
-          <p className="blog-lede">Writing on NLP research, language engineering, and the craft of shipping software. {posts.length} post{posts.length === 1 ? "" : "s"}.</p>
+          <p className="blog-lede">Writing on NLP research, language engineering, and the craft of shipping software. {visiblePosts.length} post{visiblePosts.length === 1 ? "" : "s"}.</p>
         </div>
         <div className="blog-toolbar">
           <div className="blog-search">
@@ -179,7 +179,8 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
 }
 
 export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void }) {
-  const post = posts.find((p) => p.slug === slug);
+  const { hiddenSlugs } = useBlogManager();
+  const post = hiddenSlugs.has(slug) ? undefined : posts.find((p) => p.slug === slug);
   const [views, setViews] = useState<ViewsMap>(readViews);
   const [copied, setCopied] = useState(false);
   const [size, setSize] = useState(() => {
