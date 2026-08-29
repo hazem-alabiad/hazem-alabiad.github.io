@@ -90,7 +90,7 @@ export function loadBlogSession(): { token: string; login: string } | null {
 }
 
 export function clearBlogSession() {
-  try { localStorage.removeItem(BLOG_TOKEN_KEY); localStorage.removeItem(BLOG_USER_KEY); } catch { /* storage unavailable */ }
+  try { localStorage.removeItem(BLOG_TOKEN_KEY); localStorage.removeItem(BLOG_USER_KEY); localStorage.removeItem("hazem-cms-token"); } catch { /* storage unavailable */ }
 }
 
 export interface BlogDraft {

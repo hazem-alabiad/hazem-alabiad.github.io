@@ -55,18 +55,32 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
       verifyToken(saved.token)
         .then((u) => { setMgr({ login: u.login }); setToken(saved.token); })
         .catch(() => clearBlogSession());
+      return;
     }
+    // migrate legacy CMS token (hazem-cms-token) if present
+    try {
+      const legacy = localStorage.getItem("hazem-cms-token");
+      if (legacy) {
+        verifyToken(legacy)
+          .then((u) => {
+            saveBlogSession(legacy, u.login);
+            localStorage.removeItem("hazem-cms-token");
+            setMgr({ login: u.login }); setToken(legacy);
+          })
+          .catch(() => { try { localStorage.removeItem("hazem-cms-token"); } catch { /* noop */ } });
+      }
+    } catch { /* storage unavailable */ }
   }, []);
 
   async function unlock(v: string) {
     const value = sanitizeToken(v);
-    if (!value) return;
+    if (!value) throw new Error("Token is empty.");
     setAuthBusy(true); setAuthErr("");
     try {
       const u = await verifyToken(value);
       saveBlogSession(value, u.login);
       setMgr({ login: u.login }); setToken(value); setUnlockOpen(false); setPat("");
-    } catch (e) { setAuthErr((e as Error).message); }
+    } catch (e) { const msg = (e as Error).message; setAuthErr(msg); throw e; }
     finally { setAuthBusy(false); }
   }
 

@@ -2,7 +2,7 @@ import { useEffect, useState, lazy, Suspense } from "react";
 import { HashRouter, Routes, Route, useNavigate, useParams, useLocation } from "react-router-dom";
 import { loadContent, saveContent, resetContent, type CmsContent } from "../cms";
 import CmsEditor from "../CmsEditor";
-import { BlogManagerProvider } from "../blog/manager";
+import { BlogManagerProvider, useBlogManager } from "../blog/manager";
 import { useSEO } from "../blog/seo";
 import cvPdf from "../imports/Hazem-Alabiad-CV.pdf";
 import qrSvg from "../imports/portfolio-qr.svg?raw";
@@ -48,7 +48,9 @@ function BlogPostWrapper() {
 export default function App() {
   return (
     <HashRouter>
-      <AppContent />
+      <BlogManagerProvider>
+        <AppContent />
+      </BlogManagerProvider>
     </HashRouter>
   );
 }
@@ -59,7 +61,9 @@ const devopsTerms = ["Docker", "Git", "Jest", "Cypress", "Puppeteer", "Figma", "
 function AppContent() {
   const [booted, setBooted] = useState<boolean>(() => { try { return localStorage.getItem(BOOTED_KEY) === "1"; } catch { return false; } });
   const [content, setContent] = useState<CmsContent>(() => loadContent());
-  const [cmsEnabled, setCmsEnabled] = useState(false);
+  const blogManager = useBlogManager();
+  const cmsEnabled = Boolean(blogManager.mgr);
+  const setCmsEnabled = (enabled: boolean) => { if (!enabled) blogManager.lock(); };
   const [editorOpen, setEditorOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -70,6 +74,7 @@ function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === "/";
+
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -332,8 +337,7 @@ function AppContent() {
         } />
 
         <Route path="/blog/*" element={
-          <BlogManagerProvider>
-            <Suspense fallback={<div className="wrap" style={{ padding: "120px 20px", textAlign: "center", color: "var(--ink-faint)", fontFamily: "var(--font-mono)" }}>Loading blog...</div>}>
+          <Suspense fallback={<div className="wrap" style={{ padding: "120px 20px", textAlign: "center", color: "var(--ink-faint)", fontFamily: "var(--font-mono)" }}>Loading blog...</div>}>
               <Routes>
                 <Route path="/" element={<><SEOWrapper view="blog" /><BlogIndex onOpen={(slug) => navigate(`/blog/${slug}`)} /></>} />
                 <Route path="/admin" element={
@@ -348,7 +352,6 @@ function AppContent() {
                 <Route path="/:slug" element={<BlogPostWrapper />} />
               </Routes>
             </Suspense>
-          </BlogManagerProvider>
         } />
         </Routes>
       </main>
@@ -412,9 +415,7 @@ function AppContent() {
 
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
       <Shortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} onJump={scrollTo} onOpenPost={(slug) => navigate(`/blog/${slug}`)} />
-      {isHome && (
-        <CMSButton enabled={cmsEnabled} onUnlock={() => setCmsEnabled(true)} onDisable={() => setCmsEnabled(false)} onOpenEditor={() => setEditorOpen(true)} />
-      )}
+      <CMSButton enabled={cmsEnabled} onUnlock={(token) => blogManager.unlock(token)} onDisable={() => setCmsEnabled(false)} onOpenEditor={() => setEditorOpen(true)} />
       {cmsEnabled && editorOpen && (
         <CmsEditor
           initial={content}
