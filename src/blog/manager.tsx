@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { posts, type Post } from "./posts";
-import { listPosts, readPost, writePost, deletePost, slugify, POSTS_DIR } from "../github";
+import { GH_BRANCH, listPosts, readPost, writePost, deletePost, slugify, POSTS_DIR } from "../github";
 import {
   verifyToken, saveBlogSession, loadBlogSession, clearBlogSession, sanitizeToken,
   parseFrontmatter, parseTags, buildMdx, EMPTY_DRAFT, type BlogDraft,
@@ -23,6 +23,8 @@ interface BlogManagerValue {
   mgrOk: string;
   authBusy: boolean;
   authErr: string;
+  hiddenSlugs: Set<string>;
+  visiblePosts: Post[];
   startNew: () => void;
   openForEdit: (p: Post) => Promise<void>;
   saveDraft: () => Promise<void>;
@@ -48,6 +50,10 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
   const [publishing, setPublishing] = useState(false);
   const [mgrErr, setMgrErr] = useState("");
   const [mgrOk, setMgrOk] = useState("");
+  const [hiddenSlugs, setHiddenSlugs] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("hazem-hidden-posts") || "[]")); } catch { return new Set(); }
+  });
+  const visiblePosts = posts.filter((p) => !hiddenSlugs.has(p.slug));
 
   useEffect(() => {
     const saved = loadBlogSession();
@@ -95,17 +101,18 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
   }
 
   async function openForEdit(p: Post) {
-    if (!token) return;
+    if (!token) { setMgrErr("Not authenticated — unlock with your PAT first."); return; }
     setMgrErr(""); setMgrOk("");
     try {
       const raw = await readPost(token, `${POSTS_DIR}/${p.slug}.mdx`);
       const { fm, body } = parseFrontmatter(raw);
       setDraft({ isNew: false, slug: p.slug, path: `${POSTS_DIR}/${p.slug}.mdx`, title: fm.title ?? p.title, date: fm.date ?? p.date, description: fm.description ?? p.description, tags: fm.tags ? parseTags(fm.tags) : p.tags, accent: p.accent || "amber", author: OWNER_LOGIN, body });
-    } catch (e) { setMgrErr((e as Error).message); }
+    } catch (e) { const msg = (e as any)?.message || String(e); setMgrErr(msg); }
   }
 
   async function saveDraft() {
-    if (!token || !draft) return;
+    if (!token) { setMgrErr("Not authenticated — unlock with your PAT first."); return; }
+    if (!draft) return;
     if (!draft.title.trim()) { setMgrErr("Title is required."); return; }
     const slug = draft.isNew ? slugify(draft.title) : draft.slug;
     const d = { ...draft, slug, path: draft.isNew ? `${POSTS_DIR}/${slug}.mdx` : draft.path };
@@ -114,29 +121,36 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
       await writePost(token, d.path, buildMdx(d), d.sha);
       setMgrOk(`Saved ${d.path} — the site rebuilds on the next deploy.`);
       setDraft(null);
-    } catch (e) { setMgrErr((e as Error).message); }
+    } catch (e) { const msg = (e as any)?.message || String(e); setMgrErr(msg); }
     finally { setPublishing(false); }
   }
 
   async function removePost(p: Post) {
-    if (!token) return;
+    if (!token) { setMgrErr("Not authenticated — unlock with your PAT first."); return; }
     const path = `${POSTS_DIR}/${p.slug}.mdx`;
     if (!confirm(`Delete "${p.slug}.mdx" from the repo? This triggers a redeploy.`)) return;
     setPublishing(true); setMgrErr(""); setMgrOk("");
     try {
       const files = await listPosts(token);
       const f = files.find((x) => x.path === path);
-      if (!f) throw new Error(`Could not find ${path} in the repo (has it been deployed?).`);
+      if (!f) throw new Error(`Could not find ${path} in the repo (has it been deployed?). Check that the file exists on the ${GH_BRANCH} branch.`);
       await deletePost(token, path, f.sha);
-      setMgrOk(`Deleted ${p.slug}.mdx.`);
+      // optimistic hide: commit to main triggers deploy workflow (on.push.main) automatically — no manual trigger needed, but hide instantly
+      setHiddenSlugs((prev) => {
+        const next = new Set(prev); next.add(p.slug);
+        try { localStorage.setItem("hazem-hidden-posts", JSON.stringify([...next])); } catch { /* ignore */ }
+        return next;
+      });
+      setMgrOk(`Deleted ${p.slug}.mdx — commit pushed to ${GH_BRANCH}, Pages is rebuilding now (takes ~1-2 min). The post is hidden locally and will disappear for everyone after deploy.`);
       if (draft?.path === path) setDraft(null);
-    } catch (e) { setMgrErr((e as Error).message); }
+    } catch (e) { const msg = (e as any)?.message || String(e); setMgrErr(`Delete failed: ${msg} — check that your PAT has 'repo' (contents:write) scope and that the file still exists.`); }
     finally { setPublishing(false); }
   }
 
   const value: BlogManagerValue = {
     mgr, token, unlockOpen, setUnlockOpen, pat, setPat, unlock, lock,
     draft, setDraft, publishing, mgrErr, mgrOk, authBusy, authErr,
+    hiddenSlugs, visiblePosts,
     startNew, openForEdit, saveDraft, removePost,
   };
 
