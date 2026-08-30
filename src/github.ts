@@ -43,6 +43,14 @@ export async function listPosts(token: string): Promise<GhFile[]> {
     .map((f: any) => ({ path: f.path, sha: f.sha, name: f.name }));
 }
 
+/** Fetch the current SHA for a single file (returns null if not found). */
+export async function getFileSha(token: string, path: string): Promise<string | null> {
+  const res = await fetch(`${API}/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}`, { headers: authHeaders(token) });
+  if (res.status === 404) return null;
+  const data = await handle(res);
+  return (data as any)?.sha ?? null;
+}
+
 export async function readPost(token: string, path: string): Promise<string> {
   const res = await fetch(`${API}/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}`, { headers: authHeaders(token) });
   const data = await handle(res);

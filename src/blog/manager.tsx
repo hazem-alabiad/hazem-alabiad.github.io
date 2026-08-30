@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { posts, type Post } from "./posts";
-import { GH_BRANCH, listPosts, readPost, writePost, deletePost, slugify, POSTS_DIR } from "../github";
+import { GH_BRANCH, getFileSha, readPost, writePost, deletePost, slugify, POSTS_DIR } from "../github";
 import {
   verifyToken, saveBlogSession, loadBlogSession, clearBlogSession, sanitizeToken,
   parseFrontmatter, parseTags, buildMdx, EMPTY_DRAFT, type BlogDraft,
@@ -131,10 +131,9 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
     if (!confirm(`Delete "${p.slug}.mdx" from the repo? This triggers a redeploy.`)) return;
     setPublishing(true); setMgrErr(""); setMgrOk("");
     try {
-      const files = await listPosts(token);
-      const f = files.find((x) => x.path === path);
-      if (!f) throw new Error(`Could not find ${path} in the repo (has it been deployed?). Check that the file exists on the ${GH_BRANCH} branch.`);
-      await deletePost(token, path, f.sha);
+      const sha = await getFileSha(token, path);
+      if (!sha) throw new Error(`Could not find ${path} on the ${GH_BRANCH} branch. The post may not have been pushed to the repo yet.`);
+      await deletePost(token, path, sha);
       // optimistic hide: commit to main triggers deploy workflow (on.push.main) automatically — no manual trigger needed, but hide instantly
       setHiddenSlugs((prev) => {
         const next = new Set(prev); next.add(p.slug);
