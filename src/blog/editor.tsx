@@ -50,16 +50,6 @@ export function chipBtn(color: string, solid = false): CSSProperties {
   };
 }
 
-function modeBtn(active: boolean): CSSProperties {
-  return {
-    ...MONO, fontSize: 9, letterSpacing: "0.14em",
-    padding: "4px 10px", cursor: "pointer", borderRadius: 4,
-    color: active ? "var(--amber-ink)" : "var(--ink-faint)",
-    background: active ? "var(--amber)" : "transparent",
-    border: `1px solid ${active ? "var(--amber)" : "var(--rule)"}`,
-  };
-}
-
 export function sanitizeToken(token: string): string {
   return token.replace(/[^\x20-\x7E]/g, "").trim();
 }
@@ -205,7 +195,17 @@ export function renderMarkdown(src: string): string {
   return out.join("\n");
 }
 
-/* ── editor panel (shared by the admin screen + inline manage) ──────────── */
+/* ── editor: a writing surface, not a form ────────────────────────────────
+   Hero title, italic lede, a quiet metadata strip, then a live split:
+   markdown on the left, the rendered post on the right — so the owner is
+   always looking at the finished article while they write. */
+
+const ACCENTS: Record<string, string> = {
+  amber: "var(--amber)",
+  sage: "var(--sage)",
+  violet: "var(--violet)",
+  pink: "var(--pink)",
+};
 
 export function EditorPanel({ draft, onDraft, busy, onSave, onCancel }: {
   draft: BlogDraft;
@@ -214,12 +214,10 @@ export function EditorPanel({ draft, onDraft, busy, onSave, onCancel }: {
   onSave: () => void;
   onCancel: () => void;
 }) {
-  const [mode, setMode] = useState<"write" | "preview">("write");
   const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
   const linkAt = useRef<number | null>(null);
   const [link, setLink] = useState<{ url: string; meta: LinkMeta | null; loading: boolean; error: string } | null>(null);
-
-  const input = (v: string, on: (x: string) => void) => <input value={v} onChange={(e) => on(e.target.value)} style={FIELD} />;
 
   function openLink() {
     const sel = bodyRef.current?.selectionStart ?? draft.body.length;
@@ -246,79 +244,114 @@ export function EditorPanel({ draft, onDraft, busy, onSave, onCancel }: {
     setLink(null);
   }
 
+  // one-way scroll sync: the preview follows the writing pane
+  function onWriteScroll(e: React.UIEvent<HTMLTextAreaElement>) {
+    const el = e.currentTarget;
+    const prev = previewRef.current;
+    if (!prev) return;
+    const max = el.scrollHeight - el.clientHeight;
+    if (max <= 0) { prev.scrollTop = 0; return; }
+    prev.scrollTop = (el.scrollTop / max) * (prev.scrollHeight - prev.clientHeight);
+  }
+
+  const accent = ACCENTS[draft.accent] || ACCENTS.amber;
+  const words = draft.body.trim().split(/\s+/).filter(Boolean).length;
+  const readMin = Math.max(1, Math.round(words / 200));
+
+  const cell = (label: string, node: ReactNode) => (
+    <label className="blog-editor-cell">
+      <span className="blog-editor-cell-label">{label}</span>
+      {node}
+    </label>
+  );
+
   return (
-    <Panel title={draft.isNew ? "NEW POST" : `EDITING · ${draft.path}`}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <div>
-          <Label>SLUG {draft.isNew && <span style={{ opacity: 0.6 }}>— auto from title</span>}</Label>
-          {input(draft.slug, (s) => onDraft({ ...draft, slug: s }))}
-        </div>
-        <div>
-          <Label>DATE</Label>
-          {input(draft.date, (s) => onDraft({ ...draft, date: s }))}
-        </div>
-      </div>
-      <div>
-        <Label>TITLE</Label>
-        {input(draft.title, (s) => onDraft({ ...draft, title: s }))}
-      </div>
-      <div>
-        <Label>DESCRIPTION</Label>
-        <textarea value={draft.description} onChange={(e) => onDraft({ ...draft, description: e.target.value })} rows={2} style={FIELD} />
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <div>
-          <Label>TAGS (comma-separated)</Label>
-          {input(draft.tags.join(", "), (s) => onDraft({ ...draft, tags: s.split(",").map((t) => t.trim()).filter(Boolean) }))}
-        </div>
-        <div>
-          <Label>ACCENT</Label>
-          <select value={draft.accent} onChange={(e) => onDraft({ ...draft, accent: e.target.value })} style={FIELD}>
+    <div className="blog-editor">
+      <input
+        className="blog-editor-title"
+        value={draft.title}
+        placeholder="Untitled note"
+        aria-label="Post title"
+        onChange={(e) => onDraft({ ...draft, title: e.target.value })}
+      />
+      <input
+        className="blog-editor-desc"
+        value={draft.description}
+        placeholder="One line on what this note is about."
+        aria-label="Post description"
+        onChange={(e) => onDraft({ ...draft, description: e.target.value })}
+      />
+
+      <div className="blog-editor-meta">
+        {cell("SLUG", <input className="blog-editor-meta-input" value={draft.slug} placeholder={draft.isNew ? "auto from title" : "slug"} aria-label="Slug" onChange={(e) => onDraft({ ...draft, slug: e.target.value })} />)}
+        {cell("DATE", <input className="blog-editor-meta-input" type="date" value={draft.date} aria-label="Date" onChange={(e) => onDraft({ ...draft, date: e.target.value })} />)}
+        {cell("TAGS", <input className="blog-editor-meta-input" value={draft.tags.join(", ")} placeholder="comma separated" aria-label="Tags" onChange={(e) => onDraft({ ...draft, tags: e.target.value.split(",").map((t) => t.trim()).filter(Boolean) })} />)}
+        {cell("ACCENT", (
+          <select className="blog-editor-meta-input" value={draft.accent} aria-label="Accent color" onChange={(e) => onDraft({ ...draft, accent: e.target.value })}>
             <option value="amber">amber</option>
             <option value="sage">sage</option>
             <option value="violet">violet</option>
             <option value="pink">pink</option>
           </select>
+        ))}
+      </div>
+
+      <div className="blog-editor-split">
+        <div className="blog-editor-pane blog-editor-pane--write">
+          <div className="blog-editor-pane-head">
+            <span className="blog-editor-pane-caption">WRITE · markdown</span>
+            <button type="button" className="blog-editor-tool" onClick={openLink}>INSERT LINK</button>
+          </div>
+          <textarea
+            ref={bodyRef}
+            className="blog-editor-body"
+            value={draft.body}
+            placeholder={"Write in markdown — headings, lists, code fences…"}
+            aria-label="Post body (markdown)"
+            onChange={(e) => onDraft({ ...draft, body: e.target.value })}
+            onScroll={onWriteScroll}
+          />
+        </div>
+        <div className="blog-editor-pane blog-editor-pane--preview">
+          <div className="blog-editor-pane-head">
+            <span className="blog-editor-pane-caption">PREVIEW · live</span>
+          </div>
+          <div ref={previewRef} className="blog-editor-preview">
+            <article className="blog-editor-preview-post">
+              <div className="blog-editor-preview-tags" style={{ color: accent }}>
+                {draft.tags.map((t) => `#${t}`).join("  ")}
+              </div>
+              <h2 className="blog-editor-preview-title">{draft.title || "Untitled note"}</h2>
+              {draft.description && <p className="blog-editor-preview-desc">{draft.description}</p>}
+              <div className="blog-editor-preview-meta">
+                {draft.date}
+                {draft.author ? ` · @${draft.author}` : ""}
+              </div>
+              <div className="blog-prose" dangerouslySetInnerHTML={{ __html: renderMarkdown(draft.body) }} />
+            </article>
+          </div>
         </div>
       </div>
-      <div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Label>BODY — MARKDOWN</Label>
-          <div style={{ display: "flex", gap: 4 }}>
-            <button onClick={openLink} style={chipBtn("var(--blue)")}>INSERT LINK</button>
-            <button onClick={() => setMode("write")} style={modeBtn(mode === "write")}>WRITE</button>
-            <button onClick={() => setMode("preview")} style={modeBtn(mode === "preview")}>PREVIEW</button>
-          </div>
+
+      {link && (
+        <div className="blog-editor-linkrow">
+          <input className="blog-editor-meta-input" value={link.url} onChange={(e) => setLink({ ...link, url: e.target.value })} placeholder="https://…" aria-label="Link URL" style={{ flex: 1 }} />
+          <button type="button" className="blog-editor-tool" onClick={fetchLink} disabled={link.loading}>{link.loading ? "…" : "FETCH"}</button>
+          {link.meta && <button type="button" className="blog-editor-tool blog-editor-tool--primary" onClick={insertLink}>INSERT</button>}
+          <button type="button" className="blog-editor-tool" onClick={() => setLink(null)}>✕</button>
         </div>
-        {mode === "write" ? (
-          <textarea ref={bodyRef} value={draft.body} onChange={(e) => onDraft({ ...draft, body: e.target.value })} rows={14} style={FIELD} />
-        ) : (
-          <div style={{ border: "1px solid var(--rule-soft)", borderRadius: 6, padding: "2px 20px 8px", background: "var(--bg-elevated)" }}>
-            <div style={{ ...MONO, fontSize: 12, color: "var(--ink-dim)", borderBottom: "1px solid var(--rule-soft)", padding: "10px 0 8px", marginBottom: 8, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {draft.title || "Untitled"} · {draft.date} {draft.tags.length ? `· ${draft.tags.join(", ")}` : ""}
-            </div>
-            {draft.description && (
-              <p style={{ ...DISPLAY, fontStyle: "italic", fontSize: 16, color: "var(--ink-dim)", margin: "0 0 12px" }}>{draft.description}</p>
-            )}
-            <div className="blog-prose" dangerouslySetInnerHTML={{ __html: renderMarkdown(draft.body) }} />
-          </div>
-        )}
-        {link && (
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <input value={link.url} onChange={(e) => setLink({ ...link, url: e.target.value })} placeholder="https://…" style={{ ...FIELD, flex: 1 }} />
-            <button onClick={fetchLink} disabled={link.loading} style={chipBtn("var(--blue)")}>{link.loading ? "…" : "FETCH"}</button>
-            {link.meta && <button onClick={insertLink} style={chipBtn("var(--sage)", true)}>INSERT</button>}
-            <button onClick={() => setLink(null)} style={chipBtn("var(--ink-dim)")}>✕</button>
-          </div>
-        )}
-        {link?.error && <div style={{ ...MONO, fontSize: 11, color: "var(--red)" }}>✗ {link.error}</div>}
+      )}
+      {link?.error && <p className="blog-editor-linkerr">✗ {link.error}</p>}
+
+      <div className="blog-editor-foot">
+        <span className="blog-editor-stats">{words} words · ~{readMin} min read</span>
+        <span className="blog-editor-actions">
+          <button type="button" className="blog-editor-btn" onClick={onCancel} disabled={busy}>CANCEL</button>
+          <button type="button" className="blog-editor-btn blog-editor-btn--primary" onClick={onSave} disabled={busy}>
+            <Save size={12} /> {busy ? "SAVING…" : draft.isNew ? "PUBLISH POST" : "SAVE POST"}
+          </button>
+        </span>
       </div>
-      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-        <button onClick={onSave} disabled={busy} style={chipBtn("var(--amber)", true)}>
-          <Save size={12} /> {busy ? "SAVING…" : draft.isNew ? "PUBLISH POST" : "SAVE POST"}
-        </button>
-        <button onClick={onCancel} disabled={busy} style={chipBtn("var(--ink-dim)")}>CANCEL</button>
-      </div>
-    </Panel>
+    </div>
   );
 }
