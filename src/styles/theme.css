@@ -1206,7 +1206,7 @@ footer {
 .blog-card:hover .blog-card-more { letter-spacing: 0.12em; }
 
 /* blog search + owner manage toolbar */
-.blog-toolbar { display: flex; align-items: center; gap: 12px; margin: 4px 0 22px; flex-wrap: wrap; }
+.blog-toolbar { display: flex; align-items: stretch; gap: 12px; margin: 4px 0 22px; flex-wrap: wrap; }
 /* ── shell-prompt command bar ── */
 .blog-search {
   position: relative; flex: 1 1 auto; min-width: 0;
@@ -1280,11 +1280,18 @@ footer {
 .blog-empty-hint { font-size: 13px; color: var(--ink-faint); margin: 0 0 12px; }
 /* owner-only manage controls: one segmented cluster */
 .blog-manage {
-  display: flex; align-items: stretch; gap: 0; margin-left: auto;
+  display: flex; align-items: center; gap: 4px; margin-left: auto;
   align-self: stretch;
-  background: var(--bg-elevated);
+  padding: 4px;
+  background: var(--bg-panel);
   border: 1px solid var(--rule-soft); border-radius: 10px;
-  overflow: hidden;
+}
+.blog-manage-label {
+  padding: 0 7px;
+  color: var(--ink-faint);
+  font: 9px var(--font-mono);
+  letter-spacing: .14em;
+  text-transform: uppercase;
 }
 .blog-manage-user { font-family: var(--font-mono); font-size: 11px; color: var(--sage); letter-spacing: 0.04em; white-space: nowrap; }
 .blog-manage-btn {
@@ -1299,10 +1306,10 @@ footer {
 .blog-manage-btn--add { color: var(--amber); border-color: var(--amber); background: var(--amber-soft); }
 /* cluster segments override the standalone look */
 .blog-manage .blog-manage-btn {
-  border: none; border-radius: 0; transform: none;
-  min-height: 42px; padding: 0 16px;
+  border: 0; border-radius: 6px; transform: none;
+  min-height: 34px; padding: 0 10px;
 }
-.blog-manage .blog-manage-btn + .blog-manage-btn { border-left: 1px solid var(--rule-soft); }
+.blog-manage .blog-manage-btn + .blog-manage-btn { border-left: 0; }
 .blog-manage .blog-manage-btn:hover { transform: none; background: var(--amber-soft); color: var(--amber); }
 .blog-manage .blog-manage-btn--add {
   background: var(--amber); color: var(--bg); font-weight: 600;
@@ -1552,7 +1559,8 @@ footer {
   padding-top: 28px;
   border-top: 1px solid var(--rule-soft);
 }
-.blog-comments-fallback-note { margin: 10px 0 0; color: var(--ink-faint); font: 11px/1.6 var(--font-mono); }
+.blog-comments-fallback-note {
+  margin: 0; margin: 10px 0 0; color: var(--ink-faint); font: 11px/1.6 var(--font-mono); }
 
 /* Direct comments UI — API-backed, author-only controls */
 .blog-comments-direct { margin-top: 44px; padding-top: 28px; border-top: 1px solid var(--rule-soft); font-family: var(--font-mono); }
@@ -1895,11 +1903,11 @@ footer {
   .blog-prose { font-size: 16.5px; }
   .blog-article-desc { font-size: 15px; }
   .blog-toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
-  .blog-search { flex: 1 1 auto; max-width: none; }
+  .blog-search { flex: 1 1 100%; max-width: none; }
   .blog-search-input { padding: 14px 12px; font-size: 16px; }
-  .blog-manage { margin-left: 0; flex-wrap: wrap; justify-content: stretch; }
-  .blog-manage .blog-manage-btn { flex: 1 1 auto; justify-content: center; padding: 0 14px; min-height: 46px; }
-  .blog-manage .blog-lock-btn { width: 46px; }
+  .blog-manage { margin-left: 0; width: fit-content; max-width: 100%; }
+  .blog-manage .blog-manage-btn { min-height: 38px; }
+  .blog-manage .blog-lock-btn { width: 42px; }
   .blog-unlock-row { flex-wrap: wrap; }
   .blog-unlock-row .blog-manage-btn { flex: 1 1 auto; justify-content: center; }
   .blog-unlock-row input { min-width: 100%; }
