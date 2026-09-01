@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Check, Lock, Pencil, Plus, Search, Share2, Trash2, X } from "lucide-react";
+import { Check, Lock, Pencil, Plus, Share2, Trash2 } from "lucide-react";
 import { Comments } from "./Comments";
 import { posts, type Post } from "./posts";
 import { readViews, trackView, type ViewsMap } from "./analytics";
@@ -24,27 +24,26 @@ function fmtDate(iso: string): string {
   }
 }
 
-function relDate(iso: string): string {
-  if (!iso) return "";
-  try {
-    const days = Math.round((Date.now() - new Date(iso).getTime()) / 864e5);
-    if (days < 1) return "today";
-    if (days === 1) return "yesterday";
-    if (days < 7) return `${days} days ago`;
-    if (days < 30) return `${Math.round(days / 7)} weeks ago`;
-    if (days < 365) return `${Math.round(days / 30)} months ago`;
-    return `${Math.round(days / 365)} years ago`;
-  } catch {
-    return "";
-  }
-}
-
 export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
-  const [views] = useState(readViews);
   const [q, setQ] = useState("");
   const [active, setActive] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const query = q.trim().toLowerCase();
+  // single stray characters (e.g. the "/" focus shortcut) are not a search
+  const searching = query.length >= 2;
+
+  // Press "terminal-slash" anywhere on the page to jump into search.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      e.preventDefault();
+      inputRef.current?.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const { mgr, unlockOpen, setUnlockOpen, pat, setPat, unlock, lock, draft, setDraft, publishing, mgrErr, mgrOk, authBusy, authErr, visiblePosts, startNew, openForEdit, saveDraft, removePost } = useBlogManager();
 
@@ -76,13 +75,14 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
   };
 
   const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") { setQ(""); setActive(-1); return; }
     if (!hits.length) return;
     if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => (a + 1) % hits.length); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => (a - 1 + hits.length) % hits.length); }
     else if (e.key === "Enter" && active >= 0) { onOpen(hits[active].slug); }
   };
 
-  const shown = query ? hits : visiblePosts;
+  const shown = searching ? hits : visiblePosts;
 
   return (
     <section className="blog" id="blog">
@@ -96,26 +96,31 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
         </div>
         <div className="blog-toolbar">
           <div className="blog-search">
-            <Search size={15} className="blog-search-ic" />
+            <span className="blog-search-prompt" aria-hidden="true">➜</span>
             <input
               ref={inputRef}
               className="blog-search-input"
-              placeholder="Search the blog — title, tag, or topic…"
+              placeholder="grep the notes: title, tag, or topic"
               value={q}
               onChange={(e) => { setQ(e.target.value); setActive(-1); }}
               onKeyDown={onKey}
               aria-label="Search the blog"
             />
-            {q && <button className="blog-search-clear" onClick={() => { setQ(""); setActive(-1); inputRef.current?.focus(); }} aria-label="Clear search"><X size={13} /></button>}
+            {searching && hits.length > 0 && (
+              <span className="blog-search-count" aria-live="polite">{hits.length} hit{hits.length === 1 ? "" : "s"}</span>
+            )}
+            {q
+              ? <button className="blog-search-clear" onClick={() => { setQ(""); setActive(-1); inputRef.current?.focus(); }} aria-label="Clear search" title="Clear search (esc)"><kbd>esc</kbd></button>
+              : <kbd className="blog-search-kbd" aria-hidden="true">/</kbd>}
           </div>
           <div className="blog-manage">
             {mgr ? (
               <>
                 <button className="blog-manage-btn blog-manage-btn--add" onClick={startNew}><Plus size={12} /> NEW POST</button>
-                <button className="blog-manage-btn" onClick={lock}>LOCK</button>
+                <button className="blog-manage-btn" onClick={lock}><Lock size={12} /> LOCK</button>
               </>
             ) : (
-              <button className="blog-lock-btn" onClick={() => setUnlockOpen(!unlockOpen)} title="Owner login — manage posts" aria-label="Owner login – manage posts"><Lock size={13} /></button>
+              <button className="blog-lock-btn" onClick={() => setUnlockOpen(!unlockOpen)} title="Owner login — manage posts" aria-label="Owner login — manage posts"><Lock size={14} /></button>
             )}
           </div>
         </div>
@@ -132,9 +137,16 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
             </div>
           </div>
         )}
-        {query && (
-          <div className="blog-search-status">
-            {hits.length === 0 ? "No posts match your search." : `${hits.length} match${hits.length === 1 ? "" : "es"}${active >= 0 ? ` — ${active + 1}/${hits.length} (↑↓ to navigate, ↵ to open)` : ""}`}
+        {searching && hits.length > 0 && active >= 0 && (
+          <div className="blog-search-status" role="status">
+            {active + 1}/{hits.length} · ↑↓ navigate, ↵ open
+          </div>
+        )}
+        {searching && hits.length === 0 && (
+          <div className="blog-empty">
+            <p className="blog-empty-title">No notes match “{q}”</p>
+            <p className="blog-empty-hint">Try a different keyword, or browse all posts.</p>
+            <button className="blog-manage-btn" onClick={() => { setQ(""); setActive(-1); inputRef.current?.focus(); }}>Clear search</button>
           </div>
         )}
         {mgrErr && <p className="blog-mgr-err">✗ {mgrErr}</p>}
@@ -276,9 +288,12 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
               ) : (
                 <button className="blog-size-btn blog-lock-btn" title="Owner login" aria-label="Owner login" onClick={() => setUnlockOpen(!unlockOpen)}><Lock size={13} /></button>
               )}
-              <button className="blog-size-btn blog-share-btn" onClick={copyLink} title="Copy link" aria-label="Copy link">{copied ? <Check size={13} /> : <Share2 size={13} />}</button>
-              <div className="blog-size-group">
+              <button className="blog-size-btn blog-share-btn" onClick={copyLink} title="Copy link" aria-label="Copy link">
+                {copied ? <><Check size={13} /> COPIED</> : <><Share2 size={13} /> SHARE</>}
+              </button>
+              <div className="blog-size-group" role="group" aria-label="Text size">
                 <button className="blog-size-btn" onClick={() => idx > 0 && setPersist(FONT_SIZES[idx - 1])} disabled={idx <= 0} title="Smaller text" aria-label="Decrease text size">A−</button>
+                <span className="blog-size-val" aria-live="polite" title="Current text size">{size}</span>
                 <button className="blog-size-btn" onClick={() => idx < FONT_SIZES.length - 1 && setPersist(FONT_SIZES[idx + 1])} disabled={idx >= FONT_SIZES.length - 1} title="Larger text" aria-label="Increase text size">A+</button>
               </div>
             </div>
@@ -286,7 +301,7 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
           {/* ── title block ── */}
           <h1>{post.title}</h1>
           <p className="blog-article-desc">{post.description}</p>
-          {/* ── byline ── */}
+          {/* ── byline: terminal status strip ── */}
           <div className="blog-article-byline">
             <img
               src={`https://github.com/${author}.png?size=32`}
@@ -295,13 +310,11 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
               width={22} height={22}
             />
             <a href={profileUrl(author)} target="_blank" rel="noopener noreferrer" className="blog-article-author">@{author}</a>
-            <span className="blog-article-byline-sep" />
-            <span className="blog-article-date">{fmtDate(post.date)}</span>
-            <span className="blog-article-dot">·</span>
-            <span className="blog-article-rel">{relDate(post.date)}</span>
-            {readingTime && <><span className="blog-article-dot">·</span><span className="blog-article-readtime">{readingTime} min read</span></>}
-            <span className="blog-article-dot">·</span>
-            <span className="blog-article-views">{views[`post:${post.slug}`] || 0} views</span>
+            <span className="blog-article-byline-sep" aria-hidden="true" />
+            <span className="blog-article-meta-item blog-article-date">{fmtDate(post.date)}</span>
+            {readingTime && <><span className="blog-article-byline-sep" aria-hidden="true" /><span className="blog-article-meta-item blog-article-readtime">{readingTime} min read</span></>}
+            <span className="blog-article-byline-sep" aria-hidden="true" />
+            <span className="blog-article-meta-item blog-article-views">{views[`post:${post.slug}`] || 0} views</span>
           </div>
           {unlockOpen && !mgr && (
             <div className="blog-unlock blog-unlock--article">
@@ -328,10 +341,7 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
           <div className="blog-prose" style={{ fontSize: size, ["--prose-scale" as string]: (size / 17).toFixed(3) }}>
             <Component />
           </div>
-          <div className="blog-article-foot">
-            <span>Thanks for reading — feedback welcome.</span>
-          </div>
-          <Comments slug={post.slug} postTitle={post.title} />
+          <Comments slug={post.slug} />
         </article>
         <AdUnit slot="0123456789" />
       </div>
