@@ -173,6 +173,7 @@ nav .wrap {
 .nav-links { display: flex; align-items: center; gap: 20px; font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.03em; }
 .nav-links a { color: var(--ink-dim); transition: color .15s ease, border-color .15s ease; border-bottom: 1px solid transparent; padding-bottom: 2px; }
 .nav-links a:hover { color: var(--amber); border-color: var(--amber); }
+.nav-links a.nav-active { color: var(--ink); border-color: var(--amber); }
 
 /* shortcuts button */
 .nav-shorts {
