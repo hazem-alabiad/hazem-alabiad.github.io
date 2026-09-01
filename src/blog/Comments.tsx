@@ -32,17 +32,12 @@ export function Comments({ slug }: { slug: string }) {
       lang="en"
       loading="lazy"
     />
-    <div className="blog-comments-actions">
-      <button type="button" className="blog-comments-refresh" onClick={() => window.location.reload()}>
-        Refresh comments
-      </button>
-      <p className="blog-comments-fallback-note">
-        Comments and reactions are powered by GitHub. To edit or delete your own comment, use GitHub.
-        <br />
-        <a href={`${DISCUSSION_URL}?discussions_q=${encodeURIComponent(slug)}`} target="_blank" rel="noopener noreferrer">
-          Manage your comments on GitHub ↗
-        </a>
-      </p>
-    </div>
+    <p className="blog-comments-fallback-note">
+      Comments and reactions are powered by GitHub. To edit or delete your own comment, use GitHub.
+      <br />
+      <a href={`${DISCUSSION_URL}?discussions_q=${encodeURIComponent(slug)}`} target="_blank" rel="noopener noreferrer">
+        Manage your comments on GitHub ↗
+      </a>
+    </p>
   </section>;
 }

@@ -17,7 +17,6 @@ describe("Comments", () => {
 
   it("provides a clear GitHub management action for the current post", () => {
     render(<Comments slug="arabic-vmwe-llms" />);
-    expect(screen.getByRole("button", { name: /refresh comments/i })).toBeInTheDocument();
     const link = screen.getByRole("link", { name: /manage your comments on github/i });
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
