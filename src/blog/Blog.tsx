@@ -249,23 +249,23 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
       <div className="wrap">
         <button className="btn blog-back" onClick={onBack}>← all notes</button>
         <article className="blog-article">
-          {/* ── header ── */}
-          <div className="blog-article-header">
-            <div className="blog-article-tags">
-              {post.tags.map((t) => <span key={t} className={`blog-article-tag blog-article-tag--${accent || "amber"}`}>#{t}</span>)}
+          {/* ── masthead: tag kicker + quiet reading tools ── */}
+          <div className="blog-article-masthead">
+            <div className="blog-article-kicker" aria-label="Tags">
+              {post.tags.map((t) => <span key={t} className={`blog-article-kicker-tag blog-article-kicker-tag--${accent || "amber"}`}>#{t}</span>)}
             </div>
-            <div className="blog-article-toolbar">
+            <div className="blog-article-utils" role="toolbar" aria-label="Reading tools">
               {mgr ? (
                 <>
-                  <button className="blog-size-btn blog-post-manage" title="Edit this post" onClick={() => navigate(`/blog/admin/edit/${post.slug}`)}><Pencil size={12} /> EDIT</button>
-                  <button className="blog-size-btn blog-post-manage blog-post-manage--danger" title="Delete this post" onClick={() => { if (removePost) removePost(post); }}><Trash2 size={12} /> DELETE</button>
-                  <button className="blog-size-btn blog-post-manage" title="Lock management" onClick={() => lock()}><Lock size={12} /> LOCK</button>
+                  <button className="blog-util" title="Edit this post" aria-label="Edit post" onClick={() => navigate(`/blog/admin/edit/${post.slug}`)}><Pencil size={14} /></button>
+                  <button className="blog-util blog-util--danger" title="Delete this post" aria-label="Delete post" onClick={() => { if (removePost) removePost(post); }}><Trash2 size={14} /></button>
+                  <button className="blog-util" title="Lock management" aria-label="Lock management" onClick={() => lock()}><Lock size={14} /></button>
                 </>
               ) : (
-                <button className="blog-size-btn blog-lock-btn" title="Owner login" aria-label="Owner login" onClick={() => setUnlockOpen(!unlockOpen)}><Lock size={13} /></button>
+                <button className="blog-util" title="Owner login — manage posts" aria-label="Owner login — manage posts" onClick={() => setUnlockOpen(!unlockOpen)}><Lock size={14} /></button>
               )}
-              <button className="blog-size-btn blog-share-btn" onClick={copyLink} title="Copy link" aria-label="Copy link">
-                {copied ? <><Check size={13} /> COPIED</> : <><Share2 size={13} /> SHARE</>}
+              <button className="blog-util" onClick={copyLink} title={copied ? "Link copied" : "Copy link"} aria-label={copied ? "Link copied" : "Copy link"}>
+                {copied ? <Check size={14} /> : <Share2 size={14} />}
               </button>
               <div className="blog-size-group" role="group" aria-label="Text size">
                 <button className="blog-size-btn" onClick={() => idx > 0 && setPersist(FONT_SIZES[idx - 1])} disabled={idx <= 0} title="Smaller text" aria-label="Decrease text size">A−</button>
@@ -277,20 +277,20 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
           {/* ── title block ── */}
           <h1>{post.title}</h1>
           <p className="blog-article-desc">{post.description}</p>
-          {/* ── byline: terminal status strip ── */}
+          {/* ── byline: one quiet line ── */}
           <div className="blog-article-byline">
             <img
-              src={`https://github.com/${author}.png?size=32`}
+              src={`https://github.com/${author}.png?size=40`}
               alt={author}
               className="blog-article-avatar"
-              width={22} height={22}
+              width={20} height={20}
             />
             <a href={profileUrl(author)} target="_blank" rel="noopener noreferrer" className="blog-article-author">@{author}</a>
-            <span className="blog-article-byline-sep" aria-hidden="true" />
-            <span className="blog-article-meta-item blog-article-date">{fmtDate(post.date)}</span>
-            {readingTime && <><span className="blog-article-byline-sep" aria-hidden="true" /><span className="blog-article-meta-item blog-article-readtime">{readingTime} min read</span></>}
-            <span className="blog-article-byline-sep" aria-hidden="true" />
-            <span className="blog-article-meta-item blog-article-views">{views[`post:${post.slug}`] || 0} views</span>
+            <span className="blog-article-byline-sep" aria-hidden="true">·</span>
+            <span className="blog-article-date">{fmtDate(post.date)}</span>
+            {readingTime && <><span className="blog-article-byline-sep" aria-hidden="true">·</span><span className="blog-article-readtime">{readingTime} min read</span></>}
+            <span className="blog-article-byline-sep" aria-hidden="true">·</span>
+            <span className="blog-article-views">{views[`post:${post.slug}`] || 0} views</span>
           </div>
           {unlockOpen && !mgr && (
             <div className="blog-unlock blog-unlock--article">
@@ -308,7 +308,17 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
           <div className="blog-prose" style={{ fontSize: size, ["--prose-scale" as string]: (size / 17).toFixed(3) }}>
             <Component />
           </div>
-          <Comments slug={post.slug} />
+
+          <div className="blog-article-end" aria-hidden="true">
+            <span className="blog-article-end-prompt">$</span>
+            <span className="blog-article-end-text">end of note</span>
+            <span className="blog-article-end-cursor" />
+          </div>
+
+          <div className="blog-article-comments">
+            <div className="blog-article-comments-label">COMMENTS</div>
+            <Comments slug={post.slug} />
+          </div>
         </article>
         <AdUnit slot="0123456789" />
       </div>

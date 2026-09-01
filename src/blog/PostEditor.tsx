@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useBlogManager } from "./manager";
-import { EditorPanel, FIELD, EMPTY_DRAFT, type BlogDraft } from "./editor";
+import { FIELD, EMPTY_DRAFT, type BlogDraft } from "./editor";
+import { EditorPanel } from "./editor-panel";
 import { OWNER_LOGIN } from "./authors";
 
 /**
