@@ -6,11 +6,13 @@ These rules apply to every agent working in this repository.
    feature branch and a pull request. The default branch may only change via
    a merged PR; never force-push to it.
 
-2. **Always open a pull request and meet its checks before merging.** Push the
-   feature branch, open the PR, then wait for every required check / test to
-   pass. If any check fails, investigate, fix the code, and re-run until the
-   checks are green — only then merge; never merge (or ask to merge) with
-   failing checks.
+2. **Always open a pull request and meet ALL checks before merging — never merge early.** Push the
+   feature branch, open the PR, then wait until every required check has
+   finished and passed. This includes unit/functional tests, the E2E job, AND
+   the test-coverage threshold — if the coverage gate fails, do not merge:
+   implement more tests (and fix any broken ones) until coverage is back above
+   the threshold. Only when every check is green may the PR be merged; never
+   merge (or ask to merge) with failing or still-pending checks.
 
 3. **Do not commit or push until the user confirms.** Finish and verify the
    work, show the result, and wait for explicit approval before creating a
