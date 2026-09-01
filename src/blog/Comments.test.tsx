@@ -36,11 +36,33 @@ describe('Comments', () => {
   beforeEach(() => {
     // Start in dark mode (default)
     setHtmlTheme(null)
+    // Comments fire an unauthenticated discussions lookup for the manage link
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [] }))
   })
 
   afterEach(() => {
     setHtmlTheme(null)
     vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
+  // ── Manage-your-comment link ─────────────────────────────────────────────
+
+  it('links to the GitHub discussion so users can edit/delete their own comment', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [{ title: 'test-post', html_url: 'https://github.com/x/y/discussions/9' }],
+    }))
+    render(<Comments slug="test-post" />)
+    const link = await screen.findByRole('link', { name: /edit or delete your comment/i })
+    expect(link).toHaveAttribute('href', 'https://github.com/x/y/discussions/9')
+    expect(link).toHaveAttribute('target', '_blank')
+  })
+
+  it('hides the manage link when the post has no discussion yet', async () => {
+    render(<Comments slug="test-post" />)
+    await new Promise((r) => setTimeout(r, 20))
+    expect(screen.queryByRole('link', { name: /edit or delete your comment/i })).not.toBeInTheDocument()
   })
 
   // ── Rendering ──────────────────────────────────────────────────────────────

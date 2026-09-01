@@ -3,7 +3,7 @@ import profilePhoto from "@/imports/IMG_0323.jpeg";
 import cvAsset from "@/imports/Hazem-Alabiad-CV.pdf?url";
 import { resolveCvHref, resolveCvName } from "./cv";
 import {
-  Github, Linkedin, Mail, MapPin, Download, ArrowUpRight, ExternalLink
+  Github, Linkedin, Mail, MapPin, Download, ExternalLink
 } from "lucide-react";
 
 /* ───────────────────────── THEME ───────────────────────── */
