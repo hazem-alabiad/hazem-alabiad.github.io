@@ -1,0 +1,50 @@
+---
+title: "Why LLMs Fumble Low-Resource Languages (and What I'm Doing About It)"
+date: "2026-07-18"
+description: "Arabic verbal multiword expressions are everywhere and LLMs still miss them. Notes from my current research."
+tags: ["LLMs", "Arabic", "NLP", "Compling"]
+accent: "amber"
+---
+
+Arabic is a **morphologically rich** language. That alone makes it a stress test for any NLP pipeline. But the specific rabbit hole I keep falling into is *verbal multiword expressions* (VMWEs) in Modern Standard Arabic.
+
+## The problem
+
+A VMWE is a phrase whose meaning isn't the sum of its parts — *"to pull strings"*, *"kick the bucket"*. In Arabic the same logic applies, but the multiword unit *inflects*: a single verb, its subject agreement, a clitic pronoun, all fused into one orthographic token.
+
+```python
+# A clitic chain is NOT split on whitespace the way English is
+utterance = "سأذهبُ إلى البيتِ"  # "I will go to the house"
+print(utterance.split())  # ["سأذهبُ", "إلى", "البيتِ"]
+
+# Stems carry tense + person + number — and sometimes the object too
+clitics = "سأذهبُ"  # sa- (future) + ʔaḏhabu (1sg, to go)
+```
+
+## What the LLM does
+
+Give a generic LLM a handful of Arabic VMWEs and it will *memorize the pattern*, not *learn it*. It generalizes worse than you'd hope on unseen verbs, because the expression isn't aligned to a canonical lemma.
+
+> Open the black box and you mostly find: the model predicts the next token, and clitic-heavy languages make the "next token" boundary wildly unhelpful.
+
+## The direction I probe
+
+1. **Alignment**: canonicalize the verbal complex *before* extraction, so the MWE stays stable across inflections.
+2. **Cross-lingual transfer**: use English VMWE resources as a soft-pivot to beat the Arabic data sparsity.
+3. **Evaluation**: don't just report F1 on a split — measure coverage on *unseen* verb lemmas.
+
+## Code, notes, evals
+
+Everything lives in [a repo you can browse](/blog), and I keep a running log there. More soon — this is very much work-in-progress.
+
+```ts
+// pseudo-pipeline I prototype in
+type Vmwe = { lemma: string; slots: string[]; pattern: string }
+
+function canonicalize(cliticChain: string): Vmwe {
+  // strip proclitics, diacritics, then align to lemma
+  return { lemma: stripClitics(cliticChain), slots: [], pattern: "" }
+}
+```
+
+Want to swap notes? [I'm reachable here](/). It's early days in a genuinely underserved corner of NLP.
