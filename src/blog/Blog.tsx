@@ -285,14 +285,31 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
         btn.type = "button";
         btn.className = "blog-heading-anchor";
         btn.textContent = "#";
-        btn.title = `Jump to ${headingText}`;
-        btn.setAttribute("aria-label", `Jump to ${headingText}`);
+        btn.title = `Link to ${headingText}`;
+        btn.setAttribute("aria-label", `Link to ${headingText}`);
         btn.addEventListener("click", () => goSection(h.id));
         h.appendChild(btn);
       }
+      // clicking the headline itself also pins its anchor to the URI
+      h.classList.add("blog-heading-link");
+      h.setAttribute("role", "link");
+      h.setAttribute("tabindex", "0");
+      const onGo = () => goSection(h.id);
+      h.addEventListener("click", onGo);
+      h.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onGo(); } });
+      h.addEventListener("focus", () => setActiveId(h.id));
       return { id: h.id, text: headingText, level: h.tagName === "H2" ? 2 : 3 };
     });
     setToc(items);
+    // deep link: #/blog/<slug>#<section-id> — restore scroll once headings exist
+    const anchorId = location.hash.split("#").pop();
+    if (anchorId && items.some((i) => i.id === anchorId)) {
+      const target = document.getElementById(anchorId);
+      if (target) {
+        target.scrollIntoView({ block: "start" });
+        setActiveId(anchorId);
+      }
+    }
     if (items.length < 2) return;
     const obs = new IntersectionObserver(
       (entries) => {
@@ -331,11 +348,21 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
     } catch { /* clipboard unavailable */ }
     done();
   };
+  // scroll to a section and record its anchor in the URI (replaceState so
+  // rapid clicks don't flood history; the hash router ignores the #section tail)
+  const sectionHash = `#/blog/${slug}`;
   const goSection = (id: string) => {
     const el = document.getElementById(id);
     if (!el) return;
     el.scrollIntoView({ behavior: "smooth", block: "start" });
     setActiveId(id);
+    try {
+      const target = `${sectionHash}#${id}`;
+      const current = location.hash.replace(/^#/, "");
+      if (!current.startsWith(`/blog/${slug}#`) || current !== `${sectionHash.replace(/^#/, "")}#${id}`) {
+        history.replaceState(null, "", `${location.pathname}${location.search}#${target.replace(/^#/, "")}`);
+      }
+    } catch { /* ignore */ }
   };
   const ordered = posts.filter((p) => !hiddenSlugs.has(p.slug));
   const pos = ordered.findIndex((p) => p.slug === slug);
