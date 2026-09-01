@@ -95,7 +95,7 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
           <p className="blog-lede">Writing on NLP research, language engineering, and the craft of shipping software. {visiblePosts.length} post{visiblePosts.length === 1 ? "" : "s"}.</p>
         </div>
         <div className="blog-toolbar">
-          <div className="blog-search-label"><span>SEARCH NOTES</span><small>title · tag · topic</small></div>
+          <div className="blog-search-label"><span><i aria-hidden="true">/</i> SEARCH NOTES</span><small>title · tag · topic</small></div>
           <div className="blog-search">
             <span className="blog-search-prompt" aria-hidden="true">➜</span>
             <input
@@ -115,7 +115,7 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
               : <kbd className="blog-search-kbd" aria-hidden="true">/</kbd>}
           </div>
           <div className="blog-owner-row">
-            <span className="blog-owner-caption">OWNER TOOLS</span>
+            <span className="blog-owner-caption"><i aria-hidden="true">◇</i> OWNER TOOLS</span>
             <div className="blog-manage" aria-label="Blog owner controls">
               {mgr ? (
                 <>
