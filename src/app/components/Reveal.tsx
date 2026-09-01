@@ -9,11 +9,11 @@ export function Reveal({ children, className = "", style = {} as React.CSSProper
     if (!el) return;
     if (!("IntersectionObserver" in window)) { el.classList.add("in"); return; }
     const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => { 
-        if (e.isIntersecting) { 
-          e.target.classList.add("in"); 
-          io.unobserve(e.target); 
-        } 
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add("in");
+          io.unobserve(e.target);
+        }
       });
     }, { threshold: 0.12 });
     io.observe(el);
