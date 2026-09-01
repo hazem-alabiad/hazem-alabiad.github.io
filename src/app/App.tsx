@@ -437,7 +437,7 @@ function AppContent() {
 
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
       <Shortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} onJump={scrollTo} onOpenPost={(slug) => navigate(`/blog/${slug}`)} />
-      <CMSButton enabled={cmsEnabled} onUnlock={(token) => blogManager.unlock(token)} onDisable={() => setCmsEnabled(false)} onOpenEditor={() => setEditorOpen(true)} />
+      <CMSButton enabled={cmsEnabled} onUnlock={(token) => blogManager.unlock(token)} onQuickUnlock={() => blogManager.restore()} onDisable={() => setCmsEnabled(false)} onOpenEditor={() => setEditorOpen(true)} />
       {cmsEnabled && editorOpen && (
         <CmsEditor
           initial={content}

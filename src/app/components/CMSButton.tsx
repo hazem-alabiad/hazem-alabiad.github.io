@@ -1,7 +1,9 @@
 import { useState } from "react";
 
-export function CMSButton({ onUnlock, enabled, onDisable, onOpenEditor }: {
+export function CMSButton({ onUnlock, enabled, onDisable, onOpenEditor, onQuickUnlock }: {
   onUnlock: (token: string) => void | Promise<void>; enabled: boolean; onDisable: () => void; onOpenEditor: () => void;
+  /** Optional silent re-unlock: resolves true when the stored token is still valid. */
+  onQuickUnlock?: () => Promise<boolean>;
 }) {
   const [open, setOpen] = useState(false);
   const [token, setToken] = useState("");
@@ -24,6 +26,19 @@ export function CMSButton({ onUnlock, enabled, onDisable, onOpenEditor }: {
     onDisable();
   }
 
+  // Clicking CMS when a token is still stored should silently re-unlock
+  // instead of asking for the token again. Only fall back to the entry panel
+  // when there is no stored token or it was revoked.
+  async function handleCmsClick() {
+    if (onQuickUnlock) {
+      setBusy(true); setErr("");
+      try {
+        if (await onQuickUnlock()) { setOpen(false); return; }
+      } finally { setBusy(false); }
+    }
+    setOpen(true);
+  }
+
   if (enabled) {
     return (
       <div className="cms-fixed-wrap">
@@ -34,7 +49,7 @@ export function CMSButton({ onUnlock, enabled, onDisable, onOpenEditor }: {
   }
   return (
     <div className="cms-fixed-wrap">
-      {!open && <button className="cms-unlock" onClick={() => setOpen(true)}>CMS</button>}
+      {!open && <button className="cms-unlock" onClick={handleCmsClick} disabled={busy}>{busy ? "…" : "CMS"}</button>}
       {open && (
         <div className="cms-panel">
           <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--ink-faint)", letterSpacing: "0.1em", marginBottom: 8 }}>UNLOCK CMS</div>

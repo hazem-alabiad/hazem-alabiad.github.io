@@ -54,6 +54,32 @@ describe('CMSButton', () => {
     })
   })
 
+  it('silently re-unlocks via onQuickUnlock without asking for the token', async () => {
+    const onQuickUnlock = vi.fn().mockResolvedValue(true)
+
+    render(<CMSButton onUnlock={vi.fn()} enabled={false} onDisable={vi.fn()} onOpenEditor={vi.fn()} onQuickUnlock={onQuickUnlock} />)
+
+    fireEvent.click(screen.getByText('CMS'))
+
+    await waitFor(() => {
+      expect(onQuickUnlock).toHaveBeenCalledTimes(1)
+    })
+    // No token panel was opened
+    expect(screen.queryByPlaceholderText('GitHub PAT')).not.toBeInTheDocument()
+  })
+
+  it('falls back to the token panel when onQuickUnlock finds no valid stored token', async () => {
+    const onQuickUnlock = vi.fn().mockResolvedValue(false)
+
+    render(<CMSButton onUnlock={vi.fn()} enabled={false} onDisable={vi.fn()} onOpenEditor={vi.fn()} onQuickUnlock={onQuickUnlock} />)
+
+    fireEvent.click(screen.getByText('CMS'))
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('GitHub PAT')).toBeInTheDocument()
+    })
+  })
+
   it('shows error on failed verification', async () => {
     const onUnlock = vi.fn().mockRejectedValue(new Error('Token does not match owner.'))
 

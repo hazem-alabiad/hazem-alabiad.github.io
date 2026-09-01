@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Plus, Loader2, Lock, FileText, KeyRound, Search } from "lucide-react";
 import { listPosts, readPost, writePost, deletePost, slugify } from "../github";
 import {
-  verifyToken, saveBlogSession, loadBlogSession, clearBlogSession, sanitizeToken,
+  verifyToken, saveBlogSession, loadBlogSession, sanitizeToken,
   parseFrontmatter, parseTags, buildMdx, EditorPanel,
   Panel, chipBtn, FIELD, MONO, type BlogDraft,
 } from "./editor";
@@ -49,8 +49,10 @@ export default function BlogAdmin() {
     finally { setBusy(false); }
   }
 
+  // LOCK only deactivates editing — the token stays stored in localStorage,
+  // so RESUME on the unlock screen silently re-verifies instead of asking for
+  // it again. Only removing hazem-blog-token from localStorage fully logs out.
   function lock() {
-    clearBlogSession();
     setUser(null); setToken(""); setDraft(null); setStage("unlock");
   }
 
