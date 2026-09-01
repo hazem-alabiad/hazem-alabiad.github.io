@@ -1,399 +1,451 @@
-import { useState, useEffect } from "react";
-import {
-  Github, Linkedin, Mail, MapPin,
-  ArrowUpRight, Download, Settings,
-} from "lucide-react";
-import profilePhoto from "@/imports/IMG_0323.jpeg";
-import cvAsset from "@/imports/Hazem-Alabiad-CV.pdf?url";
-import { resolveCvHref, resolveCvName } from "./cv";
-import CmsPage from "./components/CmsPage";
+import { useEffect, useState, lazy, Suspense } from "react";
+import { HashRouter, Routes, Route, useNavigate, useParams, useLocation } from "react-router-dom";
+import { loadContent, saveContent, resetContent, type CmsContent } from "../cms";
+import CmsEditor from "../CmsEditor";
+import { BlogManagerProvider, useBlogManager } from "../blog/manager";
+import { useSEO } from "../blog/seo";
+import cvPdf from "../imports/Hazem-Alabiad-CV.pdf";
+import qrSvg from "../imports/portfolio-qr.svg?raw";
+import { Icon } from "./components/Icon";
 
-const OWNER = "hazem-alabiad";
-const REPO = "hazem-alabiad.github.io";
-const CONTENT_PATH = "src/app/content.json";
-const TOKEN_KEY = "cms_gh_token";
+import { BootScreen } from "./components/BootScreen";
+import { TerminalHero } from "./components/TerminalHero";
+import { Shortcuts } from "./components/Shortcuts";
+const BgGlyphs = lazy(() => import("./components/BgGlyphs").then(m => ({ default: m.BgGlyphs })));
+import { Reveal } from "./components/Reveal";
+import { ScrollProgress } from "./components/ScrollProgress";
+import { BackToTop } from "./components/BackToTop";
+import { Toast } from "./components/Toast";
+import { CMSButton } from "./components/CMSButton";
 
-/* ─── Types ─────────────────────────────────────────────── */
-interface HeroContent {
-  name: string; tagline: string; location: string; bio: string;
-  researchFocus: string; email: string; phone: string;
-  github: string; linkedin: string; cvUrl: string;
-  cvFileData?: string; cvFileName?: string;
-}
-interface ExpItem { id: string; role: string; company: string; location: string; period: string; bullets: string[]; }
-interface ProjItem { id: string; title: string; year: string; description: string; link: string; }
-interface SkillGroup { id: string; label: string; skills: string; }
-interface EduItem { id: string; degree: string; school: string; location: string; period: string; notes: string; }
-interface LangItem { id: string; name: string; level: string; }
-interface SiteContent {
-  hero: HeroContent;
-  experience: ExpItem[];
-  projects: ProjItem[];
-  skills: SkillGroup[];
-  education: EduItem[];
-  languages: LangItem[];
+const BlogIndex = lazy(() => import("../blog/Blog").then(m => ({ default: m.BlogIndex })));
+const BlogPost = lazy(() => import("../blog/Blog").then(m => ({ default: m.BlogPost })));
+const BlogAdmin = lazy(() => import("../blog/BlogAdmin"));
+
+const BOOTED_KEY = "hazem_portfolio_booted_v3";
+
+function get(content: CmsContent, key: keyof CmsContent, fallback: string): string {
+  const v = content[key];
+  return typeof v === "string" && v.length > 0 ? v : fallback;
 }
 
-/* ─── Seed (fallback) ────────────────────────────────────── */
-const seed: SiteContent = {
-  hero: {
-    name: "Hazem Alabiad",
-    tagline: "Full-Stack Engineer · AI · NLP · LLM Research",
-    location: "Tübingen, Germany",
-    bio: "Software Engineer with 6+ years of experience building production-ready, maintainable systems and pixel-perfect UIs using React, Next.js, TypeScript, and modern tooling. Experienced in leading cross-functional teams, improving developer experience, and delivering design-driven applications at scale. Currently pursuing an M.A. in Computational Linguistics at the University of Tübingen and working as a Student Assistant at IWM & the Autonomous Learning Lab (Uni Tübingen), focusing on AI, ML, LLMs, NLP, and Cognitive Science — bridging software engineering and intelligent systems. Open to Working Student & internship roles in NLP, AI/ML, and LLMs — Tübingen, Stuttgart, or remote.",
-    researchFocus: "Corpus Linguistics · Large Language Models · Cognitive Science · NLP",
-    email: "hazem.alabiad@icloud.com",
-    phone: "+49 157 544 46942",
-    github: "github.com/hazem-alabiad",
-    linkedin: "linkedin.com/in/hazemalabiad",
-    cvUrl: "",
-  },
-  experience: [
-    { id: "e1", role: "Research Assistant", company: "University of Tübingen", location: "Tübingen, Germany", period: "Jul 2026 – Present", bullets: ["LLM-based AI tutor for university lectures"] },
-    { id: "e2", role: "Research Assistant", company: "Leibniz-Institut für Wissensmedien (IWM)", location: "Tübingen, Germany", period: "Jul 2026 – Present", bullets: ["Social media (TikTok) impact research"] },
-    { id: "e3", role: "Software Engineer (Working Student)", company: "IBM", location: "Böblingen, Germany", period: "Jun 2024 – Apr 2026", bullets: ["Built production React UI for IBM's Data Quality platform serving 1M+ enterprise users using IBM Carbon and TypeScript", "Maintained 300+ regression and E2E tests with Puppeteer and Cypress", "Led accessibility improvements: ARIA, screen reader support, keyboard navigation"] },
-    { id: "e4", role: "Frontend Developer", company: "Getir", location: "Ankara, Turkey", period: "Dec 2022 – Mar 2024", bullets: ["Maintained GetirJobs (2.2M+ users); led two greenfield React/TypeScript projects from scratch", "Boosted dev server speed 3× via Vite migration", "Raised component test coverage to 70% with Playwright and Jest"] },
-    { id: "e5", role: "Engineering Lead", company: "Arianna Suisse Sa", location: "Remote · Switzerland", period: "Jun 2022 – Nov 2022", bullets: ["Led 4 engineers and 1 designer, delivering on time and within budget", "Architected scalable GraphQL API with Apollo Federation and MySQL", "Managed technical hiring for 50+ candidates; onboarded 4 team members"] },
-    { id: "e6", role: "Full-Stack Developer", company: "Arianna Suisse Sa", location: "Remote · Switzerland", period: "May 2021 – Jun 2022", bullets: ["Built reusable React components; managed GraphQL server with Apollo Federation", "Custom Elasticsearch search engine and real-time multi-user editing via WebSocket"] },
-    { id: "e7", role: "Freelance Software Developer", company: "Self-employed", location: "Remote · USA", period: "Feb 2020 – Feb 2021", bullets: ["Built pixel-perfect React UIs for 3 international clients", "Developed Python web crawlers publishing to RabbitMQ queues for backend AI pipelines"] },
-    { id: "e8", role: "QA Automation Engineer", company: "Bayzat", location: "Remote · UAE", period: "Jan 2019 – Nov 2019", bullets: ["Built Cypress E2E suites from scratch, reducing manual testing overhead"] },
-  ],
-  projects: [
-    { id: "p1", title: "Multiword Expressions in Arabic", year: "2026", description: "LLM-based extraction of Arabic verbal multiword expressions from large corpora.", link: "https://github.com/hazem-alabiad/MWE" },
-    { id: "p2", title: "Content Rating System", year: "2022", description: "NLP/deep learning classifier for age-appropriateness of books.", link: "https://github.com/hazem-alabiad/content-rating-system" },
-    { id: "p3", title: "Taxi Tip Estimator", year: "2021", description: "ML/DL predictor trained on NYC trip data to estimate gratuity amounts.", link: "https://github.com/hazem-alabiad/taxi-tip-estimator" },
-    { id: "p4", title: "Automated Essay Grading", year: "2019", description: "LSTM-based pipeline for automated scoring of student essays.", link: "https://github.com/hazem-alabiad/essay-grading" },
-  ],
-  skills: [
-    { id: "s1", label: "Full-Stack", skills: "React.js, Next.js, TypeScript, JavaScript (ES6+), Redux, GraphQL, Apollo Federation, Node.js, WebSocket, Elasticsearch" },
-    { id: "s2", label: "AI / NLP", skills: "Python, LLMs, NLP, TensorFlow, Transfer Learning, Data Engineering, R, Pandas" },
-    { id: "s3", label: "DevOps", skills: "Docker, Git, Jest, Cypress, Puppeteer, MySQL, Agile, Linux, Figma" },
-  ],
-  education: [
-    { id: "d1", degree: "M.A. in Computational Linguistics", school: "Tübingen University", location: "Tübingen", period: "Oct 2023 – Present", notes: "Corpus Linguistics · LLMs · AI · Machine Learning · Cognitive Science · NLP" },
-    { id: "d2", degree: "B.Sc. in Computer Engineering", school: "Hacettepe University", location: "Ankara", period: "Sep 2015 – Jun 2019", notes: "Honor Student · Top 10% · GPA 3.41 · YTB Scholarship" },
-  ],
-  languages: [
-    { id: "l1", name: "Arabic", level: "Native" },
-    { id: "l2", name: "English", level: "Proficient" },
-    { id: "l3", name: "Turkish", level: "Proficient" },
-    { id: "l4", name: "German", level: "Beginner" },
-  ],
-};
-
-/* ─── Helpers ────────────────────────────────────────────── */
-function groupByCompany(items: ExpItem[]) {
-  const groups: { company: string; location: string; roles: ExpItem[] }[] = [];
-  for (const item of items) {
-    const last = groups[groups.length - 1];
-    if (last && last.company === item.company) { last.roles.push(item); }
-    else { groups.push({ company: item.company, location: item.location, roles: [item] }); }
-  }
-  return groups;
-}
-const MONO: React.CSSProperties = { fontFamily: "'JetBrains Mono', monospace" };
-const DISPLAY: React.CSSProperties = { fontFamily: "'DM Serif Display', serif" };
-
-function SectionHeader({ label, id }: { label: string; id: string }) {
-  return (
-    <div id={id} className="flex items-center gap-5 mb-12 scroll-mt-24">
-      <span className="text-[11px] tracking-[0.25em] uppercase shrink-0" style={{ ...MONO, color: "#5eead4" }}>{label}</span>
-      <div className="flex-1 h-px" style={{ background: "oklch(1 0 0 / 0.07)" }} />
-    </div>
-  );
+function ep(key: keyof CmsContent, fallback: string, base: React.CSSProperties, onSave: (k: keyof CmsContent, v: string) => void, enabled: boolean): React.HTMLAttributes<HTMLSpanElement> & { style: React.CSSProperties } {
+  const style: React.CSSProperties = { ...base, outline: enabled ? "1px dashed rgba(217,164,65,0.5)" : "none", borderRadius: 2, cursor: enabled ? "text" : "default" };
+  return { style, contentEditable: enabled ? true : undefined, suppressContentEditableWarning: true, onBlur: enabled ? (e) => { const t = (e.target as HTMLElement).textContent || ""; if (t !== fallback) onSave(key, t); } : undefined };
 }
 
-function SocialLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
-  return (
-    <a href={href} target={href.startsWith("mailto") ? undefined : "_blank"} rel="noopener noreferrer"
-      className="flex items-center gap-1.5 text-sm transition-colors hover:text-[#5eead4]" style={{ color: "#6b6b82" }}>
-      {icon} {label}
-    </a>
-  );
+function SEOWrapper({ view }: { view: "home" | "blog" | "admin" }) {
+  useSEO(view, undefined);
+  return null;
 }
 
-/* ─── Main App ───────────────────────────────────────────── */
+function BlogPostWrapper() {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  return <BlogPost slug={slug!} onBack={() => navigate("/blog")} />;
+}
+
 export default function App() {
-  const [hash, setHash] = useState(() => window.location.hash);
-  const [visitCount, setVisitCount] = useState<number | null>(null);
-  const [isOwner, setIsOwner] = useState(false);
-  const [ownerChecked, setOwnerChecked] = useState(false);
-  const [data, setData] = useState<SiteContent>(seed);
+  return (
+    <HashRouter>
+      <BlogManagerProvider>
+        <AppContent />
+      </BlogManagerProvider>
+    </HashRouter>
+  );
+}
+
+const SECTIONS = ["home", "education", "experience", "research", "skills", "contact"];
+const devopsTerms = ["Docker", "Git", "Jest", "Cypress", "Puppeteer", "Figma", "MySQL", "Agile", "Linux", "CI/CD"];
+
+function AppContent() {
+  const [booted, setBooted] = useState<boolean>(() => { try { return localStorage.getItem(BOOTED_KEY) === "1"; } catch { return false; } });
+  const [content, setContent] = useState<CmsContent>(() => loadContent());
+  const blogManager = useBlogManager();
+  const cmsEnabled = Boolean(blogManager.mgr);
+  const setCmsEnabled = (enabled: boolean) => { if (!enabled) blogManager.lock(); };
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [toast, setToast] = useState("");
+  const [theme, setTheme] = useState<"dark" | "light">(() => { try { return localStorage.getItem("hazem_theme") === "light" ? "light" : "dark"; } catch { return "dark"; } });
+  const [visits, setVisits] = useState(0);
+  const [activeSection, setActiveSection] = useState("home");
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isHome = location.pathname === "/";
+
 
   useEffect(() => {
-    const onHashChange = () => setHash(window.location.hash);
-    window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
+    document.documentElement.setAttribute("data-theme", theme);
+    try { localStorage.setItem("hazem_theme", theme); } catch { /* empty */ }
+  }, [theme]);
+
+  useEffect(() => {
+    try {
+      const host = window.location.hostname;
+      const isDev = host === "localhost" || host === "127.0.0.1" || host.endsWith(".local");
+      const ownerSkipped = localStorage.getItem("hazem_owner") === "1";
+      const sessionCounted = sessionStorage.getItem("hazem_visits_session") === "1";
+      if (isDev || ownerSkipped) { setVisits(parseInt(localStorage.getItem("hazem_visits") || "0", 10)); return; }
+      if (!sessionCounted) {
+        const c = parseInt(localStorage.getItem("hazem_visits") || "0", 10);
+        const n = c + 1;
+        localStorage.setItem("hazem_visits", String(n));
+        sessionStorage.setItem("hazem_visits_session", "1");
+        setVisits(n);
+      } else {
+        setVisits(parseInt(localStorage.getItem("hazem_visits") || "0", 10));
+      }
+    } catch { setVisits(1); }
   }, []);
 
-  useEffect(() => {
-    const stored = localStorage.getItem(TOKEN_KEY);
-    if (!stored) { setOwnerChecked(true); return; }
-    fetch("https://api.github.com/user", {
-      headers: { Authorization: `Bearer ${stored}`, Accept: "application/vnd.github+json" },
-    })
-      .then(r => r.json())
-      .then(u => { if (u.login === OWNER) setIsOwner(true); })
-      .catch(() => {})
-      .finally(() => setOwnerChecked(true));
-  }, []);
+  function save(key: keyof CmsContent, value: string) { setContent((prev) => { const next = { ...prev, [key]: value }; saveContent(next); return next; }); }
+  function saveAll(next: CmsContent) { setContent(next); saveContent(next); }
+
+  const factLocation = get(content, "factLocation", "Tübingen, Germany");
+  const email = content.links.find((l) => l.label === "EMAIL")?.href || `mailto:${content.links.find((l) => l.label === "EMAIL")?.value || ""}`;
+  const cvUrl = (content.cvDataUrl || cvPdf) as string;
+
+  const scrollTo = (id: string) => {
+    if (!isHome) {
+      navigate("/");
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        el?.scrollIntoView({ behavior: "smooth" });
+        if (el) window.scrollTo({ top: el.offsetTop - 0 });
+      }, 100);
+      return;
+    }
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/main/${CONTENT_PATH}`)
-      .then(r => r.json())
-      .then(d => setData(d))
-      .catch(() => {});
-  }, []);
+    const sectionIds = ["home", "education", "experience", "research", "skills", "contact"];
+    const observers: IntersectionObserver[] = [];
+    const visible = new Set<string>();
+    const pick = () => {
+      // pick the topmost visible section
+      for (const id of sectionIds) { if (visible.has(id)) { setActiveSection(id); return; } }
+    };
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const io = new IntersectionObserver(
+        ([entry]) => { entry.isIntersecting ? visible.add(id) : visible.delete(id); pick(); },
+        { threshold: 0.15 }
+      );
+      io.observe(el);
+      observers.push(io);
+    });
+    return () => observers.forEach((io) => io.disconnect());
+  }, [isHome]);
 
-  // Key must be a flat string — no slashes (slashes break the API router)
   useEffect(() => {
-    if (!ownerChecked) return;
-    const base = "https://countapi.mileshilliard.com";
-    const key = "hazem-alabiad_portfolio";
-    const endpoint = isOwner ? `${base}/api/v1/get/${key}` : `${base}/api/v1/hit/${key}`;
-    fetch(endpoint)
-      .then(r => r.json())
-      .then(d => { if (d.value !== undefined) setVisitCount(Number(d.value)); })
-      .catch(() => {});
-  }, [ownerChecked, isOwner]);
-
-  useEffect(() => {
-    const title = `${data.hero.name} • Portfolio`;
-    document.title = title;
-    const desc = data.hero.bio.slice(0, 155) + (data.hero.bio.length > 155 ? "…" : "");
-    document.querySelector('meta[name="description"]')?.setAttribute("content", desc);
-    document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
-    document.querySelector('meta[property="og:description"]')?.setAttribute("content", desc);
-  }, [data.hero]);
-
-  if (hash === "#/cms") return <CmsPage onExit={() => { window.location.hash = ""; setHash(""); }} />;
-
-  const { hero, experience, projects, skills, education, languages } = data;
-
-  const currentYear = new Date().getFullYear();
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) { e.preventDefault(); setShortcutsOpen(true); return; }
+      if (e.key === "Escape") { setShortcutsOpen(false); setMenuOpen(false); return; }
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (shortcutsOpen) return;
+      switch (e.key) {
+        case "?": setShortcutsOpen(true); break;
+        case "j": case "ArrowDown": { e.preventDefault(); const idx = SECTIONS.findIndex((s) => { const el = document.getElementById(s); return el && el.getBoundingClientRect().top > 100; }); scrollTo(SECTIONS[Math.max(0, idx)]); break; }
+        case "k": case "ArrowUp": { e.preventDefault(); const idx = [...SECTIONS].reverse().findIndex((s) => { const el = document.getElementById(s); return el && el.getBoundingClientRect().top < -100; }); scrollTo(SECTIONS[SECTIONS.length - 1 - Math.max(0, idx)]); break; }
+        case "g": scrollTo("home"); break;
+        case "G": scrollTo("contact"); break;
+        case "t": scrollTo("home"); break;
+        case "c": window.location.href = email; break;
+        case "d": { const a = document.createElement("a"); a.href = cvUrl; a.download = "Hazem-Alabiad-CV.pdf"; a.click(); break; }
+        case "1": scrollTo("home"); break;
+        case "2": scrollTo("education"); break;
+        case "3": scrollTo("experience"); break;
+        case "4": scrollTo("research"); break;
+        case "5": scrollTo("skills"); break;
+        case "6": scrollTo("contact"); break;
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [shortcutsOpen, email, cvUrl, isHome]);
 
   return (
-    <div className="min-h-screen antialiased" style={{ background: "#09090f", color: "#d4d4e0" }}>
+    <>
+      <a href="#main-content" className="skip-link">Skip to main content</a>
+      <ScrollProgress />
+      <BackToTop />
+      {!booted && <BootScreen onDone={() => { setBooted(true); try { localStorage.setItem(BOOTED_KEY, "1"); } catch { /* empty */ } }} />}
 
-      {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-8 py-4 border-b"
-        style={{ background: "rgba(9,9,15,0.88)", backdropFilter: "blur(16px)", borderColor: "oklch(1 0 0 / 0.06)" }}>
-        <span className="text-sm" style={{ ...DISPLAY, color: "#5eead4" }}>{hero.name}</span>
-        <div className="hidden md:flex items-center gap-8">
-          {([["Education", "education"], ["Experience", "experience"], ["Research", "projects"], ["Skills", "skills"]] as [string, string][]).map(([label, id]) => (
-            <a key={id} href={`#${id}`} className="text-[11px] uppercase tracking-[0.2em] transition-colors hover:text-[#5eead4]"
-              style={{ ...MONO, color: "#6b6b82" }}>{label}</a>
-          ))}
+      <nav>
+        <div className="wrap">
+          <button className="nav-mark" onClick={() => { setMenuOpen(false); scrollTo("home"); }}>H<span>.</span>ALABIAD</button>
+          <div className="nav-links">
+            <a href="#education" onClick={(e) => { e.preventDefault(); scrollTo("education"); }} className={isHome && activeSection === "education" ? "nav-active" : ""}>Education</a>
+            <a href="#experience" onClick={(e) => { e.preventDefault(); scrollTo("experience"); }} className={isHome && activeSection === "experience" ? "nav-active" : ""}>Experience</a>
+            <a href="#research" onClick={(e) => { e.preventDefault(); scrollTo("research"); }} className={isHome && activeSection === "research" ? "nav-active" : ""}>Research</a>
+            <a href="#skills" onClick={(e) => { e.preventDefault(); scrollTo("skills"); }} className={isHome && activeSection === "skills" ? "nav-active" : ""}>Skills</a>
+            <a href="#blog" onClick={(e) => { e.preventDefault(); navigate("/blog"); }} className={`nav-blog${location.pathname.startsWith("/blog") ? " nav-active" : ""}`}>Blog</a>
+            <a href="#contact" onClick={(e) => { e.preventDefault(); scrollTo("contact"); }} className={isHome && activeSection === "contact" ? "nav-active" : ""}>Contact</a>
+            <button className="nav-shorts" onClick={() => setShortcutsOpen(true)} title="Search & shortcuts (⌘K)">⌘K</button>
+            <button className="nav-theme" onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))} title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`} aria-label="Toggle theme">{theme === "dark" ? "☀" : "☾"}</button>
+            <button className="nav-hire" onClick={() => { navigator.clipboard?.writeText(email.replace("mailto:", "")); setToast("Email copied — hazem.alabiad@icloud.com"); }}>Hire me</button>
+          </div>
+          <button className={`nav-toggle ${menuOpen ? "open" : ""}`} onClick={() => setMenuOpen((o) => !o)} aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="nav-menu">
+            <span /><span /><span />
+          </button>
         </div>
-        <a href={`mailto:${hero.email}`} className="hidden md:block text-xs transition-colors hover:text-[#d4d4e0]"
-          style={{ ...MONO, color: "#5eead4" }}>{hero.email}</a>
+        <div className={`nav-menu ${menuOpen ? "open" : ""}`} id="nav-menu">
+          <a href="#education" onClick={(e) => { e.preventDefault(); setMenuOpen(false); scrollTo("education"); }}>Education</a>
+          <a href="#experience" onClick={(e) => { e.preventDefault(); setMenuOpen(false); scrollTo("experience"); }}>Experience</a>
+          <a href="#research" onClick={(e) => { e.preventDefault(); setMenuOpen(false); scrollTo("research"); }}>Research</a>
+          <a href="#skills" onClick={(e) => { e.preventDefault(); setMenuOpen(false); scrollTo("skills"); }}>Skills</a>
+          <a href="#blog" onClick={(e) => { e.preventDefault(); setMenuOpen(false); navigate("/blog"); }}>Blog</a>
+          <a href="#contact" onClick={(e) => { e.preventDefault(); setMenuOpen(false); scrollTo("contact"); }}>Contact</a>
+          <div className="nav-menu-actions">
+            <button className="nav-shorts" onClick={() => { setMenuOpen(false); setShortcutsOpen(true); }} title="Search & shortcuts (⌘K)">⌘K</button>
+            <button className="nav-hire" onClick={() => { navigator.clipboard?.writeText(email.replace("mailto:", "")); setToast("Email copied — hazem.alabiad@icloud.com"); setMenuOpen(false); }}>Hire me</button>
+          </div>
+        </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-6 md:px-12 pt-36 pb-28">
-
-        {/* Hero */}
-        <section className="mb-32">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10">
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.3em] mb-5" style={{ ...MONO, color: "#5eead4" }}>Available for opportunities</p>
-              <h1 className="leading-[0.92] tracking-tight mb-5" style={{ ...DISPLAY, color: "#eeeef5", fontSize: "clamp(2.8rem,7vw,5rem)" }}>{hero.name}</h1>
-              <div className="flex flex-wrap gap-2 mb-6">
-                {["TypeScript", "React", "Node.js", "Python", "NLP", "LLMs"].map(skill => (
-                  <span key={skill} className="text-[12px] px-2.5 py-1 rounded-md border" style={{ ...MONO, background: "rgba(94,234,212,0.05)", borderColor: "rgba(94,234,212,0.18)", color: "#5eead4" }}>{skill}</span>
-                ))}
-              </div>
-              <div className="mb-5 max-w-[52ch] space-y-3">
-                {hero.bio.split("\n\n").map((para, i) => (
-                  <p key={i} className="text-[17px] leading-[1.9] tracking-[0.015em]" style={{ color: "#d8d8ea", fontWeight: 400, fontFamily: "'DM Sans', sans-serif" }}>{para}</p>
-                ))}
-              </div>
-              <div className="flex flex-wrap items-center gap-3 mb-8">
-                <a href={`mailto:${hero.email}`} className="flex items-center gap-2 px-4 py-2 rounded border text-sm font-medium transition-all hover:scale-[1.02]" style={{ background: "#5eead4", color: "#09090f", border: "none" }}>
-                  <Mail size={14} /> Get in touch
-                </a>
-                <a href={resolveCvHref(hero, cvAsset)} download={resolveCvName(hero, "Hazem-Alabiad-CV.pdf")} className="flex items-center gap-2 px-4 py-2 rounded border text-sm transition-all hover:border-white/25 hover:text-[#d4d4e0]" style={{ borderColor: "oklch(1 0 0 / 0.12)", color: "#9494a8" }}>
-                  <Download size={14} /> Download CV
-                </a>
-              </div>
-              <div className="flex flex-wrap items-center gap-6">
-                <SocialLink href={`https://${hero.github}`} icon={<Github size={14} />} label="GitHub" />
-                <SocialLink href={`https://${hero.linkedin}`} icon={<Linkedin size={14} />} label="LinkedIn" />
-                <span className="flex items-center gap-1.5 text-sm" style={{ color: "#6b6b82" }}><MapPin size={14} /> {hero.location}</span>
-              </div>
-            </div>
-            <div className="flex-shrink-0 self-start md:mt-8">
-              <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden" style={{ boxShadow: "0 0 0 1.5px rgba(94,234,212,0.35), 0 0 32px rgba(94,234,212,0.08)" }}>
-                <img src={profilePhoto} alt={hero.name} className="w-full h-full object-cover" style={{ objectPosition: "center 4%", filter: "brightness(0.92) contrast(1.04) saturate(0.88)" }} />
-                <div className="absolute inset-0 rounded-full" style={{ background: "radial-gradient(circle at center, transparent 55%, rgba(9,9,15,0.5) 100%)" }} />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Education */}
-        <section className="mb-28">
-          <SectionHeader label="Education" id="education" />
-          <div className="space-y-10">
-            {education.map(edu => (
-              <div key={edu.id} className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
-                <div>
-                  <h3 className="font-medium" style={{ color: "#eeeef5" }}>{edu.degree}</h3>
-                  <p className="text-sm mt-0.5"><span style={{ color: "#5eead4", opacity: 0.8 }}>{edu.school}</span><span style={{ color: "#6b6b82" }}> · {edu.location}</span></p>
-                  {edu.notes && <p className="text-[14px] mt-2 leading-relaxed" style={{ color: "#8f8fa8" }}>{edu.notes}</p>}
-                </div>
-                <span className="text-[11px] whitespace-nowrap shrink-0 mt-1" style={{ ...MONO, color: "#6b6b82" }}>{edu.period}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Experience */}
-        <section className="mb-28">
-          <SectionHeader label="Experience" id="experience" />
-          <div>
-            {groupByCompany(experience).map((group, gi, arr) => (
-              <div key={group.company + gi} className="relative pl-7 pb-12 last:pb-0">
-                <div className="absolute left-0 top-[8px] w-2 h-2 rounded-full" style={{ background: "#5eead4", opacity: 0.35 }} />
-                {gi < arr.length - 1 && <div className="absolute left-[3px] top-5 bottom-0 w-px" style={{ background: "oklch(1 0 0 / 0.07)" }} />}
-                {group.roles.length === 1 ? (
-                  <>
-                    <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-1 mb-3">
-                      <div>
-                        <h3 className="font-medium text-[15px]" style={{ color: "#eeeef5" }}>{group.roles[0].role}</h3>
-                        <p className="text-[13.5px] mt-0.5"><span style={{ color: "#5eead4", opacity: 0.9 }}>{group.company}</span><span style={{ color: "#707088" }}> · {group.location}</span></p>
-                      </div>
-                      <span className="text-[11px] whitespace-nowrap shrink-0" style={{ ...MONO, color: "#6b6b82" }}>{group.roles[0].period}</span>
-                    </div>
-                    {group.roles[0].bullets.filter(Boolean).length > 0 && (
-                      <ul className="space-y-1.5">
-                        {group.roles[0].bullets.filter(Boolean).map((b, bi) => (
-                          <li key={bi} className="text-[14px] leading-relaxed flex gap-2.5" style={{ color: "#ababc0" }}>
-                            <span className="mt-[3px] shrink-0" style={{ color: "#5eead4", opacity: 0.3 }}>—</span><span>{b}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className="mb-4">
-                      <h3 className="font-medium text-[15px]" style={{ color: "#5eead4" }}>{group.company}</h3>
-                      <p className="text-[13px] mt-0.5" style={{ color: "#707088" }}>{group.location}</p>
-                    </div>
-                    <div className="space-y-6 border-l pl-5" style={{ borderColor: "oklch(1 0 0 / 0.07)" }}>
-                      {group.roles.map(role => (
-                        <div key={role.id}>
-                          <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-1 mb-2">
-                            <span className="font-medium text-[14px]" style={{ color: "#d8d8ec" }}>{role.role}</span>
-                            <span className="text-[11px] whitespace-nowrap shrink-0" style={{ ...MONO, color: "#6b6b82" }}>{role.period}</span>
+      <main id="main-content">
+        <Routes>
+          <Route path="/" element={
+          <>
+            <SEOWrapper view="home" />
+            <Suspense fallback={null}><BgGlyphs /></Suspense>
+            <TerminalHero content={content} factLocation={factLocation} scrollTo={scrollTo} />
+            
+            <section id="education">
+              <div className="wrap">
+                <Reveal className="section-head">
+                  <div className="section-title-row">
+                    <span className="section-icon-badge section-icon-badge--violet"><Icon name="grad" size={20} /></span>
+                    <h2 className="section-title">Educ<em>ation</em></h2>
+                  </div>
+                </Reveal>
+                <div className="timeline">
+                  {content.education.map((edu) => (
+                    <Reveal key={edu.id}>
+                      <div className="entry entry--edu">
+                        <div className="entry-dot" aria-hidden="true" />
+                        <div className="entry-body">
+                          <div className="entry-meta">
+                            <span className="entry-current-row">{edu.current && <span className="entry-current">current</span>}</span>
+                            <span className="entry-org-name">{edu.school}</span>
+                            <span className="entry-loc">{edu.location}</span>
+                            <span className="entry-date">{edu.period}</span>
                           </div>
-                          {role.bullets.filter(Boolean).length > 0 && (
-                            <ul className="space-y-1.5">
-                              {role.bullets.filter(Boolean).map((b, bi) => (
-                                <li key={bi} className="text-[14px] leading-relaxed flex gap-2.5" style={{ color: "#ababc0" }}>
-                                  <span className="mt-[3px] shrink-0" style={{ color: "#5eead4", opacity: 0.3 }}>—</span><span>{b}</span>
-                                </li>
-                              ))}
-                            </ul>
+                          <h3 className="entry-role">{edu.degree}</h3>
+                          {edu.detail && <ul>{edu.detail.split(". ").filter(Boolean).map((d, j) => <li key={j}>{d}.</li>)}</ul>}
+                        </div>
+                      </div>
+                    </Reveal>
+                  ))}
+                </div>
+                <div className="lang-grid reveal">
+                  {content.languages.map((l) => (<div className="lang" key={l.id}><b>{l.name}</b> <span>— {l.level.toLowerCase()}</span></div>))}
+                </div>
+              </div>
+            </section>
+
+            <section id="experience">
+              <div className="wrap">
+                <Reveal className="section-head">
+                  <div className="section-title-row">
+                    <span className="section-icon-badge section-icon-badge--sage"><Icon name="work" size={20} /></span>
+                    <h2 className="section-title">Exper<em>ience</em></h2>
+                  </div>
+                </Reveal>
+                <div className="timeline">
+                  {content.experience.map((exp) => (
+                    <Reveal key={exp.id}>
+                      <div className="entry">
+                        <div className="entry-dot" aria-hidden="true" />
+                        <div className="entry-body">
+                          <div className="entry-meta">
+                            <span className="entry-current-row">{exp.current && <span className="entry-current">current</span>}</span>
+                            <span className="entry-org-name">{exp.company}</span>
+                            <span className="entry-loc">{exp.location}</span>
+                            <span className="entry-date">{exp.period}</span>
+                          </div>
+                          <h3 className="entry-role">{exp.role}</h3>
+                          <ul>{exp.bullets.map((b, j) => <li key={j}>{b}</li>)}</ul>
+                          {exp.tags?.length > 0 && (
+                            <div className="entry-tags">{exp.tags.map((t) => <span className="entry-tag" key={t}>{t}</span>)}</div>
                           )}
                         </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Projects */}
-        <section className="mb-28">
-          <SectionHeader label="Research &amp; Projects" id="projects" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {projects.map(proj => (
-              <a key={proj.id} href={proj.link.startsWith("http") ? proj.link : `https://${proj.link}`}
-                target="_blank" rel="noopener noreferrer"
-                className="group block rounded-xl p-5 border transition-all"
-                style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.08)" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(94,234,212,0.22)"; (e.currentTarget as HTMLElement).style.background = "#12121f"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(1 0 0 / 0.08)"; (e.currentTarget as HTMLElement).style.background = "#111119"; }}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <span className="text-[11px]" style={{ ...MONO, color: "#5eead4", opacity: 0.6 }}>{proj.year}</span>
-                  <ArrowUpRight size={14} style={{ color: "#6b6b82" }} />
-                </div>
-                <h3 className="font-medium mb-2 leading-snug" style={{ color: "#eeeef5" }}>{proj.title}</h3>
-                <p className="text-[14px] leading-relaxed" style={{ color: "#8f8fa8" }}>{proj.description}</p>
-              </a>
-            ))}
-          </div>
-        </section>
-
-        {/* Skills */}
-        <section className="mb-28">
-          <SectionHeader label="Skills" id="skills" />
-          <div className="space-y-7">
-            {skills.map(sg => (
-              <div key={sg.id} className="flex flex-col md:flex-row gap-3 md:gap-6">
-                <span className="text-[11px] uppercase tracking-[0.2em] shrink-0 pt-1 w-28" style={{ ...MONO, color: "#5eead4", opacity: 0.65 }}>{sg.label}</span>
-                <div className="flex flex-wrap gap-2">
-                  {sg.skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
-                    <span key={skill} className="text-[13px] px-3 py-1.5 rounded border cursor-default"
-                      style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.09)", color: "#a0a0b8" }}>{skill}</span>
+                      </div>
+                    </Reveal>
                   ))}
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
+            </section>
 
-        {/* Languages */}
-        {languages.length > 0 && (
-          <section className="mb-28">
-            <SectionHeader label="Languages" id="languages" />
-            <div className="flex flex-wrap gap-4">
-              {languages.map(lang => (
-                <div key={lang.id} className="flex items-center gap-3 px-4 py-3 rounded-lg border"
-                  style={{ background: "#111119", borderColor: "oklch(1 0 0 / 0.08)" }}>
-                  <span className="font-medium text-sm" style={{ color: "#eeeef5" }}>{lang.name}</span>
-                  <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ ...MONO, background: "rgba(94,234,212,0.08)", color: "#5eead4" }}>{lang.level}</span>
+            <section id="research">
+              <div className="wrap">
+                <Reveal className="section-head">
+                  <div className="section-title-row">
+                    <span className="section-icon-badge section-icon-badge--pink"><Icon name="flask" size={20} /></span>
+                    <h2 className="section-title">Research &amp; Pro<em>jects</em></h2>
+                  </div>
+                </Reveal>
+                <div className="proj-grid">
+                  {content.projects.map((p) => (
+                    <Reveal key={p.id}>
+                      <article className={`proj-card ${p.status === "RESEARCH" ? "proj-card--research" : ""}`}>
+                        <div className="proj-head">
+                          <span className="proj-year">{p.year}</span>
+                          {p.status === "RESEARCH" && <span className="proj-status proj-status--live">research</span>}
+                          {p.status === "COMPLETE" && <span className="proj-status">complete</span>}
+                        </div>
+                        <h3 className="proj-title">
+                          {p.link ? (
+                            <a href={p.link} target="_blank" rel="noopener noreferrer">{p.name} <Icon name="ext" size={13} /></a>
+                          ) : p.name}
+                        </h3>
+                        <p className="proj-desc">{p.desc}</p>
+                        {p.impact && <p className="proj-impact"><span>→</span> {p.impact}</p>}
+                        <div className="proj-tags">{p.tags.map((t) => <span className="proj-tag" key={t}>{t}</span>)}</div>
+                      </article>
+                    </Reveal>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <section id="skills">
+              <div className="wrap">
+                <Reveal className="section-head">
+                  <div className="section-title-row">
+                    <span className="section-icon-badge section-icon-badge--blue"><Icon name="code" size={20} /></span>
+                    <h2 className="section-title">Lexi<em>con</em></h2>
+                  </div>
+                </Reveal>
+                <div className="lexicon">
+                  <Reveal>
+                    <div className="lex-card">
+                      <div className="lex-head">
+                        <span className="lex-class-ic"><Icon name="code" size={15} /></span>
+                        <span className="lex-class">Full-Stack</span>
+                      </div>
+                      <div className="lex-terms lex-terms--padded">{content.skills.filter((s) => s.cat === "stack").map((s, i) => <span className="term term--prio" style={{ "--i": i } as React.CSSProperties} key={s.id}>{s.label}</span>)}</div>
+                    </div>
+                  </Reveal>
+                  <Reveal>
+                    <div className="lex-card">
+                      <div className="lex-head">
+                        <span className="lex-class-ic"><Icon name="flask" size={15} /></span>
+                        <span className="lex-class">AI / NLP</span>
+                      </div>
+                      <div className="lex-terms lex-terms--padded">{content.skills.filter((s) => s.cat === "ai").map((s, i) => <span className="term term--prio term--violet" style={{ "--i": i } as React.CSSProperties} key={s.id}>{s.label}</span>)}</div>
+                    </div>
+                  </Reveal>
+                  <Reveal>
+                    <div className="lex-card">
+                      <div className="lex-head">
+                        <span className="lex-class-ic"><Icon name="wrench" size={15} /></span>
+                        <span className="lex-class">DevOps &amp; Workflow</span>
+                      </div>
+                      <div className="lex-terms lex-terms--padded">{devopsTerms.map((t, i) => <span className="term" style={{ "--i": i } as React.CSSProperties} key={t}>{t}</span>)}</div>
+                    </div>
+                  </Reveal>
+                </div>
+              </div>
+            </section>
+          </>
+        } />
+
+        <Route path="/blog/*" element={
+          <Suspense fallback={<div className="wrap" style={{ padding: "120px 20px", textAlign: "center", color: "var(--ink-faint)", fontFamily: "var(--font-mono)" }}>Loading blog...</div>}>
+              <Routes>
+                <Route path="/" element={<><SEOWrapper view="blog" /><BlogIndex onOpen={(slug) => navigate(`/blog/${slug}`)} /></>} />
+                <Route path="/admin" element={
+                  <section className="blog" id="blog">
+                    <SEOWrapper view="admin" />
+                    <div className="wrap">
+                      <button className="btn blog-back" onClick={() => navigate("/blog")}>← all notes</button>
+                      <BlogAdmin />
+                    </div>
+                  </section>
+                } />
+                <Route path="/:slug" element={<BlogPostWrapper />} />
+              </Routes>
+            </Suspense>
+        } />
+        </Routes>
+      </main>
+
+      <footer id="contact">
+        <div className="wrap">
+          <div className="footer-band">
+            <span className="footer-band-line" />
+            <span className="footer-band-label">let's talk</span>
+            <span className="footer-band-line" />
+          </div>
+          <div className="footer-top">
+            <div className="footer-cta">
+              <label className="footer-slogan" htmlFor="footer-mail">Have a role, a project, or a research itch?</label>
+              <a className="footer-email" id="footer-mail" href={email}>{content.links.find((l) => l.label === "EMAIL")?.value || "hazem.alabiad@icloud.com"}</a>
+              <p>{get(content, "contactIntro", "Open to roles in NLP, AI/LLM engineering, and full-stack software engineering — reach out directly or find me on any of the links below.")}</p>
+            </div>
+            <div className="footer-links">
+              <a className="linked ic-gh" href={content.links.find((l) => l.label === "GITHUB")?.href || "#"} target="_blank" rel="noopener noreferrer"><Icon name="gh" size={15} />github.com/hazem-alabiad</a>
+              <a className="linked ic-in" href={content.links.find((l) => l.label === "LINKEDIN")?.href || "#"} target="_blank" rel="noopener noreferrer"><Icon name="in" size={15} />linkedin.com/in/hazemalabiad</a>
+              <a className="linked ic-go" href={content.links.find((l) => l.label === "SCHOLAR")?.href || "#"} target="_blank" rel="noopener noreferrer"><Icon name="scholar" size={15} />{content.links.find((l) => l.label === "SCHOLAR")?.value || "scholar.google.com/hazem"}</a>
+            </div>
+            <div className="footer-qr">
+              <div className="footer-qr-tile" dangerouslySetInnerHTML={{ __html: qrSvg }} />
+              <span className="footer-qr-caption">scan me</span>
+            </div>
+          </div>
+          <div className="hobbies">
+            <div className="hobbies-head">
+              <span className="hobbies-caret">$</span>
+              <span className="hobbies-cmd">hobbies --interactive</span>
+            </div>
+            <div className="hobbies-grid">
+              {[
+                ["pen", "drawing"],
+                ["mic", "voiceover"],
+                ["globe", "travelling"],
+                ["mountain", "hiking"],
+                ["bike", "biking"],
+                ["ball", "sports"],
+                ["book", "history"],
+                ["chart", "finance"],
+                ["scales", "socioeconomics"],
+              ].map(([ic, label], i) => (
+                <div className="hobby" key={label} style={{ "--d": `${i * 22}ms` } as React.CSSProperties}>
+                  <span className="hobby-idx">{String(i + 1).padStart(2, "0")}</span>
+                  <Icon name={ic} size={17} />
+                  <span className="hobby-label">{label}</span>
                 </div>
               ))}
             </div>
-          </section>
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t px-6 md:px-12 py-8" style={{ borderColor: "oklch(1 0 0 / 0.06)" }}>
-        <div className="max-w-4xl mx-auto flex items-center justify-center gap-4">
-          <p className="text-xs" style={{ ...MONO, color: "#6b6b82" }}>© {currentYear} {hero.name}</p>
-          {visitCount !== null && (
-            <span className="flex items-center gap-1.5 text-xs" style={{ ...MONO, color: "#4a4a60" }}>
-              <span className="w-1 h-1 rounded-full inline-block" style={{ background: "#5eead4", opacity: 0.5 }} />
-              {visitCount.toLocaleString()} visits
+          </div>
+          <div className="footer-meta">
+            <span {...ep("footerLine", "", {}, save, cmsEnabled)} className="copyright">
+              {get(content, "footerLine", "© {year} Hazem Alabiad — Tübingen, Germany").replace("{year}", String(new Date().getFullYear()))}
             </span>
-          )}
+            <span className="footer-visits">visits <b>{visits.toLocaleString()}</b></span>
+          </div>
         </div>
       </footer>
 
-      {/* CMS button */}
-      <button
-        onClick={() => { window.location.hash = "#/cms"; setHash("#/cms"); }}
-        title="Open CMS"
-        style={{
-          position: "fixed", bottom: 24, right: 24, zIndex: 9998,
-          width: 44, height: 44, borderRadius: "50%",
-          background: "#111119", border: "1px solid rgba(94,234,212,0.35)",
-          color: "#5eead4", cursor: "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.5)", transition: "all 0.2s ease",
-        }}
-        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#1a1a2e"}
-        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#111119"}
-      >
-        <Settings size={18} />
-      </button>
-    </div>
+      {toast && <Toast message={toast} onClose={() => setToast("")} />}
+      <Shortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} onJump={scrollTo} onOpenPost={(slug) => navigate(`/blog/${slug}`)} />
+      <CMSButton enabled={cmsEnabled} onUnlock={(token) => blogManager.unlock(token)} onQuickUnlock={() => blogManager.restore()} onDisable={() => setCmsEnabled(false)} onOpenEditor={() => setEditorOpen(true)} />
+      {cmsEnabled && editorOpen && (
+        <CmsEditor
+          initial={content}
+          onSave={(c) => { saveAll(c); setEditorOpen(false); }}
+          onReset={() => { resetContent(); setContent(loadContent()); setEditorOpen(false); }}
+          onClose={() => setEditorOpen(false)}
+        />
+      )}
+    </>
   );
 }
