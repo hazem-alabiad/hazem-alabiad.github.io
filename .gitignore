@@ -53,6 +53,7 @@ coverage/
 
 # Misc
 thumbs.db
+.freebuff/
 
 # MacOS Finder metadata
 .AppleDB

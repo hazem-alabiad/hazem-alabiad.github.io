@@ -15,6 +15,8 @@ interface BlogManagerValue {
   pat: string;
   setPat: (v: string) => void;
   unlock: (v: string) => Promise<void>;
+  /** Silent re-unlock using the stored token — true when still valid, false when none/invalid (UI should ask for a fresh one). */
+  restore: () => Promise<boolean>;
   lock: () => void;
   draft: BlogDraft | null;
   setDraft: (d: BlogDraft | null) => void;
@@ -90,9 +92,31 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
     finally { setAuthBusy(false); }
   }
 
+  // LOCK only disables editing — the token stays stored (localStorage + memory)
+  // so the user is never asked to re-enter it. Only removing it from
+  // localStorage (or an invalid token being cleared on next verify) fully logs out.
   function lock() {
-    clearBlogSession();
-    setMgr(null); setToken(null); setDraft(null); setMgrErr(""); setMgrOk("");
+    setMgr(null); setDraft(null); setMgrErr(""); setMgrOk(""); setUnlockOpen(false);
+  }
+
+  // Clicking CMS after a lock silently re-verifies the token that is still
+  // stored (memory first, then localStorage) instead of asking for it again.
+  // Returns false when there is no stored token or it was revoked — the UI
+  // then falls back to the token entry panel.
+  async function restore(): Promise<boolean> {
+    const saved = (() => { try { return loadBlogSession(); } catch { return null; } })();
+    const stored = token || saved?.token || null;
+    if (!stored) return false;
+    try {
+      const u = await verifyToken(stored);
+      saveBlogSession(stored, u.login);
+      setMgr({ login: u.login }); setToken(stored);
+      return true;
+    } catch {
+      // token removed or revoked — drop it so we ask for a fresh one
+      clearBlogSession(); setToken(null);
+      return false;
+    }
   }
 
   function startNew() {
@@ -148,7 +172,7 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
   }
 
   const value: BlogManagerValue = {
-    mgr, token, unlockOpen, setUnlockOpen, pat, setPat, unlock, lock,
+    mgr, token, unlockOpen, setUnlockOpen, pat, setPat, unlock, restore, lock,
     draft, setDraft, publishing, mgrErr, mgrOk, authBusy, authErr,
     hiddenSlugs, visiblePosts,
     startNew, openForEdit, saveDraft, removePost,

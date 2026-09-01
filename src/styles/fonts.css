@@ -1,7 +1,43 @@
-/* Fonts are now loaded efficiently via <link> tags in index.html to prevent render-blocking and improve Lighthouse LCP/FCP scores. */
+/* Fonts are loaded via <link> tags in index.html to prevent render-blocking. */
 
 :root {
-  --font-display: 'Newsreader', 'Tajawal', 'Geeza Pro', Georgia, serif;
-  --font-body: 'IBM Plex Sans', 'Tajawal', 'Geeza Pro', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', 'SF Mono', 'Tajawal', 'Geeza Pro', monospace;
+  --font-display: 'Newsreader', 'IBM Plex Sans Arabic', 'Geeza Pro', Georgia, serif;
+  --font-body:    'IBM Plex Sans', 'IBM Plex Sans Arabic', 'Geeza Pro', system-ui, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'SF Mono', 'IBM Plex Sans Arabic', monospace;
+  --font-arabic:  'IBM Plex Sans Arabic', 'Geeza Pro', 'Arial Unicode MS', sans-serif;
+}
+
+/* ── Arabic script: RTL, correct font, optical sizing ── */
+:lang(ar),
+[lang="ar"],
+[dir="rtl"] {
+  font-family: var(--font-arabic);
+  direction: rtl;
+  text-align: right;
+  /* Arabic is designed for slightly looser tracking */
+  letter-spacing: 0;
+  /* IBM Plex Arabic looks best at these weights */
+  font-weight: 400;
+  line-height: 1.9;
+}
+
+/* Inline Arabic spans inside LTR prose */
+span[lang="ar"],
+code[lang="ar"] {
+  font-family: var(--font-arabic);
+  font-size: 1.08em;     /* Arabic glyphs sit slightly smaller optically */
+  line-height: 1.9;
+  direction: rtl;
+  unicode-bidi: embed;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* Arabic inside code blocks / inline code in blog posts */
+.blog-prose code:lang(ar),
+.blog-prose [lang="ar"] {
+  font-family: var(--font-arabic);
+  font-size: 1em;
+  direction: rtl;
+  unicode-bidi: embed;
 }

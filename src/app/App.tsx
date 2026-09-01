@@ -70,6 +70,7 @@ function AppContent() {
   const [toast, setToast] = useState("");
   const [theme, setTheme] = useState<"dark" | "light">(() => { try { return localStorage.getItem("hazem_theme") === "light" ? "light" : "dark"; } catch { return "dark"; } });
   const [visits, setVisits] = useState(0);
+  const [activeSection, setActiveSection] = useState("home");
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -121,6 +122,27 @@ function AppContent() {
   };
 
   useEffect(() => {
+    const sectionIds = ["home", "education", "experience", "research", "skills", "contact"];
+    const observers: IntersectionObserver[] = [];
+    const visible = new Set<string>();
+    const pick = () => {
+      // pick the topmost visible section
+      for (const id of sectionIds) { if (visible.has(id)) { setActiveSection(id); return; } }
+    };
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const io = new IntersectionObserver(
+        ([entry]) => { entry.isIntersecting ? visible.add(id) : visible.delete(id); pick(); },
+        { threshold: 0.15 }
+      );
+      io.observe(el);
+      observers.push(io);
+    });
+    return () => observers.forEach((io) => io.disconnect());
+  }, [isHome]);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) { e.preventDefault(); setShortcutsOpen(true); return; }
       if (e.key === "Escape") { setShortcutsOpen(false); setMenuOpen(false); return; }
@@ -160,12 +182,12 @@ function AppContent() {
         <div className="wrap">
           <button className="nav-mark" onClick={() => { setMenuOpen(false); scrollTo("home"); }}>H<span>.</span>ALABIAD</button>
           <div className="nav-links">
-            <a href="#education" onClick={(e) => { e.preventDefault(); scrollTo("education"); }}>Education</a>
-            <a href="#experience" onClick={(e) => { e.preventDefault(); scrollTo("experience"); }}>Experience</a>
-            <a href="#research" onClick={(e) => { e.preventDefault(); scrollTo("research"); }}>Research</a>
-            <a href="#skills" onClick={(e) => { e.preventDefault(); scrollTo("skills"); }}>Skills</a>
-            <a href="#blog" onClick={(e) => { e.preventDefault(); navigate("/blog"); }} className="nav-blog">Blog</a>
-            <a href="#contact" onClick={(e) => { e.preventDefault(); scrollTo("contact"); }}>Contact</a>
+            <a href="#education" onClick={(e) => { e.preventDefault(); scrollTo("education"); }} className={isHome && activeSection === "education" ? "nav-active" : ""}>Education</a>
+            <a href="#experience" onClick={(e) => { e.preventDefault(); scrollTo("experience"); }} className={isHome && activeSection === "experience" ? "nav-active" : ""}>Experience</a>
+            <a href="#research" onClick={(e) => { e.preventDefault(); scrollTo("research"); }} className={isHome && activeSection === "research" ? "nav-active" : ""}>Research</a>
+            <a href="#skills" onClick={(e) => { e.preventDefault(); scrollTo("skills"); }} className={isHome && activeSection === "skills" ? "nav-active" : ""}>Skills</a>
+            <a href="#blog" onClick={(e) => { e.preventDefault(); navigate("/blog"); }} className={`nav-blog${location.pathname.startsWith("/blog") ? " nav-active" : ""}`}>Blog</a>
+            <a href="#contact" onClick={(e) => { e.preventDefault(); scrollTo("contact"); }} className={isHome && activeSection === "contact" ? "nav-active" : ""}>Contact</a>
             <button className="nav-shorts" onClick={() => setShortcutsOpen(true)} title="Search & shortcuts (⌘K)">⌘K</button>
             <button className="nav-theme" onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))} title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`} aria-label="Toggle theme">{theme === "dark" ? "☀" : "☾"}</button>
             <button className="nav-hire" onClick={() => { navigator.clipboard?.writeText(email.replace("mailto:", "")); setToast("Email copied — hazem.alabiad@icloud.com"); }}>Hire me</button>
@@ -415,7 +437,7 @@ function AppContent() {
 
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
       <Shortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} onJump={scrollTo} onOpenPost={(slug) => navigate(`/blog/${slug}`)} />
-      <CMSButton enabled={cmsEnabled} onUnlock={(token) => blogManager.unlock(token)} onDisable={() => setCmsEnabled(false)} onOpenEditor={() => setEditorOpen(true)} />
+      <CMSButton enabled={cmsEnabled} onUnlock={(token) => blogManager.unlock(token)} onQuickUnlock={() => blogManager.restore()} onDisable={() => setCmsEnabled(false)} onOpenEditor={() => setEditorOpen(true)} />
       {cmsEnabled && editorOpen && (
         <CmsEditor
           initial={content}

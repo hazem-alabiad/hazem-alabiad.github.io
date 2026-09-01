@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Check, Lock, Pencil, Plus, Search, Share2, Trash2, X } from "lucide-react";
+import { Comments } from "./Comments";
 import { posts, type Post } from "./posts";
 import { readViews, trackView, type ViewsMap } from "./analytics";
 import { AdUnit } from "../Adsense";
@@ -151,15 +152,19 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
         <div className="blog-list">
           {shown.map((p: Post, i) => (
             <article className={`blog-card blog-card--${p.accent || "amber"}${query && i === active ? " blog-card--active" : ""}`} key={p.slug} onClick={() => onOpen(p.slug)}>
-              <div className="blog-card-top">
-                <span className="blog-card-date">{fmtDate(p.date)} <span className="blog-card-rel">· {relDate(p.date)}</span></span>
-                <span className="blog-card-views">{views[p.slug] || 0} views</span>
+              {/* tier 1: date + read time */}
+              <div className="blog-card-meta">
+                <span className="blog-card-date">{fmtDate(p.date)}</span>
+                <span className="blog-card-meta-sep" />
+                <span className="blog-card-readtime">{Math.max(1, Math.round(p.description.split(/\s+/).length / 40))} min read</span>
               </div>
-              <h3>{highlight(p.title)}</h3>
-              <p>{highlight(p.description)}</p>
-              <div className="blog-card-tags">{p.tags.map((t) => <span key={t}>{highlight(`#${t}`)}</span>)}</div>
+              {/* tier 2: title + description */}
+              <h3 className="blog-card-title">{highlight(p.title)}</h3>
+              <p className="blog-card-desc">{highlight(p.description)}</p>
+              {/* tier 3: tags + footer */}
+              <div className="blog-card-tags">{p.tags.map((t) => <span key={t}>{highlight(t)}</span>)}</div>
               <div className="blog-card-foot">
-                <a className="blog-card-author" href={profileUrl(authorOf(p))} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>✍ @{authorOf(p)}</a>
+                <a className="blog-card-author" href={`https://github.com/${authorOf(p)}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>@{authorOf(p)}</a>
                 <div className="blog-card-actions">
                   {mgr && (
                     <>
@@ -167,7 +172,7 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
                       <button className="blog-card-manage blog-card-manage--danger blog-card-manage--ionly" title="Delete post" aria-label={`Delete ${p.slug}`} onClick={(e) => { e.stopPropagation(); removePost(p); }}><Trash2 size={12} /></button>
                     </>
                   )}
-                  <span className="blog-card-more">read →</span>
+                  <span className="blog-card-more">Read &rarr;</span>
                 </div>
               </div>
             </article>
@@ -190,10 +195,19 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
     } catch { return 18; }
   });
   const { mgr, lock, unlockOpen, setUnlockOpen, pat, setPat, unlock, openForEdit, removePost, draft, mgrErr, mgrOk, publishing, saveDraft, setDraft, authBusy, authErr } = useBlogManager();
+  const [readingTime, setReadingTime] = useState<number | null>(null);
 
   useEffect(() => {
     if (post) setViews(trackView(`post:${post.slug}`));
   }, [slug]);
+
+  useEffect(() => {
+    // compute reading time from rendered prose text after mount
+    const prose = document.querySelector(".blog-prose");
+    if (!prose) return;
+    const words = (prose.textContent || "").trim().split(/\s+/).filter(Boolean).length;
+    setReadingTime(Math.max(1, Math.round(words / 200)));
+  }, [slug, size]);
 
   useEffect(() => {
     const prose = document.querySelector(".blog-prose");
@@ -247,31 +261,47 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
       <div className="wrap">
         <button className="btn blog-back" onClick={onBack}>← all notes</button>
         <article className="blog-article">
-          <div className="blog-article-meta">
+          {/* ── header ── */}
+          <div className="blog-article-header">
+            <div className="blog-article-tags">
+              {post.tags.map((t) => <span key={t} className={`blog-article-tag blog-article-tag--${accent || "amber"}`}>#{t}</span>)}
+            </div>
+            <div className="blog-article-toolbar">
+              {mgr ? (
+                <>
+                  <button className="blog-size-btn blog-post-manage" title="Edit this post" onClick={() => openForEdit(post)}><Pencil size={12} /> EDIT</button>
+                  <button className="blog-size-btn blog-post-manage blog-post-manage--danger" title="Delete this post" onClick={() => { if (removePost) removePost(post); }}><Trash2 size={12} /> DELETE</button>
+                  <button className="blog-size-btn blog-post-manage" title="Lock management" onClick={() => lock()}><Lock size={12} /> LOCK</button>
+                </>
+              ) : (
+                <button className="blog-size-btn blog-lock-btn" title="Owner login" aria-label="Owner login" onClick={() => setUnlockOpen(!unlockOpen)}><Lock size={13} /></button>
+              )}
+              <button className="blog-size-btn blog-share-btn" onClick={copyLink} title="Copy link" aria-label="Copy link">{copied ? <Check size={13} /> : <Share2 size={13} />}</button>
+              <div className="blog-size-group">
+                <button className="blog-size-btn" onClick={() => idx > 0 && setPersist(FONT_SIZES[idx - 1])} disabled={idx <= 0} title="Smaller text" aria-label="Decrease text size">A−</button>
+                <button className="blog-size-btn" onClick={() => idx < FONT_SIZES.length - 1 && setPersist(FONT_SIZES[idx + 1])} disabled={idx >= FONT_SIZES.length - 1} title="Larger text" aria-label="Increase text size">A+</button>
+              </div>
+            </div>
+          </div>
+          {/* ── title block ── */}
+          <h1>{post.title}</h1>
+          <p className="blog-article-desc">{post.description}</p>
+          {/* ── byline ── */}
+          <div className="blog-article-byline">
+            <img
+              src={`https://github.com/${author}.png?size=32`}
+              alt={author}
+              className="blog-article-avatar"
+              width={22} height={22}
+            />
+            <a href={profileUrl(author)} target="_blank" rel="noopener noreferrer" className="blog-article-author">@{author}</a>
+            <span className="blog-article-byline-sep" />
             <span className="blog-article-date">{fmtDate(post.date)}</span>
             <span className="blog-article-dot">·</span>
             <span className="blog-article-rel">{relDate(post.date)}</span>
-            <span className="blog-article-dot">·</span>
-            <span className="blog-article-tags">{post.tags.map((t) => <span key={t}>#{t}</span>)}</span>
+            {readingTime && <><span className="blog-article-dot">·</span><span className="blog-article-readtime">{readingTime} min read</span></>}
             <span className="blog-article-dot">·</span>
             <span className="blog-article-views">{views[`post:${post.slug}`] || 0} views</span>
-          </div>
-          <div className="blog-article-by">
-            <span className="blog-article-author">written by <a href={profileUrl(author)} target="_blank" rel="noopener noreferrer">@{author}</a></span>
-          </div>
-          <div className="blog-article-tools">
-            {mgr ? (
-              <>
-                <button className="blog-size-btn blog-post-manage" title="Edit this post" onClick={() => openForEdit(post)}><Pencil size={12} /> EDIT</button>
-                <button className="blog-size-btn blog-post-manage blog-post-manage--danger" title="Delete this post" onClick={() => { if (removePost) removePost(post); }}><Trash2 size={12} /> DELETE</button>
-                <button className="blog-size-btn blog-post-manage" title="Lock management" onClick={() => lock()}><Lock size={12} /> LOCK</button>
-              </>
-            ) : (
-              <button className="blog-size-btn blog-lock-btn" title="Owner login — manage posts" aria-label="Owner login – manage posts" onClick={() => setUnlockOpen(!unlockOpen)}><Lock size={13} /></button>
-            )}
-            <button className="blog-size-btn blog-share-btn" onClick={copyLink} title="Copy link to this post" aria-label="Copy link to this post">{copied ? <Check size={13} /> : <Share2 size={13} />}</button>
-            <button className="blog-size-btn" onClick={() => idx > 0 && setPersist(FONT_SIZES[idx - 1])} disabled={idx <= 0} title="Smaller text" aria-label="Decrease text size">A−</button>
-            <button className="blog-size-btn" onClick={() => idx < FONT_SIZES.length - 1 && setPersist(FONT_SIZES[idx + 1])} disabled={idx >= FONT_SIZES.length - 1} title="Larger text" aria-label="Increase text size">A+</button>
           </div>
           {unlockOpen && !mgr && (
             <div className="blog-unlock blog-unlock--article">
@@ -295,14 +325,13 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
               onCancel={() => setDraft(null)}
             />
           )}
-          <h1>{post.title}</h1>
-          <p className="blog-article-desc">{post.description}</p>
           <div className="blog-prose" style={{ fontSize: size, ["--prose-scale" as string]: (size / 17).toFixed(3) }}>
             <Component />
           </div>
           <div className="blog-article-foot">
             <span>Thanks for reading — feedback welcome.</span>
           </div>
+          <Comments slug={post.slug} postTitle={post.title} />
         </article>
         <AdUnit slot="0123456789" />
       </div>
