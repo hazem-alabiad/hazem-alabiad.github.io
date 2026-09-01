@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Lock, Pencil, Plus, Share2, Trash2 } from "lucide-react";
+import { Check, Pencil, Plus, Share2, Trash2 } from "lucide-react";
 import { Comments } from "./Comments";
 import { posts, type Post } from "./posts";
 import { readViews, trackView, type ViewsMap } from "./analytics";
 import { AdUnit } from "../Adsense";
-import { FIELD } from "./editor";
 import { useBlogManager } from "./manager";
-import { OWNER_LOGIN } from "./authors";
 
 const FONT_SCALE_KEY = "hazem_font_scale";
-const FONT_SIZES = [16, 18, 20, 22];
+// 16–20 only: 22 is too large for comfortable reading and the A−/A+ reach is enough
+const FONT_SIZES = [16, 18, 20];
 
 const profileUrl = (username: string) => `https://linkedin.com/in/${username}`;
 const shareUrl = (slug: string) => `${location.origin}${location.pathname}#/blog/${slug}`;
@@ -214,7 +213,7 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
     } catch { return 18; }
   });
   const navigate = useNavigate();
-  const { mgr, lock, unlockOpen, setUnlockOpen, pat, setPat, unlock, removePost, mgrErr, mgrOk, authBusy, authErr } = useBlogManager();
+  const { mgr, publishing, removePost, mgrErr, mgrOk } = useBlogManager();
   const [readingTime, setReadingTime] = useState<number | null>(null);
   const [toc, setToc] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -343,9 +342,10 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
   const newer = pos > 0 ? ordered[pos - 1] : null;
   const older = pos >= 0 && pos < ordered.length - 1 ? ordered[pos + 1] : null;
   const tocNav = <TocNav items={toc} activeId={activeId} onGo={goSection} />;
+  const showAside = toc.length >= 2;
   return (
     <section className={`blog blog-post blog-post--${accent || "amber"}`} id="blog">
-      <div className="wrap">
+      <div className="blog-post-layout">
         <button className="btn blog-back" onClick={onBack}>← all notes</button>
         <article className="blog-article">
           {/* ── masthead: tag kicker + quiet reading tools ── */}
@@ -353,22 +353,19 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
             <div className="blog-article-kicker" aria-label="Tags">
               {post.tags.map((t) => <span key={t} className={`blog-article-kicker-tag blog-article-kicker-tag--${accent || "amber"}`}>#{t}</span>)}
             </div>
-            <div className="blog-article-utils" role="toolbar" aria-label="Reading tools">
-              {mgr ? (
-                <>
-                  <button className="blog-util" title="Edit this post" aria-label="Edit post" onClick={() => navigate(`/blog/admin/edit/${post.slug}`)}><Pencil size={14} /></button>
-                  <button className="blog-util blog-util--danger" title="Delete this post" aria-label="Delete post" onClick={() => { if (removePost) removePost(post); }}><Trash2 size={14} /></button>
-                  <button className="blog-util" title="Lock management" aria-label="Lock management" onClick={() => lock()}><Lock size={14} /></button>
-                </>
-              ) : (
-                <button className="blog-util" title="Owner login — manage posts" aria-label="Owner login — manage posts" onClick={() => setUnlockOpen(!unlockOpen)}><Lock size={14} /></button>
-              )}
-              <button className="blog-util" onClick={copyLink} title={copied ? "Link copied" : "Copy link"} aria-label={copied ? "Link copied" : "Copy link"}>
-                {copied ? <Check size={14} /> : <Share2 size={14} />}
-              </button>
-              <div className="blog-size-group" role="group" aria-label="Text size">
+          <div className="blog-article-utils" role="toolbar" aria-label="Reading tools">
+            {mgr && (
+              <>
+                <button className="blog-util" title="Edit this post" aria-label="Edit post" onClick={() => navigate(`/blog/admin/edit/${post.slug}`)} disabled={publishing}><Pencil size={14} /></button>
+                <button className="blog-util blog-util--danger" title="Delete this post" aria-label="Delete post" onClick={() => { if (removePost) removePost(post); }} disabled={publishing}><Trash2 size={14} /></button>
+                <span className="blog-util-sep" aria-hidden="true" />
+              </>
+            )}
+            <button className="blog-util" onClick={copyLink} title={copied ? "Link copied" : "Copy link"} aria-label={copied ? "Link copied" : "Copy link"}>
+              {copied ? <Check size={14} /> : <Share2 size={14} />}
+            </button>
+            <div className="blog-size-group" role="group" aria-label="Text size">
                 <button className="blog-size-btn" onClick={() => idx > 0 && setPersist(FONT_SIZES[idx - 1])} disabled={idx <= 0} title="Smaller text" aria-label="Decrease text size">A−</button>
-                <span className="blog-size-val" aria-live="polite" title="Current text size">{size}</span>
                 <button className="blog-size-btn" onClick={() => idx < FONT_SIZES.length - 1 && setPersist(FONT_SIZES[idx + 1])} disabled={idx >= FONT_SIZES.length - 1} title="Larger text" aria-label="Increase text size">A+</button>
               </div>
             </div>
@@ -391,35 +388,16 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
             <span className="blog-article-byline-sep" aria-hidden="true">·</span>
             <span className="blog-article-views">{views[`post:${post.slug}`] || 0} views</span>
           </div>
-          {unlockOpen && !mgr && (
-            <div className="blog-unlock blog-unlock--article">
-              <p className="blog-unlock-hint">Only the site owner can manage posts. Paste a GitHub PAT with repo contents access — it is verified against @{OWNER_LOGIN}.</p>
-              <div className="blog-unlock-row">
-                <input type="password" value={pat} placeholder="GitHub PAT" onChange={(e) => setPat(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") unlock(pat); }} style={{ ...FIELD, flex: 1 }} />
-                <button onClick={() => unlock(pat)} disabled={authBusy} className="blog-manage-btn blog-manage-btn--add">{authBusy ? "CHECKING…" : "UNLOCK"}</button>
-                <button onClick={() => setUnlockOpen(false)} className="blog-manage-btn">CANCEL</button>
-              </div>
-              {authErr && <p className="blog-mgr-err">✗ {authErr}</p>}
-            </div>
-          )}
           {mgrErr && <p className="blog-mgr-err">✗ {mgrErr}</p>}
           {mgrOk && <p className="blog-mgr-ok">✓ {mgrOk}</p>}
-          <div className="blog-article-body">
-            {toc.length >= 2 && (
-              <details className="blog-toc-mobile">
-                <summary className="blog-toc-summary">ON THIS PAGE <span className="blog-toc-count">{toc.length}</span></summary>
-                {tocNav}
-              </details>
-            )}
-            <div className="blog-prose" style={{ fontSize: size, ["--prose-scale" as string]: (size / 17).toFixed(3) }}>
-              <Component />
-            </div>
-            {toc.length >= 2 && (
-              <aside className="blog-toc" aria-label="On this page">
-                <div className="blog-toc-label">ON THIS PAGE</div>
-                {tocNav}
-              </aside>
-            )}
+          {showAside && (
+            <details className="blog-toc-mobile">
+              <summary className="blog-toc-summary">ON THIS PAGE <span className="blog-toc-count">{toc.length}</span></summary>
+              {tocNav}
+            </details>
+          )}
+          <div className="blog-prose" style={{ fontSize: size, ["--prose-scale" as string]: (size / 17).toFixed(3) }}>
+            <Component />
           </div>
 
           <div className="blog-article-end" aria-hidden="true">
@@ -470,6 +448,12 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
             <Comments slug={post.slug} />
           </div>
         </article>
+        {showAside && (
+          <aside className="blog-toc" aria-label="On this page">
+            <div className="blog-toc-label">ON THIS PAGE</div>
+            {tocNav}
+          </aside>
+        )}
         <AdUnit slot="0123456789" />
       </div>
     </section>

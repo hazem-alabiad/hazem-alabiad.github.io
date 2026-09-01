@@ -67,4 +67,20 @@ describe('TerminalHero', () => {
     
     expect(scrollToMock).toHaveBeenCalledWith('experience')
   })
+
+  it('replays the animation via the refresh button', () => {
+    render(<TerminalHero content={mockContent} factLocation="Test Location" scrollTo={vi.fn()} />)
+    const replayBtn = screen.getByRole('button', { name: /replay animation/i })
+    fireEvent.click(replayBtn)
+    fireEvent.click(replayBtn)
+    // output stays present under reduced motion after replay
+    expect(screen.getByText('cat roles.toml')).toBeInTheDocument()
+  })
+
+  it('renders the role list tags and priority markers', () => {
+    render(<TerminalHero content={mockContent} factLocation="Test Location" scrollTo={vi.fn()} />)
+    expect(screen.getAllByText('focus').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('current').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('◀ priority').length).toBeGreaterThanOrEqual(1)
+  })
 })

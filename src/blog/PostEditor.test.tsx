@@ -96,4 +96,31 @@ describe("blog editor routing", () => {
     expect(screen.getByPlaceholderText("GitHub PAT")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /publish post/i })).not.toBeInTheDocument();
   });
+
+  it("shows the load error when fetching the post fails", async () => {
+    mock.mgr.mgr = { login: "hazem-alabiad" };
+    mock.mgr.token = "tok";
+    (mock.mgr.loadPostDraft as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("read failed"));
+    render(<MemoryRouter initialEntries={["/blog/admin/edit/arabic-vmwe-llms"]}><Routes><Route path="/blog/admin/edit/:slug" element={<PostEditorPage mode="edit" />} /></Routes></MemoryRouter>);
+    expect(await screen.findByRole("heading", { name: /could not load this post/i })).toBeInTheDocument();
+    expect(screen.getByText("read failed")).toBeInTheDocument();
+  });
+
+  it("publishes through the manager and surfaces errors", async () => {
+    mock.mgr.mgrErr = "boom";
+    render(<MemoryRouter initialEntries={["/blog/admin/new"]}><Routes><Route path="/blog/admin/new" element={<PostEditorPage mode="new" />} /></Routes></MemoryRouter>);
+    (mock.mgr.publishDraft as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("boom"));
+    fireEvent.click(screen.getByRole("button", { name: /publish post/i }));
+    await waitFor(() => expect(mock.mgr.publishDraft).toHaveBeenCalled());
+    expect(screen.getByText("✗ boom")).toBeInTheDocument();
+  });
+
+  it("cancel returns to the blog list", () => {
+    render(<MemoryRouter initialEntries={["/blog/admin/new"]}><Routes>
+      <Route path="/blog/admin/new" element={<PostEditorPage mode="new" />} />
+      <Route path="/blog" element={<div data-testid="page-blog" />} />
+    </Routes></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
+    expect(screen.getByTestId("page-blog")).toBeInTheDocument();
+  });
 });

@@ -14,6 +14,7 @@ import { Shortcuts } from "./components/Shortcuts";
 const BgGlyphs = lazy(() => import("./components/BgGlyphs").then(m => ({ default: m.BgGlyphs })));
 import { Reveal } from "./components/Reveal";
 import { ScrollProgress } from "./components/ScrollProgress";
+import { PageLoader } from "./components/PageLoader";
 import { BackToTop } from "./components/BackToTop";
 import { Toast } from "./components/Toast";
 import { CMSButton } from "./components/CMSButton";
@@ -360,7 +361,7 @@ function AppContent() {
         } />
 
         <Route path="/blog/*" element={
-          <Suspense fallback={<div className="wrap" style={{ padding: "120px 20px", textAlign: "center", color: "var(--ink-faint)", fontFamily: "var(--font-mono)" }}>Loading blog...</div>}>
+          <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/" element={<><SEOWrapper view="blog" /><BlogIndex onOpen={(slug) => navigate(`/blog/${slug}`)} /></>} />
                 <Route path="/admin" element={
