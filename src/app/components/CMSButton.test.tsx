@@ -49,6 +49,8 @@ describe('CMSButton', () => {
     // Submit
     fireEvent.click(screen.getByText('UNLOCK'))
 
+    await waitFor(() => {
+      expect(onUnlock).toHaveBeenCalledWith('valid-token')
     })
   })
 
