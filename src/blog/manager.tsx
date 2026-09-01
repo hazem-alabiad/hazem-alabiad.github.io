@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { posts, type Post } from "./posts";
-import { GH_BRANCH, listPosts, readPost, writePost, deletePost, slugify, POSTS_DIR } from "../github";
+import { GH_BRANCH, listPosts, readPost, writePost, deletePost, getFileSha, slugify, POSTS_DIR } from "../github";
 import {
   verifyToken, saveBlogSession, loadBlogSession, clearBlogSession, sanitizeToken,
   parseFrontmatter, parseTags, buildMdx, type BlogDraft,
@@ -120,10 +120,11 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
   async function loadPostDraft(slug: string): Promise<BlogDraft> {
     if (!token) throw new Error("Not authenticated — unlock with your PAT first.");
     const p = posts.find((x) => x.slug === slug);
-    const raw = await readPost(token, `${POSTS_DIR}/${slug}.mdx`);
-    const { fm, body } = parseFrontmatter(raw);
+    const path = `${POSTS_DIR}/${slug}.mdx`;
+    const raw = await readPost(token, path);
+    const [sha, { fm, body }] = await Promise.all([getFileSha(token, path), Promise.resolve(parseFrontmatter(raw))]);
     return {
-      isNew: false, slug, path: `${POSTS_DIR}/${slug}.mdx`,
+      isNew: false, slug, path, sha: sha ?? undefined,
       title: fm.title ?? p?.title ?? "", date: fm.date ?? p?.date ?? "",
       description: fm.description ?? p?.description ?? "",
       tags: fm.tags ? parseTags(fm.tags) : (p?.tags ?? []),

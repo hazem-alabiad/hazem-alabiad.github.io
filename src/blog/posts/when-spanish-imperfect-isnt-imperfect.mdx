@@ -1,0 +1,51 @@
+---
+title: "When the Spanish Imperfect Isn't Imperfect"
+date: "2026-03-30"
+description: "Morphology carries aspect, and aspect carries meaning your translations will quietly lose."
+tags: ["NLP", "Linguistics", "MT"]
+accent: "violet"
+---
+
+Machine translation systems have no grammatical voice. They have statistics over sequences, and one of the first things those statistics quietly erase is *aspect* — how an event unfolds over time. For Spanish, the erasure shows up in the imperfecto, and the results are usually wrong in a way that is hard to see and harder to fix.
+
+## The two pasts
+
+Spanish has two simple past tenses, and their difference is not tense but aspect. They are both "past". What differs is the *view*:
+
+- *Canté* (preterite): the song is over. Bounded, completed.
+- *Cantaba* (imperfect): the singing was ongoing, habitual, or backgrounded. Unbounded in view.
+
+English does not mark this on the verb. It smuggles it into periphrasis ("used to sing", "was singing") or drops it entirely. So when an English-trained model sees *cantaba*, it has to guess which of the two smuggled forms the context wants.
+
+## Where it goes wrong
+
+The classic failure pair:
+
+- *Cuando llegué, ella cantaba.* → "When I arrived, she **was singing**."
+- *Cuando llego, ella canta.* → "When I arrive, she sings."
+
+The aspect is doing real work here: the first sentence pastes the arrival *into* the singing. Translate it as "she sang", and you have invented a sequence that never happened — she was already singing when the arrival happened; the sentence tells you nothing about whether she stopped.
+
+A second, uglier failure: habitual readings get flattened into one-off events.
+
+- *De niño, corría todos los días.* → "As a child, I **ran** every day."
+
+"Ran" is true and loses nothing that an English speaker needs at a glance. But the model did not *understand* the iteration; it got lucky. Feed it *De niño, corría en el parque cerca de casa de mi abuela, que olía a pan* and the same luck can turn into *"As a child, I ran in the park near my grandmother's house, which smelled like bread"* — where *olía* is correct — or into nonsense when the model snaps to a preterite reading of a verb that never was one.
+
+## What MT systems actually do
+
+Modern NMT has no explicit aspect state, but the hidden state approximates it: the model can, in principle, hold "unbounded event" information across the clause. The problem is that *principle* becomes *practice* only when the training data makes the distinction load-bearing. English-Spanish corpus pairs are mostly aligned at the sentential level, with a strong default to the preterite because declarative narrative biographies and how-to text over-use it. Aspect is a distributional accident in the training data, not a modeled category.
+
+## What you can do about it
+
+For a researcher, three concrete moves:
+
+1. **Test with aspect-heavy eval sets.** Build a mini-set of twenty minimal pairs (event-in-progress vs. completed, habitual vs. one-off) and run your system on it. A single-pass BLEU score hides the difference.
+2. **Tag the training signal.** If you control the pipeline, annotate aspect on the Spanish side and add a small auxiliary loss or a prompt prefix (e.g. "traduce el siguiente texto teniendo en cuenta el aspecto"). Even noisy tags beat no tags.
+3. **Accept and disclose.** If your product translates user-generated Spanish, habitual and backgrounded readings will occasionally flatten. Decide whether that is acceptable for the product, because it will happen even in good systems.
+
+## The wider point
+
+Aspect is one corner of the largest gap in current NLP: the difference between *mapping forms* and *modeling meaning*. The forms are finite and licitable. The meanings — iteration, boundedness, viewpoint — are grammaticalized differently in every language, which means no amount of English-centric pretraining will ever fully cover them.
+
+The model does not know the Spanish imperfect is not imperfect. It knows sequences. Giving it the sequence-data that makes aspect load-bearing is the only fix, and it is a data problem dressed up as an architecture problem — as most translation problems ultimately are.

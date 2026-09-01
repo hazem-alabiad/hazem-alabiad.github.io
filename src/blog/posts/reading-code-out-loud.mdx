@@ -1,0 +1,17 @@
+---
+title: "Reading Code Out Loud"
+date: "2026-06-12"
+description: "A five-minute habit that finds more bugs than any linter."
+tags: ["Engineering", "Reviews"]
+accent: "sage"
+---
+
+The fastest review trick I know is also the oldest: read the diff out loud, top to bottom, as if explaining it to someone with no context.
+
+When you are forced to narrate, the gaps surface. The function named `validate` that never validates. The `catch` block that swallows the error. The branch that is unreachable because of the guard two lines up.
+
+## Why it works
+
+Silent review is pattern matching. Spoken review is a simulation. Your brain cannot gloss over a step it has to verbalize.
+
+Do it solo before you post the PR. You will close more comments yourself than the reviewer ever would.
