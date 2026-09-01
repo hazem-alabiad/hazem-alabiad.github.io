@@ -1206,8 +1206,11 @@ footer {
 .blog-card:hover .blog-card-more { letter-spacing: 0.12em; }
 
 /* blog search + owner manage toolbar */
-.blog-owner-row { display: flex; justify-content: flex-end; margin: 4px 0 8px; }
-.blog-toolbar { display: flex; align-items: stretch; gap: 12px; margin: 4px 0 22px; flex-wrap: wrap; }
+.blog-owner-row { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin: 4px 0 8px; }
+.blog-owner-caption { color: var(--ink-faint); font: 9px var(--font-mono); letter-spacing: .16em; text-transform: uppercase; }
+.blog-toolbar { display: grid; grid-template-columns: minmax(116px, 0.18fr) minmax(0, 1fr); align-items: center; gap: 12px; margin: 4px 0 22px; }
+.blog-search-label { display: flex; flex-direction: column; gap: 4px; padding-left: 2px; font-family: var(--font-mono); color: var(--amber); font-size: 10px; letter-spacing: .14em; }
+.blog-search-label small { color: var(--ink-faint); font-size: 9px; letter-spacing: .03em; text-transform: none; white-space: nowrap; }
 /* ── shell-prompt command bar ── */
 .blog-search {
   position: relative; flex: 1 1 auto; min-width: 0;
@@ -1904,7 +1907,9 @@ footer {
   .blog-prose { font-size: 16.5px; }
   .blog-article-desc { font-size: 15px; }
   .blog-owner-row { justify-content: flex-start; margin-bottom: 8px; }
-  .blog-toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
+  .blog-toolbar { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+  .blog-search-label { flex-direction: row; align-items: baseline; justify-content: space-between; }
+  .blog-search-label small { font-size: 10px; }
   .blog-search { flex: 1 1 100%; max-width: none; }
   .blog-search-input { padding: 14px 12px; font-size: 16px; }
   .blog-manage { margin-left: 0; width: fit-content; max-width: 100%; }
