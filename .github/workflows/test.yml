@@ -54,5 +54,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Puppeteer Chrome
+        run: pnpm exec puppeteer browsers install chrome
+
       - name: Run E2E tests (Puppeteer)
         run: pnpm test:e2e
