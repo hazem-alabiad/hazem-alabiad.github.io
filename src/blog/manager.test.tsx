@@ -10,6 +10,7 @@ const listPosts = vi.hoisted(() => vi.fn());
 const readPost = vi.hoisted(() => vi.fn());
 const writePost = vi.hoisted(() => vi.fn());
 const deletePost = vi.hoisted(() => vi.fn());
+const getFileSha = vi.hoisted(() => vi.fn());
 
 vi.mock("../github", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../github")>();
@@ -19,6 +20,7 @@ vi.mock("../github", async (importOriginal) => {
     readPost,
     writePost,
     deletePost,
+    getFileSha,
   };
 });
 
@@ -59,6 +61,8 @@ beforeEach(() => {
   readPost.mockReset();
   writePost.mockReset();
   deletePost.mockReset();
+  getFileSha.mockReset();
+  getFileSha.mockResolvedValue("sha_file");
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.spyOn(window, "confirm").mockReturnValue(true);
@@ -220,10 +224,11 @@ describe("BlogManagerProvider", () => {
     await act(async () => { await api!.unlock("ghp_tok"); });
     const loaded = await act(async () => api!.loadPostDraft("arabic-vmwe-llms"));
     expect(readPost).toHaveBeenCalledWith("ghp_tok", `${POSTS_DIR}/arabic-vmwe-llms.mdx`);
+    expect(getFileSha).toHaveBeenCalledWith("ghp_tok", `${POSTS_DIR}/arabic-vmwe-llms.mdx`);
     expect(loaded).toMatchObject({
       isNew: false, slug: "arabic-vmwe-llms", path: `${POSTS_DIR}/arabic-vmwe-llms.mdx`,
       title: "Repo Title", date: "2026-01-01", description: "repo desc",
-      tags: ["ml", "evals"], body: "Repo body",
+      tags: ["ml", "evals"], body: "Repo body", sha: "sha_file",
     });
     // the bundled post accent wins over repo frontmatter
     expect(loaded.accent).toBe(posts[0].accent || "amber");

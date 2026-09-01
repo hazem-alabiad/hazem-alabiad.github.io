@@ -1,0 +1,35 @@
+---
+title: "The Ambiguity of ١٢٣٤: Arabic Digits in NLP Pipelines"
+date: "2026-05-21"
+description: "Eastern Arabic numerals break tokenizers, MT metrics, and your eval set. Notes on handling digit systems properly."
+tags: ["NLP", "Arabic", "Data"]
+accent: "amber"
+---
+
+A deceptively small problem keeps showing up in Arabic NLP: the same number can be written as `1234`, `١٢٣٤`, or `۱۲۳۴`. Three Unicode ranges, three tokenizer behaviors, one entity.
+
+## Where it bites
+
+1. **Tokenization.** `١٢٣٤` is often treated as ideographic by models trained on Latin digits, so multi-digit numbers split into character-level junk.
+2. **Metrics.** `1234` and `١٢٣٤` surface as different tokens — exact-match metrics silently under-report on tasks with numbers.
+3. **Eval leakage.** If your dev set was scraped from one source and your test set from another, the digit dialect alone can move scores by a point or two.
+
+## The fix
+
+Normalize at the boundary, not in the model:
+
+```python
+def normalize_digits(text: str, to: str = "ascii") -> str:
+    """Map Eastern/Western Arabic digit forms onto one table."""
+    tables = {
+        "ascii": str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹", "0123456789" * 2),
+        "eastern": str.maketrans("0123456789۰۱۲۳۴۵۶۷۸۹", "٠١٢٣٤٥٦٧٨٩" * 2),
+    }
+    return text.translate(tables[to])
+```
+
+Decide once, document it in the README, and keep the conversion outside the model so inference and evaluation use the exact same path.
+
+## The honest take
+
+This will not move a leaderboard by itself. But it removes a class of noise that *looks* like model error — which matters more than the metric in the long run, because it is the difference between debugging your data and debugging your model, and only one of those ever ends.

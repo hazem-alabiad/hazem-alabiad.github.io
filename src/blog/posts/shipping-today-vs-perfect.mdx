@@ -1,0 +1,53 @@
+---
+title: "Shipping Today vs. Shipping Perfect"
+date: "2026-04-15"
+description: "The trade-off is rarely quality — it is information. A practical look at when to ship a rough version and when to wait."
+tags: ["Engineering", "Product"]
+accent: "pink"
+---
+
+There is a version of the "ship fast" advice that is wrong, and it goes like this: *release whatever you have, the market will tell you.* No. Most of what you have is not a feedback loop; it is a beta with a CHANGELOG. Shipping garbage to learn how to slice bread better is not iteration.
+
+The version that is right looks different. It starts from the observation that the scarce resource in software is not code. It is *information about what the user actually does*.
+
+## Information is the product
+
+Every decision you make before shipping is a bet made on no data. Every decision you make after shipping is a bet with receipts. The goal of an early release is therefore not to be *good*. It is to be *safe to observe* — good enough that people can use it without hating it, incomplete enough that there is something real to learn.
+
+That is why the question "is this ready?" is the wrong question. The right question is: *what would change about the next two weeks if I shipped this now?*
+
+If the answer is "nothing", you are not shipping early — you are shipping incomplete.
+
+If the answer is "we'd learn which of the three entry screens people actually open", you have found your slice.
+
+## How to know you are doing it
+
+A few smells separate the discipline from the excuse:
+
+- The version you ship is a *truncation* of the full plan, not a *distortion* of it. You kept the spine and cut the limbs. If you had to mangle a core flow to make the deadline, that is not shipping early, that is shipping broken.
+- You can name the one unknown the release is designed to dissolve. "We'll see what happens" is not an experiment; "does anyone reach the sharing step" is.
+- The follow-up is scheduled before the release, not after. A release without a review date is a confession that you do not actually want the information.
+
+## The parts that should stay slow
+
+Some things are worth being late for:
+
+- **Data semantics.** If you ship a field name or a metric definition wrong, you ship the mistake to every dashboard and every model that reads your exports. Renaming later is a migration, not a fix.
+- **Auth and billing.** The cost of a wrong decision here is trust, and trust does not refund.
+- **Anything a sentence cannot walk back.** "We removed that button" is cheap. "We deleted that data" is not.
+
+## A useful default
+
+A pragmatic rule of thumb that has served me well:
+
+> Ship the smallest version that can still *fail the right way*.
+
+A version that can fail (observable error, empty state, honest readout) is a version you can learn from. A version that cannot fail in a useful way — that just silently misbehaves — is the worst of both worlds: all the risk of shipping, none of the information.
+
+## Close the loop
+
+The majority of teams do not fail at shipping early. They fail at *reading the results*. The board goes out, and then everyone is too busy building the next thing to look at what the board said.
+
+Iteration is not release cadence. Iteration is a loop: ship, observe, adjust. If you are shipping on schedule but observing rarely, you are not iterating — you are producing maintenance work for people who wanted a product.
+
+Ship today when it dissolves a real unknown. Ship perfect when the cost of being wrong compounds. And in every case, schedule the reading of the results before you schedule the release. That is the discipline. The cadence follows.
