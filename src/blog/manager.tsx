@@ -3,11 +3,11 @@ import { posts, type Post } from "./posts";
 import { GH_BRANCH, listPosts, readPost, writePost, deletePost, slugify, POSTS_DIR } from "../github";
 import {
   verifyToken, saveBlogSession, loadBlogSession, clearBlogSession, sanitizeToken,
-  parseFrontmatter, parseTags, buildMdx, EMPTY_DRAFT, type BlogDraft,
+  parseFrontmatter, parseTags, buildMdx, type BlogDraft,
 } from "./editor";
 import { OWNER_LOGIN } from "./authors";
 
-interface BlogManagerValue {
+export interface BlogManagerValue {
   mgr: { login: string } | null;
   token: string | null;
   unlockOpen: boolean;
@@ -18,8 +18,6 @@ interface BlogManagerValue {
   /** Silent re-unlock using the stored token — true when still valid, false when none/invalid (UI should ask for a fresh one). */
   restore: () => Promise<boolean>;
   lock: () => void;
-  draft: BlogDraft | null;
-  setDraft: (d: BlogDraft | null) => void;
   publishing: boolean;
   mgrErr: string;
   mgrOk: string;
@@ -27,9 +25,10 @@ interface BlogManagerValue {
   authErr: string;
   hiddenSlugs: Set<string>;
   visiblePosts: Post[];
-  startNew: () => void;
-  openForEdit: (p: Post) => Promise<void>;
-  saveDraft: () => Promise<void>;
+  /** Read a post's mdx from the repo and return it as an editable draft. */
+  loadPostDraft: (slug: string) => Promise<BlogDraft>;
+  /** Write a draft to the repo; sets mgrOk on success, throws with mgrErr set on failure. */
+  publishDraft: (d: BlogDraft) => Promise<void>;
   removePost: (p: Post) => Promise<void>;
 }
 
@@ -48,7 +47,6 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
   const [pat, setPat] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
   const [authErr, setAuthErr] = useState("");
-  const [draft, setDraft] = useState<BlogDraft | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [mgrErr, setMgrErr] = useState("");
   const [mgrOk, setMgrOk] = useState("");
@@ -96,7 +94,7 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
   // so the user is never asked to re-enter it. Only removing it from
   // localStorage (or an invalid token being cleared on next verify) fully logs out.
   function lock() {
-    setMgr(null); setDraft(null); setMgrErr(""); setMgrOk(""); setUnlockOpen(false);
+    setMgr(null); setMgrErr(""); setMgrOk(""); setUnlockOpen(false);
   }
 
   // Clicking CMS after a lock silently re-verifies the token that is still
@@ -119,33 +117,30 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  function startNew() {
-    setMgrErr(""); setMgrOk("");
-    setDraft({ ...EMPTY_DRAFT });
+  async function loadPostDraft(slug: string): Promise<BlogDraft> {
+    if (!token) throw new Error("Not authenticated — unlock with your PAT first.");
+    const p = posts.find((x) => x.slug === slug);
+    const raw = await readPost(token, `${POSTS_DIR}/${slug}.mdx`);
+    const { fm, body } = parseFrontmatter(raw);
+    return {
+      isNew: false, slug, path: `${POSTS_DIR}/${slug}.mdx`,
+      title: fm.title ?? p?.title ?? "", date: fm.date ?? p?.date ?? "",
+      description: fm.description ?? p?.description ?? "",
+      tags: fm.tags ? parseTags(fm.tags) : (p?.tags ?? []),
+      accent: p?.accent || fm.accent || "amber", author: OWNER_LOGIN, body,
+    };
   }
 
-  async function openForEdit(p: Post) {
-    if (!token) { setMgrErr("Not authenticated — unlock with your PAT first."); return; }
-    setMgrErr(""); setMgrOk("");
-    try {
-      const raw = await readPost(token, `${POSTS_DIR}/${p.slug}.mdx`);
-      const { fm, body } = parseFrontmatter(raw);
-      setDraft({ isNew: false, slug: p.slug, path: `${POSTS_DIR}/${p.slug}.mdx`, title: fm.title ?? p.title, date: fm.date ?? p.date, description: fm.description ?? p.description, tags: fm.tags ? parseTags(fm.tags) : p.tags, accent: p.accent || "amber", author: OWNER_LOGIN, body });
-    } catch (e) { const msg = (e as any)?.message || String(e); setMgrErr(msg); }
-  }
-
-  async function saveDraft() {
-    if (!token) { setMgrErr("Not authenticated — unlock with your PAT first."); return; }
-    if (!draft) return;
-    if (!draft.title.trim()) { setMgrErr("Title is required."); return; }
-    const slug = draft.isNew ? slugify(draft.title) : draft.slug;
-    const d = { ...draft, slug, path: draft.isNew ? `${POSTS_DIR}/${slug}.mdx` : draft.path };
+  async function publishDraft(d: BlogDraft) {
+    if (!token) { setMgrErr("Not authenticated — unlock with your PAT first."); throw new Error("Not authenticated"); }
+    if (!d.title.trim()) { setMgrErr("Title is required."); throw new Error("Title is required."); }
+    const slug = d.isNew ? slugify(d.title) : d.slug;
+    const draft = { ...d, slug, path: d.isNew ? `${POSTS_DIR}/${slug}.mdx` : d.path };
     setPublishing(true); setMgrErr(""); setMgrOk("");
     try {
-      await writePost(token, d.path, buildMdx(d), d.sha);
-      setMgrOk(`Saved ${d.path} — the site rebuilds on the next deploy.`);
-      setDraft(null);
-    } catch (e) { const msg = (e as any)?.message || String(e); setMgrErr(msg); }
+      await writePost(token, draft.path, buildMdx(draft), draft.sha);
+      setMgrOk(`Saved ${draft.path} — the site rebuilds on the next deploy.`);
+    } catch (e) { const msg = (e as any)?.message || String(e); setMgrErr(msg); throw e; }
     finally { setPublishing(false); }
   }
 
@@ -166,16 +161,15 @@ export function BlogManagerProvider({ children }: { children: ReactNode }) {
         return next;
       });
       setMgrOk(`Deleted ${p.slug}.mdx — commit pushed to ${GH_BRANCH}, Pages is rebuilding now (takes ~1-2 min). The post is hidden locally and will disappear for everyone after deploy.`);
-      if (draft?.path === path) setDraft(null);
     } catch (e) { const msg = (e as any)?.message || String(e); setMgrErr(`Delete failed: ${msg} — check that your PAT has 'repo' (contents:write) scope and that the file still exists.`); }
     finally { setPublishing(false); }
   }
 
   const value: BlogManagerValue = {
     mgr, token, unlockOpen, setUnlockOpen, pat, setPat, unlock, restore, lock,
-    draft, setDraft, publishing, mgrErr, mgrOk, authBusy, authErr,
+    publishing, mgrErr, mgrOk, authBusy, authErr,
     hiddenSlugs, visiblePosts,
-    startNew, openForEdit, saveDraft, removePost,
+    loadPostDraft, publishDraft, removePost,
   };
 
   return <BlogManagerContext.Provider value={value}>{children}</BlogManagerContext.Provider>;

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { Check, Lock, Pencil, Plus, Share2, Trash2 } from "lucide-react";
 import { Comments } from "./Comments";
 import { posts, type Post } from "./posts";
 import { readViews, trackView, type ViewsMap } from "./analytics";
 import { AdUnit } from "../Adsense";
-import { EditorPanel, FIELD } from "./editor";
+import { FIELD } from "./editor";
 import { useBlogManager } from "./manager";
 import { OWNER_LOGIN } from "./authors";
 
@@ -25,6 +26,7 @@ function fmtDate(iso: string): string {
 }
 
 export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
+  const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [active, setActive] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -45,7 +47,7 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const { mgr, unlockOpen, setUnlockOpen, pat, setPat, unlock, lock, draft, setDraft, publishing, mgrErr, mgrOk, authBusy, authErr, visiblePosts, startNew, openForEdit, saveDraft, removePost } = useBlogManager();
+  const { mgr, mgrErr, mgrOk, visiblePosts, removePost } = useBlogManager();
 
   const score = (p: Post): number => {
     if (!query) return 0;
@@ -91,11 +93,15 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
           <div className="section-title-row">
             <span className="section-icon-badge" style={{ fontSize: 22 }}>✎</span>
             <h2 className="section-title">Notes &amp; <em>Ideas</em></h2>
+            {mgr && (
+              <div className="blog-owner-corner" aria-label="Blog owner controls">
+                <button className="blog-owner-corner-btn blog-owner-corner-btn--add" onClick={() => navigate("/blog/admin/new")} title="Create a new blog post"><Plus size={13} /><span>NEW POST</span></button>
+              </div>
+            )}
           </div>
           <p className="blog-lede">Writing on NLP research, language engineering, and the craft of shipping software. {visiblePosts.length} post{visiblePosts.length === 1 ? "" : "s"}.</p>
         </div>
         <div className="blog-toolbar">
-          <div className="blog-search-label"><span><i aria-hidden="true">/</i> SEARCH NOTES</span><small>title · tag · topic</small></div>
           <div className="blog-search">
             <span className="blog-search-prompt" aria-hidden="true">➜</span>
             <input
@@ -114,34 +120,7 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
               ? <button className="blog-search-clear" onClick={() => { setQ(""); setActive(-1); inputRef.current?.focus(); }} aria-label="Clear search" title="Clear search (esc)"><kbd>esc</kbd></button>
               : <kbd className="blog-search-kbd" aria-hidden="true">/</kbd>}
           </div>
-          <div className="blog-owner-row">
-            <span className="blog-owner-caption"><i aria-hidden="true">◇</i> OWNER TOOLS</span>
-            <div className="blog-manage" aria-label="Blog owner controls">
-              {mgr ? (
-                <>
-                  <span className="blog-manage-label">OWNER</span>
-                  <button className="blog-manage-btn blog-manage-btn--add" onClick={startNew} title="Create a new blog post"><Plus size={13} /><span>NEW POST</span></button>
-                  <button className="blog-manage-btn" onClick={lock} title="Lock blog editing"><Lock size={13} /><span>LOCK</span></button>
-                </>
-              ) : (
-                <button className="blog-lock-btn" onClick={() => setUnlockOpen(!unlockOpen)} title="Owner login — manage posts" aria-label="Owner login — manage posts"><Lock size={14} /></button>
-              )}
-            </div>
-          </div>
         </div>
-        {unlockOpen && !mgr && (
-          <div className="blog-unlock">
-            <div className="blog-unlock-inner">
-              <p className="blog-unlock-hint">Only the site owner can manage posts. Paste a GitHub PAT with repo contents access — it is verified against @{OWNER_LOGIN}.</p>
-              <div className="blog-unlock-row">
-                <input type="password" value={pat} placeholder="GitHub PAT" onChange={(e) => setPat(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") unlock(pat); }} style={{ ...FIELD, flex: 1 }} />
-                <button onClick={() => unlock(pat)} disabled={authBusy} className="blog-manage-btn blog-manage-btn--add">{authBusy ? "CHECKING…" : "UNLOCK"}</button>
-                <button onClick={() => setUnlockOpen(false)} className="blog-manage-btn">CANCEL</button>
-              </div>
-              {authErr && <p className="blog-mgr-err">✗ {authErr}</p>}
-            </div>
-          </div>
-        )}
         {searching && hits.length > 0 && active >= 0 && (
           <div className="blog-search-status" role="status">
             {active + 1}/{hits.length} · ↑↓ navigate, ↵ open
@@ -156,15 +135,6 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
         )}
         {mgrErr && <p className="blog-mgr-err">✗ {mgrErr}</p>}
         {mgrOk && <p className="blog-mgr-ok">✓ {mgrOk}</p>}
-        {draft && (
-          <EditorPanel
-            draft={draft}
-            onDraft={(d) => setDraft(d)}
-            busy={publishing}
-            onSave={saveDraft}
-            onCancel={() => setDraft(null)}
-          />
-        )}
         <AdUnit slot="0123456789" className="ad-slot--top" />
         <div className="blog-list">
           {shown.map((p: Post, i) => (
@@ -185,7 +155,7 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
                 <div className="blog-card-actions">
                   {mgr && (
                     <>
-                      <button className="blog-card-manage blog-card-manage--ionly" title="Edit post" aria-label={`Edit ${p.slug}`} onClick={(e) => { e.stopPropagation(); openForEdit(p); }}><Pencil size={12} /></button>
+                      <button className="blog-card-manage blog-card-manage--ionly" title="Edit post" aria-label={`Edit ${p.slug}`} onClick={(e) => { e.stopPropagation(); navigate(`/blog/admin/edit/${p.slug}`); }}><Pencil size={12} /></button>
                       <button className="blog-card-manage blog-card-manage--danger blog-card-manage--ionly" title="Delete post" aria-label={`Delete ${p.slug}`} onClick={(e) => { e.stopPropagation(); removePost(p); }}><Trash2 size={12} /></button>
                     </>
                   )}
@@ -211,7 +181,8 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
       return FONT_SIZES.includes(v) ? v : 18;
     } catch { return 18; }
   });
-  const { mgr, lock, unlockOpen, setUnlockOpen, pat, setPat, unlock, openForEdit, removePost, draft, mgrErr, mgrOk, publishing, saveDraft, setDraft, authBusy, authErr } = useBlogManager();
+  const navigate = useNavigate();
+  const { mgr, lock, unlockOpen, setUnlockOpen, pat, setPat, unlock, removePost, mgrErr, mgrOk, authBusy, authErr } = useBlogManager();
   const [readingTime, setReadingTime] = useState<number | null>(null);
 
   useEffect(() => {
@@ -286,7 +257,7 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
             <div className="blog-article-toolbar">
               {mgr ? (
                 <>
-                  <button className="blog-size-btn blog-post-manage" title="Edit this post" onClick={() => openForEdit(post)}><Pencil size={12} /> EDIT</button>
+                  <button className="blog-size-btn blog-post-manage" title="Edit this post" onClick={() => navigate(`/blog/admin/edit/${post.slug}`)}><Pencil size={12} /> EDIT</button>
                   <button className="blog-size-btn blog-post-manage blog-post-manage--danger" title="Delete this post" onClick={() => { if (removePost) removePost(post); }}><Trash2 size={12} /> DELETE</button>
                   <button className="blog-size-btn blog-post-manage" title="Lock management" onClick={() => lock()}><Lock size={12} /> LOCK</button>
                 </>
@@ -334,15 +305,6 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
           )}
           {mgrErr && <p className="blog-mgr-err">✗ {mgrErr}</p>}
           {mgrOk && <p className="blog-mgr-ok">✓ {mgrOk}</p>}
-          {draft && (
-            <EditorPanel
-              draft={draft}
-              onDraft={(d) => setDraft(d)}
-              busy={publishing}
-              onSave={saveDraft}
-              onCancel={() => setDraft(null)}
-            />
-          )}
           <div className="blog-prose" style={{ fontSize: size, ["--prose-scale" as string]: (size / 17).toFixed(3) }}>
             <Component />
           </div>
