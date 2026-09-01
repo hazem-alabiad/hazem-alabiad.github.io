@@ -25,6 +25,38 @@ function fmtDate(iso: string): string {
   }
 }
 
+interface TocItem { id: string; text: string; level: 2 | 3 }
+
+function TocNav({ items, activeId, onGo }: { items: TocItem[]; activeId: string | null; onGo: (id: string) => void }) {
+  return (
+    <nav className="blog-toc-nav" aria-label="Sections">
+      <ul>
+        {items.map((it) => (
+          <li key={it.id} className={it.level === 3 ? "blog-toc-li--sub" : ""}>
+            <button
+              type="button"
+              className={`blog-toc-link${activeId === it.id ? " is-active" : ""}`}
+              onClick={() => onGo(it.id)}
+              aria-current={activeId === it.id ? "true" : undefined}
+            >
+              {it.text}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
+function slugId(text: string, used: Set<string>): string {
+  const base = text.trim().toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]+/g, "-").replace(/^-+|-+$/g, "") || "section";
+  let id = base;
+  let n = 2;
+  while (used.has(id)) { id = `${base}-${n}`; n++; }
+  used.add(id);
+  return id;
+}
+
 export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
@@ -184,6 +216,8 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
   const navigate = useNavigate();
   const { mgr, lock, unlockOpen, setUnlockOpen, pat, setPat, unlock, removePost, mgrErr, mgrOk, authBusy, authErr } = useBlogManager();
   const [readingTime, setReadingTime] = useState<number | null>(null);
+  const [toc, setToc] = useState<TocItem[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
     if (post) setViews(trackView(`post:${post.slug}`));
@@ -201,22 +235,76 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
     const prose = document.querySelector(".blog-prose");
     if (!prose) return;
     prose.querySelectorAll("pre").forEach((pre) => {
-      if (pre.querySelector(".blog-copy")) return;
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "blog-copy";
-      btn.textContent = "copy";
-      btn.title = "Copy code";
-      btn.addEventListener("click", () => {
-        try {
-          navigator.clipboard.writeText(pre.textContent || "").then(() => {
-            btn.textContent = "copied";
-            setTimeout(() => { btn.textContent = "copy"; }, 1600);
-          });
-        } catch { /* clipboard unavailable */ }
-      });
-      pre.appendChild(btn);
+      // copy button
+      if (!pre.querySelector(".blog-copy")) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "blog-copy";
+        btn.textContent = "copy";
+        btn.title = "Copy code";
+        btn.addEventListener("click", () => {
+          try {
+            navigator.clipboard.writeText(pre.textContent || "").then(() => {
+              btn.textContent = "copied";
+              setTimeout(() => { btn.textContent = "copy"; }, 1600);
+            });
+          } catch { /* clipboard unavailable */ }
+        });
+        pre.appendChild(btn);
+      }
+      // language chip
+      if (!pre.querySelector(".blog-code-lang")) {
+        const lang = Array.from(pre.querySelectorAll("code")).map((c) => (c.className || "").match(/language-(\w+)/)?.[1]).find(Boolean);
+        if (lang) {
+          const chip = document.createElement("span");
+          chip.className = "blog-code-lang";
+          chip.textContent = lang;
+          pre.appendChild(chip);
+        }
+      }
     });
+  }, [slug, size]);
+
+  // build the on-this-page index from rendered headings + add hover anchors
+  useEffect(() => {
+    const prose = document.querySelector(".blog-prose");
+    setToc([]); setActiveId(null);
+    if (!prose) return;
+    const used = new Set<string>();
+    const headings = Array.from(prose.querySelectorAll<HTMLHeadingElement>("h2, h3"));
+    const items: TocItem[] = headings.map((h) => {
+      if (!h.id) h.id = slugId(h.textContent || "", used);
+      else used.add(h.id);
+      // heading text without the injected anchor button
+      const headingText = Array.from(h.childNodes)
+        .filter((n) => !(n instanceof HTMLElement) || !n.classList.contains("blog-heading-anchor"))
+        .map((n) => n.textContent || "")
+        .join("")
+        .trim();
+      if (!h.querySelector(".blog-heading-anchor")) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "blog-heading-anchor";
+        btn.textContent = "#";
+        btn.title = `Jump to ${headingText}`;
+        btn.setAttribute("aria-label", `Jump to ${headingText}`);
+        btn.addEventListener("click", () => goSection(h.id));
+        h.appendChild(btn);
+      }
+      return { id: h.id, text: headingText, level: h.tagName === "H2" ? 2 : 3 };
+    });
+    setToc(items);
+    if (items.length < 2) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const shown = entries.filter((e) => e.isIntersecting);
+        if (shown.length) setActiveId(shown[shown.length - 1].target.id);
+      },
+      { rootMargin: "-90px 0px -70% 0px", threshold: 0 }
+    );
+    headings.forEach((h) => obs.observe(h));
+    return () => obs.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, size]);
   if (!post) {
     return (
@@ -244,6 +332,17 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
     } catch { /* clipboard unavailable */ }
     done();
   };
+  const goSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActiveId(id);
+  };
+  const ordered = posts.filter((p) => !hiddenSlugs.has(p.slug));
+  const pos = ordered.findIndex((p) => p.slug === slug);
+  const newer = pos > 0 ? ordered[pos - 1] : null;
+  const older = pos >= 0 && pos < ordered.length - 1 ? ordered[pos + 1] : null;
+  const tocNav = <TocNav items={toc} activeId={activeId} onGo={goSection} />;
   return (
     <section className={`blog blog-post blog-post--${accent || "amber"}`} id="blog">
       <div className="wrap">
@@ -305,8 +404,22 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
           )}
           {mgrErr && <p className="blog-mgr-err">✗ {mgrErr}</p>}
           {mgrOk && <p className="blog-mgr-ok">✓ {mgrOk}</p>}
-          <div className="blog-prose" style={{ fontSize: size, ["--prose-scale" as string]: (size / 17).toFixed(3) }}>
-            <Component />
+          <div className="blog-article-body">
+            {toc.length >= 2 && (
+              <details className="blog-toc-mobile">
+                <summary className="blog-toc-summary">ON THIS PAGE <span className="blog-toc-count">{toc.length}</span></summary>
+                {tocNav}
+              </details>
+            )}
+            <div className="blog-prose" style={{ fontSize: size, ["--prose-scale" as string]: (size / 17).toFixed(3) }}>
+              <Component />
+            </div>
+            {toc.length >= 2 && (
+              <aside className="blog-toc" aria-label="On this page">
+                <div className="blog-toc-label">ON THIS PAGE</div>
+                {tocNav}
+              </aside>
+            )}
           </div>
 
           <div className="blog-article-end" aria-hidden="true">
@@ -314,6 +427,43 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
             <span className="blog-article-end-text">end of note</span>
             <span className="blog-article-end-cursor" />
           </div>
+
+          <div className="blog-article-authorcard">
+            <img
+              src={`https://github.com/${author}.png?size=96`}
+              alt={author}
+              className="blog-article-authorcard-avatar"
+              width={48} height={48}
+            />
+            <div className="blog-article-authorcard-body">
+              <div className="blog-article-authorcard-name">
+                <a href={`https://github.com/${author}`} target="_blank" rel="noopener noreferrer" className="blog-article-authorcard-handle">@{author}</a>
+                <span className="blog-article-authorcard-role">field notes — NLP &amp; language engineering</span>
+              </div>
+              <p className="blog-article-authorcard-bio">Writing on NLP research, language engineering, and the craft of shipping software.</p>
+              <div className="blog-article-authorcard-links">
+                <a href={`https://github.com/${author}`} target="_blank" rel="noopener noreferrer">GitHub</a>
+                <a href={profileUrl(author)} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+              </div>
+            </div>
+          </div>
+
+          {(newer || older) && (
+            <nav className="blog-article-prevnext" aria-label="More notes">
+              {newer ? (
+                <button type="button" className="blog-article-nav" onClick={() => navigate(`/blog/${newer.slug}`)}>
+                  <span className="blog-article-nav-dir">← NEWER</span>
+                  <span className="blog-article-nav-title">{newer.title}</span>
+                </button>
+              ) : <span className="blog-article-nav blog-article-nav--empty" aria-hidden="true" />}
+              {older ? (
+                <button type="button" className="blog-article-nav blog-article-nav--next" onClick={() => navigate(`/blog/${older.slug}`)}>
+                  <span className="blog-article-nav-dir">OLDER →</span>
+                  <span className="blog-article-nav-title">{older.title}</span>
+                </button>
+              ) : <span className="blog-article-nav blog-article-nav--empty" aria-hidden="true" />}
+            </nav>
+          )}
 
           <div className="blog-article-comments">
             <div className="blog-article-comments-label">COMMENTS</div>
