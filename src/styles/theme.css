@@ -1372,62 +1372,210 @@ footer {
 .blog-editor { display: flex; flex-direction: column; gap: 14px; }
 
 /* hero title + lede: the document, not a form */
+.blog-editor-head { display: flex; flex-direction: column; gap: 6px; }
 .blog-editor-title {
   font-family: var(--font-display); font-weight: 500;
   font-size: clamp(28px, 4.5vw, 40px); line-height: 1.15;
   color: var(--ink); background: transparent; border: 0;
-  border-bottom: 2px solid transparent; border-radius: 0;
-  width: 100%; padding: 2px 0; outline: none;
-  transition: border-color .18s ease;
+  width: 100%; padding: 6px 10px; outline: none;
+  border-radius: 8px;
 }
 .blog-editor-title::placeholder { color: var(--ink-faint); opacity: .6; }
-.blog-editor-title:focus { border-bottom-color: var(--amber); }
 .blog-editor-desc {
   font-family: var(--font-display); font-style: italic; font-size: 16px;
   color: var(--ink-dim); background: transparent; border: 0;
-  border-bottom: 1px solid transparent; border-radius: 0;
-  width: 100%; padding: 2px 0; outline: none;
-  transition: border-color .18s ease;
+  width: 100%; padding: 4px 10px; outline: none;
+  border-radius: 8px;
 }
 .blog-editor-desc::placeholder { color: var(--ink-faint); opacity: .55; }
-.blog-editor-desc:focus { border-bottom-color: var(--amber); }
 
-/* quiet metadata strip */
-.blog-editor-meta {
-  display: flex; flex-wrap: wrap; gap: 8px 22px;
-  border-top: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule-soft);
-  padding: 10px 2px;
+/* focused field: soft elevated fill + amber left rail (visible focus, site accent) */
+.blog-editor-field {
+  position: relative;
+  border: 1px solid transparent; border-radius: 10px;
+  transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
-.blog-editor-cell { display: flex; flex-direction: column; gap: 3px; flex: 1 1 150px; }
+.blog-editor-field:focus-within {
+  /* the hero fields are a document: focus is an amber caret-underline that
+     lights up under the line — one signal, no rail, no fill */
+  box-shadow: inset 0 -2px 0 var(--amber), 0 10px 26px -16px var(--amber-soft);
+}
+.blog-editor-title:focus, .blog-editor-desc:focus, .blog-editor-meta-input:focus { outline: none; }
+
+/* metadata strip: DATE and TAGS as two framed, equal inputs — hairline
+   border + panel fill so they read as fields, not floating text. The native
+   date input keeps its own picker and locale format, dressed to the theme. */
+.blog-editor-meta {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: 14px;
+  border-top: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule-soft);
+  padding: 14px 0;
+}
+.blog-editor-cell { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .blog-editor-cell-label {
   font-family: var(--font-mono); font-size: 9px; letter-spacing: .16em; text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--ink-faint); transition: color .18s ease;
 }
 .blog-editor-meta-input {
   font-family: var(--font-mono); font-size: 12.5px;
   color: var(--ink); background: transparent;
-  border: 0; border-bottom: 1px dashed var(--rule); border-radius: 0;
-  padding: 3px 0; outline: none; min-width: 0;
-  transition: border-color .18s ease, color .18s ease;
+  border: 0; border-radius: 0; padding: 0;
+  outline: none; min-width: 0; width: 100%;
+  transition: color .18s ease;
 }
-.blog-editor-meta-input:focus { border-bottom-color: var(--amber); border-bottom-style: solid; color: var(--ink); }
-.blog-editor-meta-input::placeholder { color: var(--ink-faint); opacity: .7; }
+.blog-editor-meta-input::placeholder { color: var(--ink-faint); opacity: .75; }
+
+/* the shared field frame: hairline border + panel bg; focus = a single soft
+   amber halo around the cell and the label lighting up — no left rails */
+.blog-editor-meta .blog-editor-field {
+  border: 1px solid var(--rule-soft);
+  border-radius: 9px;
+  background: var(--bg-panel);
+  padding: 9px 12px;
+  min-height: 38px;
+  display: flex; align-items: center;
+  transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+.blog-editor-meta .blog-editor-field:hover { border-color: var(--rule); }
+.blog-editor-meta .blog-editor-field:focus-within {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px var(--amber-soft), 0 6px 24px -14px var(--amber-soft);
+}
+.blog-editor-meta .blog-editor-cell:focus-within .blog-editor-cell-label { color: var(--amber); }
+
+/* DATE: native input kept — its own picker glyph + locale text. Only the
+   color-scheme and the glyph's visibility are themed. */
+.blog-editor-meta input[type="date"] { color-scheme: dark; cursor: pointer; }
+[data-theme="light"] .blog-editor-meta input[type="date"] { color-scheme: light; }
+.blog-editor-meta input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer; opacity: .8; transition: opacity .15s ease;
+  filter: invert(1) grayscale(.35);  /* light glyph on dark surfaces */
+}
+.blog-editor-meta input[type="date"]:hover::-webkit-calendar-picker-indicator,
+.blog-editor-meta .blog-editor-field:focus-within input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+[data-theme="light"] .blog-editor-meta input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none; opacity: .7;
+}
+
+/* TAGS: input + chips share the framed cell — chips wrap under the input */
+.blog-editor-tags { display: flex; flex-direction: column; gap: 7px; }
+.blog-editor-tags-list { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; }
+.blog-editor-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .04em;
+  color: var(--amber); background: var(--amber-soft);
+  border: 1px solid var(--amber-soft); border-radius: 999px;
+  padding: 3px 9px; cursor: pointer; line-height: 1.4;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.blog-editor-tag:hover { border-color: var(--amber); color: var(--amber); background: color-mix(in srgb, var(--amber-soft) 60%, transparent); }
+.blog-editor-tag-x { color: var(--ink-faint); font-size: 12px; line-height: 1; }
+.blog-editor-tag:hover .blog-editor-tag-x { color: var(--amber); }
+.blog-editor-tag:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+.blog-editor-tags:focus-within .blog-editor-tag { border-color: var(--amber-soft); }
 select.blog-editor-meta-input { cursor: pointer; }
 select.blog-editor-meta-input option { background: var(--bg-panel); color: var(--ink); }
 
-/* collapsible post settings */
-.blog-editor-settings { margin: 2px 0 4px; }
-.blog-editor-settings-summary {
-  font-family: var(--font-mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
-  color: var(--ink-faint); cursor: pointer; user-select: none;
-  display: inline-flex; align-items: baseline; gap: 8px; padding: 6px 0;
-  list-style: none;
+/* touch-friendly meta strip */
+@media (max-width: 700px) {
+  .blog-editor-meta { grid-template-columns: 1fr; gap: 12px; }
+  .blog-editor-meta .blog-editor-field { min-height: 46px; padding: 10px 12px; }
+  .blog-editor-tag { padding: 6px 11px; font-size: 11.5px; }
 }
-.blog-editor-settings-summary::-webkit-details-marker { display: none; }
-.blog-editor-settings-summary::before { content: "▸"; color: var(--amber); transition: transform .15s ease; }
-.blog-editor-settings[open] .blog-editor-settings-summary::before { transform: rotate(90deg); }
-.blog-editor-settings-summary:hover { color: var(--amber); }
-.blog-editor-settings-hint { color: var(--ink-faint); letter-spacing: .02em; text-transform: none; opacity: .8; }
+
+
+/* mode switch: WRITE / PREVIEW */
+.blog-editor-tabs {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 2px; border: 1px solid var(--rule-soft); border-radius: 10px;
+  background: var(--bg-elevated); margin: 2px 0 4px;
+}
+.blog-editor-tab {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .14em;
+  color: var(--ink-faint); background: transparent;
+  border: 0; border-radius: 7px; padding: 8px 12px;
+  cursor: pointer; white-space: nowrap;
+  transition: color .15s ease, background-color .15s ease;
+}
+.blog-editor-tab:hover { color: var(--ink); }
+.blog-editor-tab.is-active { color: var(--amber); background: var(--bg-panel); box-shadow: 0 0 0 1px var(--rule-soft); }
+.blog-editor-tab:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+.blog-editor-tab-hint { color: var(--ink-dim); font-size: 9px; letter-spacing: .06em; opacity: .7; }
+.blog-editor-tab.is-active .blog-editor-tab-hint { color: var(--amber); opacity: .85; }
+.blog-editor-tabs-sep { width: 1px; height: 16px; background: var(--rule-soft); margin: 0 4px 0 6px; }
+.blog-editor-tabs .blog-size-group { border-left: none; margin-left: 0; padding-left: 0; }
+.blog-editor-tabs .blog-size-btn { padding: 8px 7px; }
+
+/* honor the editor font-size variable across the surface */
+.blog-editor .w-md-editor-text-input, .blog-editor .w-md-editor-text-pre > code {
+  font-size: var(--md-editor-font-size, 13px) !important;
+}
+
+/* full-page article preview — same prose typography the published post uses */
+.blog-editor-preview {
+  border: 1px solid var(--rule); border-radius: 12px; overflow: hidden;
+  background: var(--bg);
+}
+.blog-editor-preview-flag {
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--amber); display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 16px; border-bottom: 1px solid var(--rule-soft); width: 100%;
+  background: var(--bg-panel);
+}
+.blog-editor-preview .blog-prose {
+  padding: 34px clamp(18px, 5vw, 56px) 40px;
+  max-width: none; margin: 0 auto;
+  font-size: 17px;
+}
+/* the preview's markdown root is .wmde-markdown, styled by the library's own
+   stylesheet (loaded after theme.css in the editor chunk). Fuse it to the
+   site instead: transparent canvas so the card bg shows, tokens remapped to
+   the theme, and the article's real typography on the elements. */
+.blog-editor-preview .wmde-markdown {
+  background-color: transparent;
+  color: var(--ink);
+  font-family: inherit;   /* inherit .blog-prose -> page body font, not the
+                             library's system stack, and its 18px/1.75 measure */
+  font-size: inherit;
+  line-height: inherit;
+}
+/* the palette blocks below must outrank the library's own
+   [data-color-mode*='dark'] .wmde-markdown (0,2,0) -> use (0,3,0) */
+.blog-editor-preview .blog-prose .wmde-markdown {
+  --color-canvas-default: transparent;
+  --color-canvas-subtle: var(--bg-elevated);
+  --color-border-default: var(--rule);
+  --color-border-muted: var(--rule-soft);
+  --color-neutral-muted: var(--bg-elevated);
+  --color-fg-default: var(--ink);
+  --color-fg-muted: var(--ink-dim);
+  --color-fg-subtle: var(--ink-faint);
+  --color-accent-fg: var(--amber);
+  --color-accent-emphasis: var(--amber);
+  --color-accent-subtle: var(--amber-soft);
+  --color-attention-subtle: var(--amber-soft);
+  --color-danger-fg: var(--red);
+}
+.blog-editor-preview .wmde-markdown h1,
+.blog-editor-preview .wmde-markdown h2,
+.blog-editor-preview .wmde-markdown h3 {
+  margin-top: 24px; margin-bottom: 16px; padding-bottom: 0;
+  font-weight: 500; border-bottom: none; line-height: 1.25;
+}
+.blog-editor-preview .wmde-markdown pre > code { padding: 0; }
+.blog-editor-preview .wmde-markdown pre code { font-size: inherit; line-height: inherit; }
+.blog-editor-preview-title {
+  font-family: var(--font-display); font-weight: 500; line-height: 1.15;
+  font-size: clamp(24px, 3.6vw, 34px);
+  color: var(--ink); margin: 0 0 10px;
+}
+.blog-editor-preview .blog-article-desc { margin: 0 0 22px; }
+.blog-editor-preview-empty { color: var(--ink-faint); font-style: italic; }
+.blog-editor-preview .blog-heading-anchor { display: none; }
+.blog-editor-preview .blog-prose h2, .blog-editor-preview .blog-prose h3 { scroll-margin-top: 24px; }
 
 /* markdown editor (@uiw/react-md-editor), fused to the site theme */
 .blog-editor .w-md-editor {
@@ -1483,7 +1631,8 @@ select.blog-editor-meta-input option { background: var(--bg-panel); color: var(-
   .blog-editor .w-md-editor { height: 46vh !important; }
   .blog-editor-foot { flex-direction: column; align-items: stretch; }
   .blog-editor-actions { justify-content: flex-end; }
-  .blog-editor-settings-hint { display: none; }
+  .blog-editor-tab-hint { display: none; }
+  .blog-editor-tab { padding: 10px 14px; }
 }
 .blog-article {
   max-width: 940px;
@@ -1659,32 +1808,37 @@ select.blog-editor-meta-input option { background: var(--bg-panel); color: var(-
 .blog-article-views { color: var(--ink-faint); }
 
 .blog-prose { color: var(--ink); font-size: 18px; line-height: 1.75; max-width: min(76ch, 100%); margin-inline: auto; min-width: 0; }
-.blog-prose h2 { font-family: var(--font-display); font-weight: 500; font-size: calc(26px * var(--prose-scale, 1)); margin: 44px 0 12px; color: var(--ink); position: relative; scroll-margin-top: 96px; }
-.blog-prose h3 { font-family: var(--font-display); font-weight: 500; font-size: calc(21px * var(--prose-scale, 1)); margin: 30px 0 10px; color: var(--ink); position: relative; scroll-margin-top: 96px; }
+.blog-prose h2, .blog-editor-preview .blog-prose h2 { font-family: var(--font-display); font-weight: 500; font-size: calc(26px * var(--prose-scale, 1)); margin: 44px 0 12px; color: var(--ink); position: relative; scroll-margin-top: 96px; }
+.blog-prose h3, .blog-editor-preview .blog-prose h3 { font-family: var(--font-display); font-weight: 500; font-size: calc(21px * var(--prose-scale, 1)); margin: 30px 0 10px; color: var(--ink); position: relative; scroll-margin-top: 96px; }
 .blog-heading-anchor {
   position: absolute; left: -30px; top: 50%; transform: translateY(-50%);
   font-family: var(--font-mono); font-size: .8em; color: var(--ink-faint);
   background: none; border: 0; padding: 4px 8px; cursor: pointer; opacity: 0;
   transition: opacity .15s ease, color .15s ease;
 }
+/* section headings are anchor targets: hovering shows the # chip, and the
+   headline itself is clickable to pin its anchor to the URI */
+.blog-prose h2.blog-heading-link, .blog-prose h3.blog-heading-link { cursor: pointer; }
+.blog-prose h2.blog-heading-link:hover, .blog-prose h3.blog-heading-link:hover { color: var(--amber); }
+.blog-prose h2.blog-heading-link:focus-visible, .blog-prose h3.blog-heading-link:focus-visible { outline: 2px solid var(--amber); outline-offset: 4px; }
 .blog-prose h2:hover .blog-heading-anchor, .blog-prose h3:hover .blog-heading-anchor,
 .blog-heading-anchor:focus-visible { opacity: 1; }
 .blog-heading-anchor:hover { color: var(--amber); }
-.blog-prose p { margin: 0 0 18px; }
-.blog-prose a { color: var(--amber); border-bottom: 1px solid var(--amber-soft); transition: border-color .15s ease; }
-.blog-prose a:hover { border-color: var(--amber); }
+.blog-prose p, .blog-editor-preview .blog-prose p { margin: 0 0 18px; }
+.blog-prose a, .blog-editor-preview .blog-prose a { color: var(--amber); border-bottom: 1px solid var(--amber-soft); transition: border-color .15s ease; }
+.blog-prose a:hover, .blog-editor-preview .blog-prose a:hover { border-color: var(--amber); }
 .blog-prose strong { color: var(--ink); font-weight: 600; }
-.blog-prose blockquote {
+.blog-prose blockquote, .blog-editor-preview .blog-prose blockquote {
   margin: 26px 0; padding: 16px 22px;
   border-left: 3px solid var(--amber);
   background: var(--bg-panel); border-radius: 0 8px 8px 0;
   color: var(--ink-dim); font-size: 16px;
 }
-.blog-prose ul, .blog-prose ol { margin: 0 0 18px; padding-left: 24px; }
-.blog-prose li { margin-bottom: 6px; }
-.blog-prose li::marker { color: var(--amber); }
+.blog-prose ul, .blog-prose ol, .blog-editor-preview .blog-prose ul, .blog-editor-preview .blog-prose ol { margin: 0 0 18px; padding-left: 24px; }
+.blog-prose li, .blog-editor-preview .blog-prose li { margin-bottom: 6px; }
+.blog-prose li::marker, .blog-editor-preview .blog-prose li::marker { color: var(--amber); }
 .blog-prose img { max-width: 100%; border-radius: 10px; border: 1px solid var(--rule-soft); margin: 8px 0 20px; }
-.blog-prose pre {
+.blog-prose pre, .blog-editor-preview .blog-prose pre {
   background: var(--bg-elevated);
   border: 1px solid var(--rule-soft);
   border-radius: 10px;
@@ -1720,11 +1874,11 @@ select.blog-editor-meta-input option { background: var(--bg-panel); color: var(-
 }
 .blog-prose pre:hover .blog-copy { opacity: 1; }
 .blog-copy:hover { color: var(--amber); border-color: var(--amber); }
-.blog-prose code { font-family: 'JetBrains Mono', 'SF Mono', 'IBM Plex Sans Arabic', 'Geeza Pro', monospace; font-size: 0.9em; }
+.blog-prose code, .blog-editor-preview .blog-prose code { font-family: 'JetBrains Mono', 'SF Mono', 'IBM Plex Sans Arabic', 'Geeza Pro', monospace; font-size: 0.9em; }
 .blog-prose--large { font-size: 19px; line-height: 1.8; }
 .blog-prose--large h2 { font-size: 28px; }
 .blog-prose--large h3 { font-size: 23px; }
-.blog-prose :not(pre) > code { background: var(--amber-soft); color: var(--amber); border-radius: 4px; padding: 1px 6px; }
+.blog-prose :not(pre) > code, .blog-editor-preview .blog-prose :not(pre) > code { background: var(--amber-soft); color: var(--amber); border-radius: 4px; padding: 1px 6px; }
 
 /* ── end-of-note signature ── */
 .blog-article-end {

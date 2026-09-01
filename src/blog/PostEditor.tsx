@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useBlogManager } from "./manager";
 import { FIELD, EMPTY_DRAFT, type BlogDraft } from "./editor";
+import { slugify, POSTS_DIR } from "../github";
 import { EditorPanel } from "./editor-panel";
 import { OWNER_LOGIN } from "./authors";
 
@@ -54,8 +55,10 @@ export function PostEditorPage({ mode }: { mode: "new" | "edit" }) {
   async function onSave() {
     if (!draft) return;
     try {
-      await publishDraft(draft);
-      navigate(mode === "edit" ? `/blog/${draft.slug}` : "/blog", { replace: true });
+      const slug = mode === "new" ? slugify(draft.title) : draft.slug;
+      const final: BlogDraft = slug ? { ...draft, slug, path: draft.isNew ? `${POSTS_DIR}/${slug}.mdx` : draft.path } : draft;
+      await publishDraft(final);
+      navigate(slug ? `/blog/${slug}` : "/blog", { replace: true });
     } catch { /* mgrErr already set by publishDraft */ }
   }
 

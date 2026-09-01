@@ -9,10 +9,14 @@ const base: BlogDraft = {
 };
 
 function setup(draft: BlogDraft = base, busy = false) {
-  const onDraft = vi.fn();
+  let current = draft;
   const onSave = vi.fn();
   const onCancel = vi.fn();
-  render(<EditorPanel draft={draft} onDraft={onDraft} busy={busy} onSave={onSave} onCancel={onCancel} />);
+  const onDraft = vi.fn((d: BlogDraft) => {
+    current = d;
+    rerender(<EditorPanel draft={current} onDraft={onDraft} busy={busy} onSave={onSave} onCancel={onCancel} />);
+  });
+  const { rerender } = render(<EditorPanel draft={draft} onDraft={onDraft} busy={busy} onSave={onSave} onCancel={onCancel} />);
   return { onDraft, onSave, onCancel };
 }
 
@@ -23,22 +27,51 @@ describe("EditorPanel", () => {
     expect(onDraft).toHaveBeenCalledWith(expect.objectContaining({ title: "New Title" }));
   });
 
-  it("edits the description and parses tags from the settings strip", () => {
+  it("edits the description", () => {
     const { onDraft } = setup();
     fireEvent.change(screen.getByLabelText("Post description"), { target: { value: "A short note" } });
     expect(onDraft).toHaveBeenCalledWith(expect.objectContaining({ description: "A short note" }));
-    fireEvent.change(screen.getByLabelText("Tags"), { target: { value: "NLP, arabic ,  llms" } });
-    expect(onDraft).toHaveBeenCalledWith(expect.objectContaining({ tags: ["NLP", "arabic", "llms"] }));
   });
 
-  it("edits slug, date and accent", () => {
+  it("adds tags as chips and removes them", () => {
     const { onDraft } = setup();
-    fireEvent.change(screen.getByLabelText("Slug"), { target: { value: "my-slug" } });
-    expect(onDraft).toHaveBeenCalledWith(expect.objectContaining({ slug: "my-slug" }));
+    const tags = screen.getByLabelText("Tags");
+    fireEvent.change(tags, { target: { value: "NLP" } });
+    fireEvent.keyDown(tags, { key: "Enter" });
+    expect(onDraft).toHaveBeenCalledWith(expect.objectContaining({ tags: ["NLP"] }));
+    fireEvent.change(tags, { target: { value: "arabic" } });
+    fireEvent.keyDown(tags, { key: "Enter" });
+    expect(onDraft).toHaveBeenCalledWith(expect.objectContaining({ tags: ["NLP", "arabic"] }));
+    expect(screen.getByRole("button", { name: "Remove tag NLP" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Remove tag NLP" }));
+    expect(onDraft).toHaveBeenCalledWith(expect.objectContaining({ tags: ["arabic"] }));
+  });
+
+  it("has no slug or URI surface in the editor", () => {
+    setup();
+    expect(screen.queryByLabelText("Slug")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/post link/i)).not.toBeInTheDocument();
+    expect(screen.queryByText("/blog/")).not.toBeInTheDocument();
+    // date + tags remain the only metadata fields
+    expect(screen.getByLabelText("Date")).toBeInTheDocument();
+    expect(screen.getByLabelText("Tags")).toBeInTheDocument();
+  });
+
+  it("derives the post URI from the title when saving", () => {
+    const { onDraft } = setup();
+    fireEvent.change(screen.getByLabelText("Post title"), { target: { value: "My New Note!" } });
     fireEvent.change(screen.getByLabelText("Date"), { target: { value: "2026-09-01" } });
+    expect(onDraft).toHaveBeenCalledWith(expect.objectContaining({ title: "My New Note!" }));
     expect(onDraft).toHaveBeenCalledWith(expect.objectContaining({ date: "2026-09-01" }));
-    fireEvent.change(screen.getByLabelText("Accent color"), { target: { value: "violet" } });
-    expect(onDraft).toHaveBeenCalledWith(expect.objectContaining({ accent: "violet" }));
+  });
+
+  it("edits the date through the native date input only", () => {
+    const { onDraft } = setup();
+    // the calendar is the native one — no custom display, icon, or echo
+    const date = screen.getByLabelText("Date");
+    expect(date.getAttribute("type")).toBe("date");
+    fireEvent.change(date, { target: { value: "2026-09-01" } });
+    expect(onDraft).toHaveBeenCalledWith(expect.objectContaining({ date: "2026-09-01" }));
   });
 
   it("keeps the markdown body in sync through the editor", () => {
