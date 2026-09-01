@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plus, Loader2, Lock, FileText, KeyRound, Search } from "lucide-react";
-import { listPosts, readPost, writePost, deletePost, slugify } from "../github";
+import { listPosts, deletePost } from "../github";
 import {
   verifyToken, saveBlogSession, loadBlogSession, sanitizeToken,
-  parseFrontmatter, parseTags, buildMdx, EditorPanel,
-  Panel, chipBtn, FIELD, MONO, type BlogDraft,
+  Panel, chipBtn, FIELD, MONO,
 } from "./editor";
-import { EMPTY_DRAFT } from "./editor";
 import { type BlogAuthorUser } from "./authors";
-import { OWNER_LOGIN } from "./authors";
 import { posts } from "./posts";
 import { POSTS_DIR } from "../github";
 
@@ -16,6 +14,7 @@ const POST_META = new Map<string, { title: string; description: string; tags: st
 for (const p of posts) POST_META.set(p.slug, { title: p.title, description: p.description, tags: p.tags });
 
 export default function BlogAdmin() {
+  const navigate = useNavigate();
   const [stage, setStage] = useState<"checking" | "unlock" | "ready">("checking");
   const [user, setUser] = useState<BlogAuthorUser | null>(null);
   const [token, setToken] = useState("");
@@ -23,7 +22,6 @@ export default function BlogAdmin() {
   const [authErr, setAuthErr] = useState("");
 
   const [filePosts, setFilePosts] = useState<Awaited<ReturnType<typeof listPosts>>>([]);
-  const [draft, setDraft] = useState<BlogDraft | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [ok, setOk] = useState("");
@@ -53,7 +51,7 @@ export default function BlogAdmin() {
   // so RESUME on the unlock screen silently re-verifies instead of asking for
   // it again. Only removing hazem-blog-token from localStorage fully logs out.
   function lock() {
-    setUser(null); setToken(""); setDraft(null); setStage("unlock");
+    setUser(null); setToken(""); setStage("unlock");
   }
 
   const savedSession = loadBlogSession();
@@ -65,43 +63,12 @@ export default function BlogAdmin() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function openPost(p: { path: string; name: string; sha?: string }) {
-    setBusy(true); setErr(""); setOk("");
-    try {
-      const raw = await readPost(token, p.path);
-      const { fm, body } = parseFrontmatter(raw);
-      setDraft({ isNew: false, slug: p.name.replace(/\.mdx$/, ""), path: p.path, sha: p.sha, title: fm.title ?? "", date: fm.date ?? "", description: fm.description ?? "", tags: parseTags(fm.tags), accent: fm.accent || "amber", author: OWNER_LOGIN, body });
-    } catch (e) { setErr((e as Error).message); }
-    finally { setBusy(false); }
-  }
-
-  function startNew() {
-    setErr(""); setOk("");
-    setDraft({ ...EMPTY_DRAFT });
-  }
-
-  async function saveDraft() {
-    if (!draft || !draft.title.trim()) { setErr("Title is required."); return; }
-    const slug = draft.isNew ? slugify(draft.title) : draft.slug;
-    if (draft.isNew && filePosts.some((p) => p.name === `${slug}.mdx`)) { setErr(`A post "${slug}.mdx" already exists.`); return; }
-    const d = { ...draft, slug, path: draft.isNew ? `${POSTS_DIR}/${slug}.mdx` : draft.path };
-    setBusy(true); setErr(""); setOk("");
-    try {
-      await writePost(token, d.path, buildMdx(d), d.sha);
-      setOk(`Saved ${d.path} — the site rebuilds on the next deploy.`);
-      setDraft(null);
-      await refresh(token);
-    } catch (e) { setErr((e as Error).message); }
-    finally { setBusy(false); }
-  }
-
   async function removePost(p: { path: string; name: string; sha: string }) {
     if (!confirm(`Delete "${p.name}" from the repo? This triggers a redeploy.`)) return;
     setBusy(true); setErr(""); setOk("");
     try {
       await deletePost(token, p.path, p.sha);
       setOk(`Deleted ${p.name}.`);
-      if (draft?.path === p.path) setDraft(null);
       await refresh(token);
     } catch (e) { setErr((e as Error).message); }
     finally { setBusy(false); }
@@ -191,24 +158,14 @@ export default function BlogAdmin() {
                   <div key={p.path} style={{ display: "flex", alignItems: "center", gap: 10, border: "1px solid var(--rule-soft)", padding: "8px 12px", borderRadius: 6 }}>
                     <FileText size={13} color="var(--amber)" />
                     <span style={{ ...MONO, fontSize: 12.5, color: "var(--ink)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
-                    <button onClick={() => openPost(p)} disabled={busy} style={chipBtn("var(--sage)")}>EDIT</button>
+                    <button onClick={() => navigate(`/blog/admin/edit/${p.name.replace(/\.mdx$/, "")}`)} disabled={busy} style={chipBtn("var(--sage)")}>EDIT</button>
                     <button onClick={() => removePost(p)} disabled={busy} style={chipBtn("var(--red)")}>DELETE</button>
                   </div>
                 ))}
               </div>
             )}
-            <button onClick={startNew} style={{ ...chipBtn("var(--amber)"), alignSelf: "flex-start" }}><Plus size={11} /> NEW POST</button>
+            <button onClick={() => navigate("/blog/admin/new")} style={{ ...chipBtn("var(--amber)"), alignSelf: "flex-start" }}><Plus size={11} /> NEW POST</button>
           </Panel>
-
-          {draft && (
-            <EditorPanel
-              draft={draft}
-              onDraft={(d) => setDraft(d)}
-              busy={busy}
-              onSave={saveDraft}
-              onCancel={() => setDraft(null)}
-            />
-          )}
 
           {err && <div style={{ ...MONO, fontSize: 11, color: "var(--red)", marginBottom: 16 }}>✗ {err}</div>}
           {ok && <div style={{ ...MONO, fontSize: 11, color: "var(--sage)", marginBottom: 16 }}>✓ {ok}</div>}

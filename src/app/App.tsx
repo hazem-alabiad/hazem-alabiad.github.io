@@ -21,6 +21,7 @@ import { CMSButton } from "./components/CMSButton";
 const BlogIndex = lazy(() => import("../blog/Blog").then(m => ({ default: m.BlogIndex })));
 const BlogPost = lazy(() => import("../blog/Blog").then(m => ({ default: m.BlogPost })));
 const BlogAdmin = lazy(() => import("../blog/BlogAdmin"));
+const PostEditorPage = lazy(() => import("../blog/PostEditor").then(m => ({ default: m.PostEditorPage })));
 
 const BOOTED_KEY = "hazem_portfolio_booted_v3";
 
@@ -371,6 +372,8 @@ function AppContent() {
                     </div>
                   </section>
                 } />
+                <Route path="/admin/new" element={<><SEOWrapper view="admin" /><PostEditorPage mode="new" /></>} />
+                <Route path="/admin/edit/:slug" element={<><SEOWrapper view="admin" /><PostEditorPage mode="edit" /></>} />
                 <Route path="/:slug" element={<BlogPostWrapper />} />
               </Routes>
             </Suspense>
