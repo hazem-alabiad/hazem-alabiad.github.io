@@ -60,9 +60,9 @@
 
 /* ── type stacks ── */
 :root {
-  --font-display: 'Newsreader', 'Tajawal', 'Geeza Pro', Georgia, serif;
-  --font-body: 'IBM Plex Sans', 'Tajawal', 'Geeza Pro', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', 'SF Mono', 'Tajawal', 'Geeza Pro', monospace;
+  --font-display: 'Newsreader', 'IBM Plex Sans Arabic', 'Geeza Pro', Georgia, serif;
+  --font-body:    'IBM Plex Sans', 'IBM Plex Sans Arabic', 'Geeza Pro', system-ui, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'SF Mono', 'IBM Plex Sans Arabic', monospace;
   --max-w: 1080px;
 }
 
@@ -1322,7 +1322,7 @@ footer {
 }
 .blog-prose pre:hover .blog-copy { opacity: 1; }
 .blog-copy:hover { color: var(--amber); border-color: var(--amber); }
-.blog-prose code { font-family: 'JetBrains Mono', 'SF Mono', 'Tajawal', 'Geeza Pro', monospace; font-size: 0.9em; }
+.blog-prose code { font-family: 'JetBrains Mono', 'SF Mono', 'IBM Plex Sans Arabic', 'Geeza Pro', monospace; font-size: 0.9em; }
 .blog-prose--large { font-size: 19px; line-height: 1.8; }
 .blog-prose--large h2 { font-size: 28px; }
 .blog-prose--large h3 { font-size: 23px; }
