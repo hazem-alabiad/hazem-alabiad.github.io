@@ -113,16 +113,18 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
               ? <button className="blog-search-clear" onClick={() => { setQ(""); setActive(-1); inputRef.current?.focus(); }} aria-label="Clear search" title="Clear search (esc)"><kbd>esc</kbd></button>
               : <kbd className="blog-search-kbd" aria-hidden="true">/</kbd>}
           </div>
-          <div className="blog-manage" aria-label="Blog owner controls">
-            {mgr ? (
-              <>
-                <span className="blog-manage-label">OWNER</span>
-                <button className="blog-manage-btn blog-manage-btn--add" onClick={startNew} title="Create a new blog post"><Plus size={13} /><span>NEW POST</span></button>
-                <button className="blog-manage-btn" onClick={lock} title="Lock blog editing"><Lock size={13} /><span>LOCK</span></button>
-              </>
-            ) : (
-              <button className="blog-lock-btn" onClick={() => setUnlockOpen(!unlockOpen)} title="Owner login — manage posts" aria-label="Owner login — manage posts"><Lock size={14} /></button>
-            )}
+          <div className="blog-owner-row">
+            <div className="blog-manage" aria-label="Blog owner controls">
+              {mgr ? (
+                <>
+                  <span className="blog-manage-label">OWNER</span>
+                  <button className="blog-manage-btn blog-manage-btn--add" onClick={startNew} title="Create a new blog post"><Plus size={13} /><span>NEW POST</span></button>
+                  <button className="blog-manage-btn" onClick={lock} title="Lock blog editing"><Lock size={13} /><span>LOCK</span></button>
+                </>
+              ) : (
+                <button className="blog-lock-btn" onClick={() => setUnlockOpen(!unlockOpen)} title="Owner login — manage posts" aria-label="Owner login — manage posts"><Lock size={14} /></button>
+              )}
+            </div>
           </div>
         </div>
         {unlockOpen && !mgr && (

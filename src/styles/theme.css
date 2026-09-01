@@ -1206,6 +1206,7 @@ footer {
 .blog-card:hover .blog-card-more { letter-spacing: 0.12em; }
 
 /* blog search + owner manage toolbar */
+.blog-owner-row { display: flex; justify-content: flex-end; margin: 4px 0 8px; }
 .blog-toolbar { display: flex; align-items: stretch; gap: 12px; margin: 4px 0 22px; flex-wrap: wrap; }
 /* ── shell-prompt command bar ── */
 .blog-search {
@@ -1902,6 +1903,7 @@ footer {
   .blog-article-views { display: none; }
   .blog-prose { font-size: 16.5px; }
   .blog-article-desc { font-size: 15px; }
+  .blog-owner-row { justify-content: flex-start; margin-bottom: 8px; }
   .blog-toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
   .blog-search { flex: 1 1 100%; max-width: none; }
   .blog-search-input { padding: 14px 12px; font-size: 16px; }
