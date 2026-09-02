@@ -113,7 +113,7 @@ describe("BlogIndex", () => {
     renderIndex();
     const input = screen.getByRole("textbox", { name: /search the blog/i });
     fireEvent.change(input, { target: { value: "llm" } });
-    expect(screen.getByText("1 hit")).toBeInTheDocument();
+    expect(screen.getByText("1 result")).toBeInTheDocument();
     expect(screen.getByText("LLM", { selector: "mark" })).toBeInTheDocument();
     expect(screen.queryByText("Shipping Notes")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /delete arabic/i })).not.toBeInTheDocument();
