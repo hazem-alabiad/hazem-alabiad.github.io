@@ -6,6 +6,7 @@ import mdx from '@mdx-js/rollup'
 import remarkFrontmatter from 'remark-frontmatter'
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter'
 import rehypeHighlight from 'rehype-highlight'
+import { remarkCallout } from './src/blog/callout'
 
 
 function figmaAssetResolver() {
@@ -24,7 +25,7 @@ export default defineConfig({
   plugins: [
     figmaAssetResolver(),
     mdx({
-      remarkPlugins: [remarkFrontmatter, remarkMdxFrontmatter],
+      remarkPlugins: [remarkFrontmatter, remarkMdxFrontmatter, remarkCallout],
       rehypePlugins: [rehypeHighlight],
     }),
     // The React and Tailwind plugins are both required for Make, even if

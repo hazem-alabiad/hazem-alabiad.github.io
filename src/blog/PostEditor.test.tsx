@@ -76,14 +76,14 @@ describe("blog editor routing", () => {
 
   it("the new-post page renders the full editor (no inline form on the blog index)", () => {
     render(<MemoryRouter initialEntries={["/blog/admin/new"]}><Routes><Route path="/blog/admin/new" element={<PostEditorPage mode="new" />} /></Routes></MemoryRouter>);
-    expect(screen.getByRole("heading", { name: /write a note/i })).toBeInTheDocument();
+    expect(screen.getByText("NEW POST · WRITE A NOTE")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /publish post/i })).toBeInTheDocument();
     expect(screen.queryByText(/github pat/i)).not.toBeInTheDocument();
   });
 
   it("the edit page loads the post from the repo and prefills the editor", async () => {
     render(<MemoryRouter initialEntries={["/blog/admin/edit/arabic-vmwe-llms"]}><Routes><Route path="/blog/admin/edit/:slug" element={<PostEditorPage mode="edit" />} /></Routes></MemoryRouter>);
-    expect(screen.getByRole("heading", { name: /edit note/i })).toBeInTheDocument();
+    expect(screen.getByText(/EDITING · arabic-vmwe-llms/i)).toBeInTheDocument();
     await waitFor(() => expect(mock.mgr.loadPostDraft).toHaveBeenCalledWith("arabic-vmwe-llms"));
     expect(await screen.findByDisplayValue("Loaded arabic-vmwe-llms")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /save post/i })).toBeInTheDocument();

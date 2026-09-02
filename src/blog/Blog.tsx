@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Pencil, Plus, Share2, Trash2 } from "lucide-react";
+import { Check, Feather, Pencil, Plus, Share2, Trash2 } from "lucide-react";
 import { Comments } from "./Comments";
 import { posts, type Post } from "./posts";
 import { readViews, trackView, type ViewsMap } from "./analytics";
@@ -159,7 +159,7 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
       <div className="wrap">
         <div className="section-head reveal in">
           <div className="section-title-row">
-            <span className="section-icon-badge" style={{ fontSize: 22 }}>✎</span>
+            <span className="section-icon-badge" aria-hidden="true"><Feather size={18} /></span>
             <h2 className="section-title">Notes &amp; <em>Ideas</em></h2>
             {mgr && (
               <div className="blog-owner-corner" aria-label="Blog owner controls">
@@ -206,30 +206,32 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
         <AdUnit slot="0123456789" className="ad-slot--top" />
         <div className="blog-list">
           {shown.map((p: Post, i) => (
-            <article className={`blog-card blog-card--${p.accent || "amber"}${query && i === active ? " blog-card--active" : ""}`} key={p.slug} onClick={() => onOpen(p.slug)}>
-              {/* tier 1: date + read time */}
-              <div className="blog-card-meta">
-                <span className="blog-card-date">{fmtDate(p.date)}</span>
-                <span className="blog-card-meta-sep" />
-                <span className="blog-card-readtime">{Math.max(1, Math.round(p.description.split(/\s+/).length / 40))} min read</span>
-              </div>
-              {/* tier 2: title + description */}
-              <h3 className="blog-card-title">{highlight(p.title)}</h3>
-              <p className="blog-card-desc">{highlight(p.description)}</p>
-              {/* tier 3: tags + footer */}
-              <div className="blog-card-tags">{p.tags.map((t) => <span key={t}>{highlight(t)}</span>)}</div>
-              <div className="blog-card-foot">
-                <a className="blog-card-author" href={`https://github.com/${authorOf(p)}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>@{authorOf(p)}</a>
-                <div className="blog-card-actions">
-                  {mgr && (
-                    <>
-                      <button className="blog-card-manage blog-card-manage--ionly" title="Edit post" aria-label={`Edit ${p.slug}`} onClick={(e) => { e.stopPropagation(); navigate(`/blog/admin/edit/${p.slug}`); }}><Pencil size={12} /></button>
-                      <button className="blog-card-manage blog-card-manage--danger blog-card-manage--ionly" title="Delete post" aria-label={`Delete ${p.slug}`} onClick={(e) => { e.stopPropagation(); removePost(p); }}><Trash2 size={12} /></button>
-                    </>
-                  )}
-                  <span className="blog-card-more">Read &rarr;</span>
+            <article className={`blog-row blog-row--${p.accent || "amber"}${query && i === active ? " blog-row--active" : ""}`} key={p.slug}>
+              <a
+                href={`#/blog/${p.slug}`}
+                className="blog-row-main"
+                onClick={(e) => { e.preventDefault(); onOpen(p.slug); }}
+              >
+                <div className="blog-row-meta">
+                  <span className="blog-row-date">{fmtDate(p.date)}</span>
+                  <span className="blog-row-mid" aria-hidden="true">/</span>
+                  <span className="blog-row-readtime">{Math.max(1, Math.round(p.description.split(/\s+/).length / 40))} min read</span>
                 </div>
-              </div>
+                <h3 className="blog-row-title">{highlight(p.title)}</h3>
+                <p className="blog-row-desc">{highlight(p.description)}</p>
+                <div className="blog-row-foot">
+                  {p.tags.length > 0 && (
+                    <div className="blog-row-tags">{p.tags.map((t) => <span key={t} className="blog-row-tag">{highlight(t)}</span>)}</div>
+                  )}
+                  <span className="blog-row-more" aria-hidden="true">Read →</span>
+                </div>
+              </a>
+              {mgr && (
+                <div className="blog-row-actions">
+                  <button className="blog-row-manage blog-row-manage--ionly" title="Edit post" aria-label={`Edit ${p.slug}`} onClick={() => navigate(`/blog/admin/edit/${p.slug}`)}><Pencil size={13} /></button>
+                  <button className="blog-row-manage blog-row-manage--danger blog-row-manage--ionly" title="Delete post" aria-label={`Delete ${p.slug}`} onClick={() => removePost(p)}><Trash2 size={13} /></button>
+                </div>
+              )}
             </article>
           ))}
         </div>
@@ -271,33 +273,36 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
     const prose = document.querySelector(".blog-prose");
     if (!prose) return;
     prose.querySelectorAll("pre").forEach((pre) => {
-      // copy button
-      if (!pre.querySelector(".blog-copy")) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "blog-copy";
-        btn.textContent = "copy";
-        btn.title = "Copy code";
-        btn.addEventListener("click", () => {
-          try {
-            navigator.clipboard.writeText(pre.textContent || "").then(() => {
-              btn.textContent = "copied";
-              setTimeout(() => { btn.textContent = "copy"; }, 1600);
-            });
-          } catch { /* clipboard unavailable */ }
-        });
-        pre.appendChild(btn);
+      // skip if already wrapped by the code header bar
+      if (pre.parentElement?.classList.contains("blog-codeblock")) return;
+      const lang = Array.from(pre.querySelectorAll("code")).map((c) => (c.className || "").match(/language-(\w+)/)?.[1]).find(Boolean);
+      const wrapper = document.createElement("figure");
+      wrapper.className = "blog-codeblock";
+      const bar = document.createElement("div");
+      bar.className = "blog-codebar";
+      if (lang) {
+        const chip = document.createElement("span");
+        chip.className = "blog-code-lang";
+        chip.textContent = lang;
+        bar.appendChild(chip);
       }
-      // language chip
-      if (!pre.querySelector(".blog-code-lang")) {
-        const lang = Array.from(pre.querySelectorAll("code")).map((c) => (c.className || "").match(/language-(\w+)/)?.[1]).find(Boolean);
-        if (lang) {
-          const chip = document.createElement("span");
-          chip.className = "blog-code-lang";
-          chip.textContent = lang;
-          pre.appendChild(chip);
-        }
-      }
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "blog-copy";
+      btn.textContent = "copy";
+      btn.title = "Copy code";
+      btn.addEventListener("click", () => {
+        try {
+          navigator.clipboard.writeText(pre.textContent || "").then(() => {
+            btn.textContent = "copied";
+            setTimeout(() => { btn.textContent = "copy"; }, 1600);
+          });
+        } catch { /* clipboard unavailable */ }
+      });
+      bar.appendChild(btn);
+      pre.parentNode?.insertBefore(wrapper, pre);
+      wrapper.appendChild(bar);
+      wrapper.appendChild(pre);
     });
   }, [slug, size]);
 
@@ -441,8 +446,7 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
             <a href={profileUrl(author)} target="_blank" rel="noopener noreferrer" className="blog-article-author">@{author}</a>
             <span className="blog-article-byline-sep" aria-hidden="true">·</span>
             <span className="blog-article-date">{fmtDate(post.date)}</span>
-            {readingTime && <><span className="blog-article-byline-sep" aria-hidden="true">·</span><span className="blog-article-readtime">{readingTime} min read</span></>}
-            <span className="blog-article-byline-sep" aria-hidden="true">·</span>
+            {readingTime && <span className="blog-article-readtime">{readingTime} min read</span>}
             <span className="blog-article-views">{views[`post:${post.slug}`] || 0} views</span>
           </div>
           {mgrErr && <p className="blog-mgr-err">✗ {mgrErr}</p>}
@@ -473,7 +477,7 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
             <div className="blog-article-authorcard-body">
               <div className="blog-article-authorcard-name">
                 <a href={`https://github.com/${author}`} target="_blank" rel="noopener noreferrer" className="blog-article-authorcard-handle">@{author}</a>
-                <span className="blog-article-authorcard-role">field notes — NLP &amp; language engineering</span>
+                <span className="blog-article-authorcard-role">field notes · NLP &amp; language engineering</span>
               </div>
               <p className="blog-article-authorcard-bio">Writing on NLP research, language engineering, and the craft of shipping software.</p>
               <div className="blog-article-authorcard-links">

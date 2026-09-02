@@ -38,7 +38,7 @@ describe('App routes', () => {
   it('shows the unlock panel on the new-post route without credentials', async () => {
     renderAt('#/blog/admin/new');
     // the lazy editor chunk is large; give it time to transform under parallel load
-    expect(await screen.findByRole('heading', { name: /write a note/i }, { timeout: 8000 })).toBeInTheDocument();
+    expect(await screen.findByText(/NEW POST · WRITE A NOTE/i, {}, { timeout: 8000 })).toBeInTheDocument();
     expect(await screen.findByPlaceholderText('GitHub PAT', {}, { timeout: 8000 })).toBeInTheDocument();
   });
 
