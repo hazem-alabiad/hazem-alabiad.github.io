@@ -1,9 +1,34 @@
-import { render, screen, fireEvent, within, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, within, waitFor, act } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { BlogIndex, BlogPost } from "./Blog";
 import type { Post } from "./posts";
 import type { BlogManagerValue } from "./manager";
+
+// Test helpers for the deep-link restore: the real code waits while the
+// boot-screen overlay (a fixed full-viewport div, `data-boot-screen`) is up,
+// because that overlay clamps scroll and its unmount shifts the position out
+// of view. Tests drive the actual implementation with DOM fixtures + fake timers.
+const bootFixture = { el: null as HTMLDivElement | null, present: false };
+function setBootFixture(present: boolean) {
+  if (present && !bootFixture.el) {
+    const d = document.createElement("div");
+    d.setAttribute("data-boot-screen", "");
+    d.style.position = "fixed";
+    d.style.inset = "0";
+    d.style.zIndex = "99999";
+    document.body.appendChild(d);
+    bootFixture.el = d;
+    bootFixture.present = true;
+  } else if (!present) {
+    removeBootFixture();
+  }
+}
+function removeBootFixture() {
+  bootFixture.el?.remove();
+  bootFixture.el = null;
+  bootFixture.present = false;
+}
 
 const mock = vi.hoisted<{ mgr: BlogManagerValue }>(() => ({
   mgr: {
@@ -187,6 +212,13 @@ describe("BlogPost", () => {
     mock.mgr.unlockOpen = false;
     mock.mgr.visiblePosts = FAKE;
     mock.mgr.hiddenSlugs = new Set();
+    removeBootFixture();
+    vi.useRealTimers();
+  });
+
+  afterEach(() => {
+    removeBootFixture();
+    vi.useRealTimers();
   });
 
   function renderPost(slug = "arabic-vmwe-llms") {
@@ -252,6 +284,38 @@ describe("BlogPost", () => {
     expect(end!.textContent).toContain("end of note");
     expect(screen.getByRole("link", { name: "GitHub" })).toBeInTheDocument();
     expect(await screen.findByText("COMMENTS")).toBeInTheDocument();
+  });
+
+  it("restores the deep link immediately when no boot overlay is up", async () => {
+    window.location.hash = "#/blog/is-a-route#what-the-llm-does";
+    const scrollSpy = vi.fn();
+    window.HTMLElement.prototype.scrollIntoView = scrollSpy;
+    renderPost();
+    await waitFor(() => expect(scrollSpy).toHaveBeenCalledTimes(1));
+    expect(scrollSpy.mock.calls[0][0]).toEqual({ block: "start" });
+    window.location.hash = "";
+  });
+
+  it("holds the deep-link restore while the boot screen is up, then lands after dismissal", async () => {
+    vi.useFakeTimers();
+    const scrollSpy = vi.fn();
+    window.HTMLElement.prototype.scrollIntoView = scrollSpy;
+    window.location.hash = "#/blog/is-a-route#the-direction-i-probe";
+    setBootFixture(true); // the boot overlay is up at mount
+    renderPost();
+    await act(async () => { await Promise.resolve(); });
+    expect(document.getElementById("the-direction-i-probe")).toBeTruthy();
+    expect(document.querySelector("[data-boot-screen]")).toBeTruthy();
+    // a few retries pass while the overlay is still up → no scroll yet
+    await act(async () => { vi.advanceTimersByTime(300); });
+    expect(scrollSpy).not.toHaveBeenCalled();
+    // user dismisses the boot screen → next retry restores the anchor
+    setBootFixture(false);
+    await act(async () => { await vi.advanceTimersByTimeAsync(400); });
+    expect(scrollSpy).toHaveBeenCalledTimes(1);
+    expect(scrollSpy.mock.calls[0][0]).toEqual({ block: "start" });
+    window.location.hash = "";
+    removeBootFixture();
   });
 
   it("shows Post not found for a missing slug", () => {

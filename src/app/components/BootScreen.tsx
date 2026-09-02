@@ -44,7 +44,7 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
   }, []);
 
   return (
-    <div onClick={launch} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", animation: wiping ? "boot-wipe 0.5s cubic-bezier(0.7,0,1,1) forwards" : "none", transformOrigin: "top" }}>
+    <div data-boot-screen onClick={launch} style={{ position: "fixed", inset: 0, zIndex: 99999, background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", animation: wiping ? "boot-wipe 0.5s cubic-bezier(0.7,0,1,1) forwards" : "none", transformOrigin: "top" }}>
       <div style={{ fontFamily: "var(--font-mono)", textAlign: "center", padding: "0 28px" }}>
         <div style={{ fontSize: 11, color: "var(--ink-faint)", letterSpacing: "0.3em", marginBottom: 28 }}>HAZEM_ALABIAD // BOOT</div>
         <div style={{ textAlign: "left", display: "inline-block", minWidth: 280 }}>
