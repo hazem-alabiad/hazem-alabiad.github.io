@@ -566,7 +566,7 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
         </article>
         {showAside && (
           <aside className="blog-toc" aria-label="On this page">
-            <div className="blog-toc-label">IN THIS NOTE</div>
+            <div className="blog-toc-label">IN THIS NOTE <span className="blog-toc-count">{toc.length}</span></div>
             {tocNav}
           </aside>
         )}

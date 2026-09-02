@@ -77,7 +77,7 @@ export function EditorPanel({ draft, onDraft, busy, saveState, onSave, onCancel 
 
   // editor body font size — comfort reading while drafting
   const EDIT_FONT_KEY = "hazem_editor_font";
-  const EDIT_FONTS = [14, 15.5, 17];
+  const EDIT_FONTS = [15, 16.5, 18];
   const [editFont, setEditFont] = useState<number>(() => {
     try { const s = Number(localStorage.getItem(EDIT_FONT_KEY)); return EDIT_FONTS.includes(s) ? s : EDIT_FONTS[1]; } catch { return EDIT_FONTS[1]; }
   });
@@ -121,7 +121,8 @@ export function EditorPanel({ draft, onDraft, busy, saveState, onSave, onCancel 
   return (
     <div className="blog-editor">
       <div className="blog-editor-head" role="group" aria-label="Post title and lede">
-        <div className="blog-editor-field">
+        <div className="blog-editor-field blog-editor-field--title">
+          <span className="blog-editor-cell-label">TITLE</span>
           <input
             className="blog-editor-title"
             value={draft.title}
@@ -130,7 +131,8 @@ export function EditorPanel({ draft, onDraft, busy, saveState, onSave, onCancel 
             onChange={(e) => onDraft({ ...draft, title: e.target.value })}
           />
         </div>
-        <div className="blog-editor-field">
+        <div className="blog-editor-field blog-editor-field--lede">
+          <span className="blog-editor-cell-label">LEDE</span>
           <input
             className="blog-editor-desc"
             value={draft.description}

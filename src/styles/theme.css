@@ -1498,14 +1498,14 @@ select.blog-editor-meta-input option { background: var(--bg-panel); color: var(-
 
 /* full-page article preview — same prose typography the published post uses */
 .blog-editor-preview {
-  border: 1px solid var(--rule); border-radius: 12px; overflow: hidden;
-  background: var(--bg);
+  border: 1px solid transparent; border-radius: 12px; overflow: hidden;
+  background: transparent;
 }
 .blog-editor-preview-flag {
   font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase;
   color: var(--amber); display: inline-flex; align-items: center; gap: 6px;
   padding: 10px 16px; border-bottom: 1px solid var(--rule-soft); width: 100%;
-  background: var(--bg-panel);
+  background: transparent;
 }
 .blog-editor-preview .blog-prose {
   padding: 34px clamp(18px, 5vw, 56px) 40px;
@@ -3129,4 +3129,313 @@ select.blog-editor-meta-input option { background: var(--bg-panel); color: var(-
 .blog-search-status kbd {
   font-family: inherit; color: var(--amber);
   background: transparent; border: 0; padding: 0;
+}
+
+/* ══ POST VIEW POLISH ═══════════════════════════════════════════════════════
+   Appended after the DigitalOcean sheet block. A cleaner reading sheet: the
+   duplicated gutter numbers are removed (the sticky "IN THIS NOTE" rail owns
+   the section index), plus hr/table styling and lighter structural chrome on
+   the read-next panel and TOC rail. */
+
+/* The section numbers stamped beside h2/h3 are redundant with the sticky
+   "IN THIS NOTE" rail and read as noise — remove them. */
+.blog-article .blog-prose { counter-reset: none; }
+.blog-article .blog-prose h2::before,
+.blog-article .blog-prose h3::before { content: none; }
+
+/* heading anchors: keep the # chip quiet until the headline is hovered */
+.blog-prose h2 .blog-heading-anchor,
+.blog-prose h3 .blog-heading-anchor { opacity: 0; }
+.blog-prose h2:hover .blog-heading-anchor,
+.blog-prose h3:hover .blog-heading-anchor,
+.blog-heading-anchor:focus-visible,
+.blog-prose h2:focus-visible .blog-heading-anchor,
+.blog-prose h3:focus-visible .blog-heading-anchor { opacity: 1; }
+
+/* horizontal rule: a short hairline centered between sections (DO style) */
+.blog-prose hr {
+  border: 0;
+  border-top: 1px solid var(--blog-line);
+  margin: 42px auto;
+  max-width: 132px;
+  opacity: 0.7;
+}
+
+/* tables: hairline grid, mono uppercase header, no heavy chrome */
+.blog-prose table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  margin: 0 0 24px;
+  font-size: 15px;
+  line-height: 1.5;
+  border: 1px solid var(--blog-line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.blog-prose th, .blog-prose td {
+  text-align: left;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--blog-line);
+  border-right: 1px solid var(--blog-line);
+}
+.blog-prose th:last-child, .blog-prose td:last-child { border-right: 0; }
+.blog-prose thead { background: var(--blog-sheet-2); }
+.blog-prose th {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.blog-prose tbody tr:last-child td { border-bottom: 0; }
+.blog-prose tbody tr:hover td { background: var(--blog-sheet-2); }
+
+/* read-next: keep tag chips off the description, tighten vertical rhythm */
+.blog-next { padding: 24px 26px; }
+.blog-next p { margin: 0; }
+.blog-next-tags { margin-top: 12px; }
+
+/* ══ "IN THIS NOTE" RAIL — a hairline section index, not a boxed card ══
+   A quiet editorial mini-map. A thin leader line carries numbered entries;
+   the active section gets an amber tick on that line (scroll-spy). Light and
+   unobtrusive beside the reading column. */
+.blog-toc {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  position: sticky;
+  top: 96px;
+}
+.blog-toc-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 2px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--blog-line);
+}
+.blog-toc-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--amber);
+}
+.blog-toc-nav ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0 0 0 3px;
+  padding: 8px 0 0;
+  border-left: 2px solid var(--blog-line);
+}
+.blog-toc-link {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  border-radius: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--ink-dim);
+  padding: 7px 8px 7px 14px;
+  position: relative;
+  transition: color 0.15s ease;
+}
+.blog-toc-link:hover { color: var(--ink); background: transparent; }
+.blog-toc-link:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; border-radius: 8px; }
+.blog-toc-link.is-active { color: var(--amber); }
+.blog-toc-link.is-active::before {
+  content: "";
+  position: absolute;
+  left: -2px; top: 8px; bottom: 8px;
+  width: 2px;
+  background: var(--amber);
+  border-radius: 2px;
+}
+.blog-toc-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  width: 2ch;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.blog-toc-link.is-active .blog-toc-num { color: var(--amber); }
+.blog-toc-li--sub .blog-toc-link { padding-left: 26px; }
+.blog-toc-li--sub .blog-toc-link::before { left: -2px; }
+.blog-toc-li--sub .blog-toc-num { color: var(--ink-faint); }
+
+/* ══ EDITOR COMFORT PASS ═══════════════════════════════════════════════════
+   The writing surface was too compressed — tiny meta labels (9px), cramped
+   fields (38px min-height), small tag chips and a tight tab bar. Scale the
+   controls up and air out the sheet so drafting feels as measured as reading. */
+
+/* sheet: more air around the document */
+.blog-editor {
+  gap: 20px;
+  padding: clamp(24px, 4vw, 44px);
+}
+
+/* hero: title keeps its display scale; lede and spacing up */
+.blog-editor-head { gap: 10px; }
+.blog-editor-title { padding: 8px 12px; }
+.blog-editor-desc { font-size: 17px; line-height: 1.55; padding: 6px 12px; }
+
+/* meta strip: roomier cells, larger inputs, clearer labels */
+.blog-editor-meta { gap: 16px; padding: 16px 0; }
+.blog-editor-cell { gap: 8px; }
+.blog-editor-cell-label { font-size: 10.5px; letter-spacing: 0.14em; color: var(--ink-dim); }
+.blog-editor-meta .blog-editor-field {
+  min-height: 50px;
+  padding: 12px 14px;
+}
+.blog-editor-meta-input { font-size: 14px; }
+.blog-editor-meta input[type="date"] { font-size: 14px; }
+
+/* tag chips: larger, easier to read and tap */
+.blog-editor-tags { gap: 9px; }
+.blog-editor-tags-list { gap: 7px; }
+.blog-editor-tag { font-size: 12px; padding: 5px 12px; gap: 5px; }
+.blog-editor-tag-x { font-size: 13px; }
+
+/* tab bar: taller, larger, clearer active state */
+.blog-editor-tabs { padding: 3px; gap: 3px; border-radius: 12px; margin: 4px 0 8px; }
+.blog-editor-tab { gap: 8px; font-size: 11px; letter-spacing: 0.12em; border-radius: 8px; padding: 11px 16px; }
+.blog-editor-tab-hint { font-size: 10px; }
+
+/* footer: bigger stats and buttons, comfortable hit targets */
+.blog-editor-foot { padding-top: 18px; gap: 14px; }
+.blog-editor-stats { font-size: 12px; }
+.blog-editor-actions { gap: 12px; }
+.blog-editor-btn { font-size: 12px; padding: 11px 20px; border-radius: 10px; }
+
+/* editor surface itself: softer radius, taller comfortable body */
+.blog-editor .w-md-editor { border-radius: 12px; }
+.blog-editor .w-md-editor-text { line-height: 1.8; }
+
+/* mobile: keep the controls full-width and roomy */
+@media (max-width: 700px) {
+  .blog-editor { padding: 20px 16px 26px; }
+  .blog-editor-meta { gap: 14px; padding: 14px 0; }
+  .blog-editor-meta .blog-editor-field { min-height: 52px; padding: 12px 14px; }
+  .blog-editor-tab { padding: 12px 14px; }
+  .blog-editor-foot { padding-top: 16px; }
+  .blog-editor-btn { padding: 12px 18px; }
+}
+
+/* ══ EDITOR AS WRITING SHEET ═════════════════════════════════════════════════
+   The editor IS the note. It mirrors the published article: the markdown
+   surface is the same paper as the published sheet, metadata sits as a
+   hairline rule (document, not form), and the chrome stays quiet. One amber
+   caret underscores the draft. */
+
+/* the editor card — same sheet the article lives on. Wider than the read
+   prose because you write code/tables here: a 980px measure, still centred. */
+.blog-editor {
+  background: var(--blog-sheet);
+  border: 1px solid var(--blog-line);
+  border-radius: var(--blog-r);
+  box-shadow: var(--blog-shadow);
+  gap: 20px;
+  width: 100%;
+  max-width: 980px;
+  margin-inline: auto;
+  padding: clamp(24px, 4vw, 44px);
+}
+
+/* hero: the title is the article title, amber caret-underline on focus */
+.blog-editor-head { gap: 6px; }
+.blog-editor-title { font-size: clamp(30px, 4.6vw, 42px); line-height: 1.12; padding: 4px 6px 10px; }
+.blog-editor-title::placeholder { color: var(--ink-faint); opacity: .5; }
+.blog-editor-desc { font-size: 17px; line-height: 1.55; padding: 4px 6px 12px; }
+.blog-editor-field:focus-within { box-shadow: inset 0 -2px 0 var(--amber); }
+
+/* metadata rule: document, not a form — hairline top/bottom, underline fields */
+.blog-editor-meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  gap: 22px;
+  border-top: 1px solid var(--blog-line);
+  border-bottom: 1px solid var(--blog-line);
+  padding: 16px 0;
+}
+.blog-editor-cell { gap: 8px; }
+.blog-editor-cell-label {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.blog-editor-meta .blog-editor-cell:focus-within .blog-editor-cell-label { color: var(--amber); }
+.blog-editor-meta .blog-editor-field {
+  border: 0; background: transparent; border-radius: 0;
+  min-height: 0; padding: 9px 0 11px;
+  border-bottom: 1px solid var(--blog-line);
+  transition: border-color .18s ease;
+}
+.blog-editor-meta .blog-editor-field:hover { border-bottom-color: var(--rule); }
+.blog-editor-meta .blog-editor-field:focus-within { border-bottom-color: var(--amber); box-shadow: none; }
+.blog-editor-meta-input { font-size: 15.5px; }
+.blog-editor-meta input[type="date"] { font-size: 15.5px; }
+.blog-editor-meta-input::placeholder { color: var(--ink-faint); opacity: .8; }
+.blog-editor-tag { font-size: 12px; padding: 5px 12px; }
+
+/* writing surface = the paper the article sits on */
+.blog-editor .w-md-editor {
+  --color-canvas-default: var(--blog-sheet);
+  --color-canvas-subtle: var(--blog-sheet-2);
+  --color-border-default: var(--blog-line);
+  --color-border-muted: var(--blog-line);
+  --color-neutral-muted: var(--blog-sheet-2);
+  background: var(--blog-sheet);
+  border: 1px solid var(--blog-line);
+  border-radius: 12px;
+  box-shadow: none;
+}
+.blog-editor .w-md-editor-text-input,
+.blog-editor .w-md-editor-text-pre > code {
+  font-family: var(--font-mono);
+  font-size: 16.5px;
+  line-height: 1.85;
+}
+.blog-editor .w-md-editor-text-input { caret-color: var(--amber); }
+
+/* toolbar: quiet hairline bar, larger comfortable buttons */
+.blog-editor .w-md-editor-toolbar {
+  background: var(--blog-sheet-2);
+  border-bottom: 1px solid var(--blog-line);
+  padding: 8px 10px;
+}
+.blog-editor .w-md-editor-toolbar li > button {
+  min-width: 30px; height: 30px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid transparent; border-radius: 8px;
+  color: var(--ink-dim);
+}
+.blog-editor .w-md-editor-toolbar li > button:hover,
+.blog-editor .w-md-editor-toolbar li > button:focus-visible {
+  background: var(--blog-sheet); color: var(--amber); border-color: var(--amber-soft);
+}
+.blog-editor .w-md-editor-toolbar li > button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--amber); }
+.blog-editor .w-md-editor-toolbar li.divider { background: var(--blog-line); margin: 6px; }
+
+/* mode tabs: hairline chips, larger */
+.blog-editor-tabs {
+  padding: 3px; gap: 3px; border-radius: 12px;
+  background: var(--blog-sheet-2); border-color: var(--blog-line); margin: 4px 0 8px;
+}
+.blog-editor-tab { font-size: 11px; letter-spacing: .12em; padding: 11px 16px; border-radius: 8px; }
+.blog-editor-tab.is-active { background: var(--blog-sheet); color: var(--amber); box-shadow: 0 0 0 1px var(--blog-line); }
+
+/* footer: hairline, calm, comfortable actions */
+.blog-editor-foot { border-top: 1px solid var(--blog-line); padding-top: 18px; gap: 14px; }
+.blog-editor-stats { font-size: 12px; }
+.blog-editor-btn { font-size: 12px; padding: 11px 20px; border-radius: 10px; background: var(--blog-sheet-2); border-color: var(--blog-line); }
+.blog-editor-btn--primary { background: var(--amber); border-color: var(--amber); color: var(--amber-ink); }
+
+/* mobile: keep the sheet tight and controls full-width */
+@media (max-width: 700px) {
+  .blog-editor { padding: 22px 18px 28px; }
+  .blog-editor-meta { grid-template-columns: 1fr; gap: 14px; padding: 14px 0; }
 }
