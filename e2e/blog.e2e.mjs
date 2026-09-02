@@ -60,9 +60,9 @@ try {
   await page.goto(BASE + "/#/blog", { waitUntil: "domcontentloaded", timeout: 20000 });
   await page.waitForSelector(".blog-search-input", { timeout: 15000 });
   await page.type(".blog-search-input", "llm");
-  await page.waitForFunction(() => document.querySelector(".blog-search-count")?.textContent?.includes("hit"), { timeout: 8000 });
+  await page.waitForFunction(() => document.querySelector(".blog-search-count")?.textContent?.includes("result"), { timeout: 8000 });
   const count = await page.$eval(".blog-search-count", (el) => el.textContent);
-  assert.ok(/hit/.test(count), `unexpected hit count: ${count}`);
+  assert.ok(/result/.test(count), `unexpected search count: ${count}`);
   console.log(`  ✓ search filters: ${count}`);
   await page.keyboard.press("Escape");
   const cleared = await page.$eval(".blog-search-input", (el) => el.value);
@@ -72,7 +72,7 @@ try {
   // ── 3. post page + TOC ──
   console.log("→ post page & TOC…");
   // the index is a list of real links now (dev.to-style rows); click the first
-  await page.$eval(".blog-row-main", (el) => el.click());
+  await page.$eval(".blog-card-main", (el) => el.click());
   await page.waitForSelector("article.blog-article h1", { timeout: 15000 });
   const title = await page.$eval("article.blog-article h1", (el) => el.textContent);
   assert.ok(title.length > 0, "post title missing");

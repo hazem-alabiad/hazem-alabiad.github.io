@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Check, Feather, Pencil, Plus, Share2, Trash2 } from "lucide-react";
+import { ArrowRight, Check, Feather, Pencil, Plus, Search, Share2, Trash2, X } from "lucide-react";
 import { Comments } from "./Comments";
 import { posts, type Post } from "./posts";
 import { relDate, absDate } from "./dates";
 import { readViews, trackView, type ViewsMap } from "./analytics";
 import { AdUnit } from "../Adsense";
 import { useBlogManager } from "./manager";
+import { highlightTokens, parseQuery, scorePost } from "./search";
 
 const FONT_SCALE_KEY = "hazem_font_scale";
 // 16–20 only: 22 is too large for comfortable reading and the A−/A+ reach is enough
@@ -111,16 +112,10 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
 
   const { mgr, mgrErr, mgrOk, visiblePosts, removePost } = useBlogManager();
 
-  const score = (p: Post): number => {
-    if (!query) return 0;
-    const t = p.title.toLowerCase().includes(query) ? 4 : 0;
-    const d = p.description.toLowerCase().includes(query) ? 2 : 0;
-    const tg = p.tags.some((x) => x.toLowerCase().includes(query)) ? 2 : 0;
-    const sl = p.slug.includes(query) ? 1 : 0;
-    return t + d + tg + sl;
-  };
+  // fuzzy + operator-aware search: parse once, rank with scorePost
+  const parsed = useMemo(() => parseQuery(query), [query]);
   const hits = visiblePosts
-    .map((p) => ({ p, s: score(p) }))
+    .map((p) => ({ p, s: scorePost(p, parsed) }))
     .filter((x) => x.s > 0)
     .sort((a, b) => b.s - a.s)
     .map((x) => x.p);
@@ -133,17 +128,23 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
   const toggleTag = (t: string) => setTag((cur) => (cur === t ? null : t));
   const byTag = (list: Post[]) => (tag ? list.filter((p) => p.tags.includes(tag)) : list);
 
+  const hi = useMemo(() => highlightTokens(query), [query]);
   const highlight = (text: string): ReactNode => {
-    if (!query) return text;
-    const i = text.toLowerCase().indexOf(query);
-    if (i < 0) return text;
-    return (
-      <>
-        {text.slice(0, i)}
-        <mark className="blog-search-hit">{text.slice(i, i + query.length)}</mark>
-        {text.slice(i + query.length)}
-      </>
-    );
+    if (!hi.length) return text;
+    const lower = text.toLowerCase();
+    for (const tk of hi) {
+      const i = lower.indexOf(tk);
+      if (i >= 0) {
+        return (
+          <>
+            {text.slice(0, i)}
+            <mark className="blog-search-hit">{text.slice(i, i + tk.length)}</mark>
+            {text.slice(i + tk.length)}
+          </>
+        );
+      }
+    }
+    return text;
   };
 
   const onKey = (e: React.KeyboardEvent) => {
@@ -173,22 +174,26 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
         </div>
         <div className="blog-toolbar">
           <div className="blog-search">
-            <span className="blog-search-prompt" aria-hidden="true">➜</span>
+            <Search className="blog-search-icon" size={16} aria-hidden="true" />
             <input
               ref={inputRef}
               className="blog-search-input"
-              placeholder="grep the notes: title, tag, or topic"
+              placeholder="Search notes · #tag, title:model, or a phrase"
               value={q}
               onChange={(e) => { setQ(e.target.value); setActive(-1); }}
               onKeyDown={onKey}
               aria-label="Search the blog"
             />
-            {searching && hits.length > 0 && (
-              <span className="blog-search-count" aria-live="polite">{hits.length} hit{hits.length === 1 ? "" : "s"}</span>
+            {searching && (
+              <span className="blog-search-count" aria-live="polite">{hits.length} result{hits.length === 1 ? "" : "s"}</span>
             )}
-            {q
-              ? <button className="blog-search-clear" onClick={() => { setQ(""); setActive(-1); inputRef.current?.focus(); }} aria-label="Clear search" title="Clear search (esc)"><kbd>esc</kbd></button>
-              : <kbd className="blog-search-kbd" aria-hidden="true">/</kbd>}
+            {q ? (
+              <button className="blog-search-clear" onClick={() => { setQ(""); setActive(-1); inputRef.current?.focus(); }} aria-label="Clear search" title="Clear search (esc)">
+                <X size={15} aria-hidden="true" />
+              </button>
+            ) : (
+              <kbd className="blog-search-kbd" aria-hidden="true">/</kbd>
+            )}
           </div>
         </div>
         {searching && hits.length > 0 && active >= 0 && (
@@ -229,32 +234,32 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
         {mgrErr && <p className="blog-mgr-err">✗ {mgrErr}</p>}
         {mgrOk && <p className="blog-mgr-ok">✓ {mgrOk}</p>}
         <AdUnit slot="0123456789" className="ad-slot--top" />
-        <div className="blog-list">
+        <div className="blog-grid">
           {shown.map((p: Post, i) => (
-            <article className={`blog-row blog-row--${p.accent || "amber"}${query && i === active ? " blog-row--active" : ""}`} key={p.slug}>
+            <article className={`blog-card${query && i === active ? " blog-card--active" : ""}`} key={p.slug}>
               <a
                 href={`#/blog/${p.slug}`}
-                className="blog-row-main"
+                className="blog-card-main"
                 onClick={(e) => { e.preventDefault(); onOpen(p.slug); }}
               >
-                <div className="blog-row-meta">
-                  <time className="blog-row-date" dateTime={p.date} title={absDate(p.date)}>{relDate(p.date)}</time>
-                  <span className="blog-row-mid" aria-hidden="true">/</span>
-                  <span className="blog-row-readtime">{Math.max(1, Math.round(p.description.split(/\s+/).length / 40))} min read</span>
+                <div className="blog-card-meta">
+                  <time className="blog-card-date" dateTime={p.date} title={absDate(p.date)}>{relDate(p.date)}</time>
+                  <span className="blog-card-sep" aria-hidden="true">·</span>
+                  <span className="blog-card-readtime">{Math.max(1, Math.round(p.description.split(/\s+/).length / 40))} min read</span>
                 </div>
-                <h3 className="blog-row-title">{highlight(p.title)}</h3>
-                <p className="blog-row-desc">{highlight(p.description)}</p>
-                <div className="blog-row-foot">
-                  {p.tags.length > 0 && (
-                    <div className="blog-row-tags">{p.tags.map((t) => <span key={t} className="blog-row-tag">{highlight(t)}</span>)}</div>
-                  )}
-                  <span className="blog-row-more" aria-hidden="true">Read →</span>
+                <h3 className="blog-card-title">{highlight(p.title)}</h3>
+                <p className="blog-card-desc">{highlight(p.description)}</p>
+                <div className="blog-card-foot">
+                  <div className="blog-card-tags">
+                    {p.tags.slice(0, 3).map((t) => <span key={t} className="blog-card-tag">{highlight(t)}</span>)}
+                  </div>
+                  <span className="blog-card-more" aria-hidden="true">Read →</span>
                 </div>
               </a>
               {mgr && (
-                <div className="blog-row-actions">
-                  <button className="blog-row-manage blog-row-manage--ionly" title="Edit post" aria-label={`Edit ${p.slug}`} onClick={() => navigate(`/blog/admin/edit/${p.slug}`)}><Pencil size={13} /></button>
-                  <button className="blog-row-manage blog-row-manage--danger blog-row-manage--ionly" title="Delete post" aria-label={`Delete ${p.slug}`} onClick={() => removePost(p)}><Trash2 size={13} /></button>
+                <div className="blog-card-actions">
+                  <button className="blog-card-manage blog-card-manage--ionly" title="Edit post" aria-label={`Edit ${p.slug}`} onClick={() => navigate(`/blog/admin/edit/${p.slug}`)}><Pencil size={13} /></button>
+                  <button className="blog-card-manage blog-card-manage--danger blog-card-manage--ionly" title="Delete post" aria-label={`Delete ${p.slug}`} onClick={() => removePost(p)}><Trash2 size={13} /></button>
                 </div>
               )}
             </article>
