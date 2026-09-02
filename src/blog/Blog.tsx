@@ -27,6 +27,15 @@ function fmtDate(iso: string): string {
 interface TocItem { id: string; text: string; level: 2 | 3 }
 
 function TocNav({ items, activeId, onGo }: { items: TocItem[]; activeId: string | null; onGo: (id: string) => void }) {
+  // scholarly numbering: h2 sections get 1, 2, 3… and h3 sub-sections 1.1, 1.2…
+  // — mirrors exactly the margin numbers stamped next to the prose headings
+  let main = 0;
+  let sub = 0;
+  const numbers: Record<string, string> = {};
+  for (const it of items) {
+    if (it.level === 3) { sub++; numbers[it.id] = `${main}.${sub}`; }
+    else { main++; sub = 0; numbers[it.id] = String(main); }
+  }
   return (
     <nav className="blog-toc-nav" aria-label="Sections">
       <ul>
@@ -38,7 +47,8 @@ function TocNav({ items, activeId, onGo }: { items: TocItem[]; activeId: string 
               onClick={() => onGo(it.id)}
               aria-current={activeId === it.id ? "true" : undefined}
             >
-              {it.text}
+              <span className="blog-toc-num" aria-hidden="true">{numbers[it.id]}</span>
+              <span className="blog-toc-text">{it.text}</span>
             </button>
           </li>
         ))}
@@ -400,14 +410,8 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
           {/* ── title block ── */}
           <h1>{post.title}</h1>
           <p className="blog-article-desc">{post.description}</p>
-          {/* ── byline: one quiet line ── */}
+          {/* ── byline: one clean line, no avatar — the note speaks for itself ── */}
           <div className="blog-article-byline">
-            <img
-              src={`https://github.com/${author}.png?size=40`}
-              alt={author}
-              className="blog-article-avatar"
-              width={20} height={20}
-            />
             <a href={profileUrl(author)} target="_blank" rel="noopener noreferrer" className="blog-article-author">@{author}</a>
             <span className="blog-article-byline-sep" aria-hidden="true">·</span>
             <span className="blog-article-date">{fmtDate(post.date)}</span>
