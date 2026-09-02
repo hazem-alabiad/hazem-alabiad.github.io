@@ -7,6 +7,16 @@ import "@uiw/react-markdown-preview/markdown.css";
 import type { BlogDraft } from "./editor";
 import { remarkCallout } from "./callout";
 
+export type SaveState = "idle" | "saving" | "saved" | "error";
+
+// tag universe for the autocomplete datalist. Keep in sync with the tags
+// used across posts/*.mdx (the full post loader is too heavy for the
+// editor route's lazy chunk).
+const TAG_SUGGESTIONS = [
+  "NLP", "Arabic", "Data", "LLMs", "Compling",
+  "Engineering", "Process", "Reviews", "Product", "Linguistics", "MT",
+];
+
 /* ── editor: a writing surface ────────────────────────────────────────────
    The page reads like the post itself: hero title, italic lede, a
    collapsible settings strip, then a markdown editor. A WRITE / PREVIEW
@@ -37,10 +47,11 @@ const EDITOR_COMMANDS = [
   link, image,
 ];
 
-export function EditorPanel({ draft, onDraft, busy, onSave, onCancel }: {
+export function EditorPanel({ draft, onDraft, busy, saveState, onSave, onCancel }: {
   draft: BlogDraft;
   onDraft: (d: BlogDraft) => void;
   busy: boolean;
+  saveState: SaveState;
   onSave: () => void;
   onCancel: () => void;
 }) {
@@ -48,8 +59,10 @@ export function EditorPanel({ draft, onDraft, busy, onSave, onCancel }: {
   const [colorMode, setColorMode] = useState<"light" | "dark">(() =>
     document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark"
   );
-  // WRITE = the markdown surface; PREVIEW = the rendered article, full-height
-  const [view, setView] = useState<"write" | "preview">("write");
+  // WRITE = the markdown surface; SPLIT = source + rendered pane side by side
+  // (the library's live preview anchors both panes to the same line);
+  // PREVIEW = the rendered article, full-height
+  const [view, setView] = useState<"write" | "split" | "preview">("write");
 
   // tag chip input: draft text + commit on Enter/comma/blur
   const [tagInput, setTagInput] = useState("");
@@ -92,7 +105,7 @@ export function EditorPanel({ draft, onDraft, busy, onSave, onCancel }: {
     </label>
   );
 
-  const tab = (mode: "write" | "preview", label: string, hint: string, icon: ReactNode) => (
+  const tab = (mode: "write" | "split" | "preview", label: string, hint: string, icon: ReactNode) => (
     <button
       type="button"
       className={`blog-editor-tab${view === mode ? " is-active" : ""}`}
@@ -141,6 +154,7 @@ export function EditorPanel({ draft, onDraft, busy, onSave, onCancel }: {
             <input
               className="blog-editor-meta-input"
               value={tagInput}
+              list="blog-tag-suggestions"
               placeholder={draft.tags.length ? "Add another…" : "type + Enter to add"}
               aria-label="Tags"
               onChange={(e) => setTagInput(e.target.value)}
@@ -168,10 +182,14 @@ export function EditorPanel({ draft, onDraft, busy, onSave, onCancel }: {
             )}
           </div>
         ))}
+        <datalist id="blog-tag-suggestions">
+          {TAG_SUGGESTIONS.filter((t) => !draft.tags.includes(t)).map((t) => <option key={t} value={t} />)}
+        </datalist>
       </div>
 
       <div className="blog-editor-tabs" role="group" aria-label="Editor mode">
         {tab("write", "WRITE", "markdown", <Edit3 size={12} />)}
+        {tab("split", "SPLIT", "source + preview", <Edit3 size={12} />)}
         {tab("preview", "PREVIEW", "as published", <Eye size={12} />)}
         <span className="blog-editor-tabs-sep" aria-hidden="true" />
         <span className="blog-size-group" role="group" aria-label="Editor text size">
@@ -194,7 +212,20 @@ export function EditorPanel({ draft, onDraft, busy, onSave, onCancel }: {
         </span>
       </div>
 
-      {view === "preview" ? (
+      {view === "split" ? (
+        <MDEditor
+          value={draft.body}
+          onChange={(v) => onDraft({ ...draft, body: v ?? "" })}
+          preview="live"
+          style={{ "--md-editor-font-size": `${editFont}px` } as React.CSSProperties}
+          textareaProps={{ placeholder: "# Start with a heading\n\nWrite in markdown, or use the toolbar above.", "aria-label": "Post body (markdown)" }}
+          commands={EDITOR_COMMANDS}
+          extraCommands={[]}
+          height={560}
+          visibleDragbar={false}
+          data-color-mode={colorMode}
+        />
+      ) : view === "preview" ? (
         <div className="blog-editor-preview" data-color-mode={colorMode} aria-label="Article preview">
           <div className="blog-editor-preview-flag" aria-hidden="true"><Check size={12} /> DRAFT AS PUBLISHED</div>
           <div className="blog-prose blog-editor-preview-prose" role="article">
@@ -224,6 +255,9 @@ export function EditorPanel({ draft, onDraft, busy, onSave, onCancel }: {
 
       <div className="blog-editor-foot">
         <span className="blog-editor-stats">{words} words · ~{readMin} min read</span>
+        <span className="blog-save-state" data-state={saveState} role="status" aria-live="polite">
+          {saveState === "saving" ? "Saving draft…" : saveState === "saved" ? "Draft saved locally" : saveState === "error" ? "Draft save failed" : "Draft is local"}
+        </span>
         <span className="blog-editor-actions">
           <button type="button" className="blog-editor-btn" onClick={onCancel} disabled={busy}>CANCEL</button>
           <button type="button" className="blog-editor-btn blog-editor-btn--primary" onClick={onSave} disabled={busy}>

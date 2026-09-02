@@ -6,17 +6,17 @@ import { visit } from "unist-util-visit";
  *
  * A remark plugin that rewrites the marker blockquote into an ordinary
  * blockquote with a `data-callout="<kind>"` attribute and a leading paragraph
- * holding the eyebrow (mono `$ note`, `$ tip`, `$ warning`) so the same
+ * holding the eyebrow (mono `note`, `tip`, `warning`) so the same
  * mdast shape renders identically at MDX compile time (vite) and in the
  * editor's MarkdownPreview.
  */
 const KINDS = new Set(["NOTE", "TIP", "WARNING", "IMPORTANT"]);
 
 const EYEBROW: Record<string, string> = {
-  NOTE: "$ note",
-  TIP: "$ tip",
-  WARNING: "$ warning",
-  IMPORTANT: "$ important",
+  NOTE: "note",
+  TIP: "tip",
+  WARNING: "warning",
+  IMPORTANT: "important",
 };
 
 function isText(n: unknown): n is Text {
