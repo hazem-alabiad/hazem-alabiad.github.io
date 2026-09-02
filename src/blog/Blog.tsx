@@ -15,6 +15,33 @@ const profileUrl = (username: string) => `https://linkedin.com/in/${username}`;
 const shareUrl = (slug: string) => `${location.origin}${location.pathname}#/blog/${slug}`;
 const authorOf = (p: Post) => (p.author && p.author.trim()) || "hazem-alabiad";
 
+// the boot screen (full-viewport fixed overlay, dismissed on Enter/Space/click)
+// clamps scroll while it is mounted — deep-link restore must wait for it to be gone
+function bootOverlayPresent(): boolean {
+  try {
+    const overlay = document.querySelector("[data-boot-screen]");
+    if (!overlay) return false;
+    const cs = getComputedStyle(overlay);
+    return cs.position === "fixed" && Number(cs.zIndex) >= 99999;
+  } catch {
+    return false;
+  }
+}
+/** Scroll a section into view, waiting until the boot overlay is out of the way. */
+function scrollToSection(id: string, opts?: ScrollIntoViewOptions): void {
+  const target = () => document.getElementById(id);
+  const run = () => {
+    const el = target();
+    if (el) el.scrollIntoView({ block: "start", ...opts });
+  };
+  const tryWhenFree = (attempt: number) => {
+    if (!bootOverlayPresent()) { run(); return; }
+    if (attempt >= 30) return; // overlay never left (e.g. disabled boot) — leave scroll as-is
+    window.setTimeout(() => tryWhenFree(attempt + 1), 150);
+  };
+  tryWhenFree(0);
+}
+
 function fmtDate(iso: string): string {
   if (!iso) return "";
   try {
@@ -311,14 +338,13 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
       return { id: h.id, text: headingText, level: h.tagName === "H2" ? 2 : 3 };
     });
     setToc(items);
-    // deep link: #/blog/<slug>#<section-id> — restore scroll once headings exist
+    // deep link: #/blog/<slug>#<section-id> — restore scroll, but only once
+    // the boot screen overlay is out of the way (otherwise its fixed viewport
+    // clamps the scroll and unmounting shifts the position out of view)
     const anchorId = location.hash.split("#").pop();
     if (anchorId && items.some((i) => i.id === anchorId)) {
-      const target = document.getElementById(anchorId);
-      if (target) {
-        target.scrollIntoView({ block: "start" });
-        setActiveId(anchorId);
-      }
+      setActiveId(anchorId);
+      scrollToSection(anchorId);
     }
     if (items.length < 2) return;
     const obs = new IntersectionObserver(
