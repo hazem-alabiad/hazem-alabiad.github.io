@@ -1,10 +1,11 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Check, Edit3, Eye, Save } from "lucide-react";
-import MDEditor, { bold, italic, strikethrough, divider, title1, title2, title3, quote, codeBlock, unorderedListCommand, orderedListCommand, link, image } from "@uiw/react-md-editor";
+import { Check, Edit3, Eye, Info, Save } from "lucide-react";
+import MDEditor, { bold, italic, strikethrough, divider, title1, title2, title3, quote, codeBlock, unorderedListCommand, orderedListCommand, link, image, type ICommand } from "@uiw/react-md-editor";
 import MarkdownPreview from "@uiw/react-markdown-preview";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import type { BlogDraft } from "./editor";
+import { remarkCallout } from "./callout";
 
 /* ── editor: a writing surface ────────────────────────────────────────────
    The page reads like the post itself: hero title, italic lede, a
@@ -13,10 +14,25 @@ import type { BlogDraft } from "./editor";
    (same .blog-prose typography). Kept in its own module so the editor
    library only loads on the owner's editor route. */
 
+// insert a `> [!NOTE]` callout — the same marker the read page renders
+// (remark plugin shared with the vite MDX build), so what you write in the
+// editor is exactly what publishes.
+const callout: ICommand = {
+  name: "callout",
+  keyCommand: "callout",
+  buttonProps: { "aria-label": "Insert callout", title: "Insert callout", type: "button" },
+  icon: <Info size={12} />,
+  execute: (state, api) => {
+    const sel = state.selectedText || "";
+    const line = sel.replace(/\n+/g, " ").trim();
+    api.replaceSelection(`\n\n> [!NOTE] ${line}${line ? "" : "Write a short note…"}\n`);
+  },
+};
+
 const EDITOR_COMMANDS = [
   bold, italic, strikethrough, divider,
   title1, title2, title3, divider,
-  quote, codeBlock, divider,
+  quote, callout, codeBlock, divider,
   unorderedListCommand, orderedListCommand, divider,
   link, image,
 ];
@@ -185,9 +201,9 @@ export function EditorPanel({ draft, onDraft, busy, onSave, onCancel }: {
             <h1 className="blog-editor-preview-title">{draft.title || "Untitled note"}</h1>
             {draft.description && <p className="blog-article-desc">{draft.description}</p>}
             {draft.body.trim() ? (
-              <MarkdownPreview source={draft.body} />
+              <MarkdownPreview source={draft.body} remarkPlugins={[remarkCallout]} />
             ) : (
-              <p className="blog-editor-preview-empty">Nothing here yet — switch to WRITE and start typing. The preview shows exactly how this note will read on the blog.</p>
+              <p className="blog-editor-preview-empty">Nothing here yet. Switch to WRITE and start typing. The preview shows exactly how this note will read on the blog.</p>
             )}
           </div>
         </div>
@@ -197,8 +213,9 @@ export function EditorPanel({ draft, onDraft, busy, onSave, onCancel }: {
           onChange={(v) => onDraft({ ...draft, body: v ?? "" })}
           preview="edit"
           style={{ "--md-editor-font-size": `${editFont}px` } as React.CSSProperties}
-          textareaProps={{ placeholder: "# Start with a heading\n\nWrite in markdown — or use the toolbar above.", "aria-label": "Post body (markdown)" }}
+          textareaProps={{ placeholder: "# Start with a heading\n\nWrite in markdown, or use the toolbar above.", "aria-label": "Post body (markdown)" }}
           commands={EDITOR_COMMANDS}
+          extraCommands={[]}
           height={520}
           visibleDragbar={false}
           data-color-mode={colorMode}

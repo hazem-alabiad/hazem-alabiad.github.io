@@ -97,15 +97,20 @@ export default function BlogAdmin() {
       )}
 
       {stage === "unlock" && (
-        <Panel title="BLOG ADMIN — UNLOCK">
+        <Panel title="BLOG ADMIN · UNLOCK">
           <div style={{ ...MONO, fontSize: 11, color: "var(--ink-faint)", lineHeight: 1.7 }}>
-            Post editing is restricted to the site owner. Enter a PAT with repo contents access — the account is checked against the owner GitHub account.
+            Post editing is restricted to the site owner. Enter a PAT with repo contents access; the account is checked against the owner GitHub account.
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <input
               type="password"
               value={token}
               placeholder="GitHub PAT"
+              aria-label="GitHub personal access token"
+              autoComplete="new-password"
+              spellCheck={false}
+              autoCapitalize="off"
+              autoCorrect="off"
               onChange={(e) => setToken(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") unlock(token); }}
               style={{ ...FIELD, width: 260 }}
@@ -117,7 +122,7 @@ export default function BlogAdmin() {
           {authErr && <div style={{ ...MONO, fontSize: 11, color: "var(--red)" }}>✗ {authErr}</div>}
           {savedSession && (
             <div style={{ ...MONO, fontSize: 11, color: "var(--ink-faint)", marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}>
-              <span>saved session as @{savedSession.login} — no token needed.</span>
+              <span>saved session as @{savedSession.login} · no token needed.</span>
               <button onClick={() => unlock(savedSession.token)} disabled={busy} style={chipBtn("var(--sage)", true)}>
                 <Lock size={12} /> RESUME
               </button>
@@ -133,10 +138,10 @@ export default function BlogAdmin() {
             <button onClick={lock} style={chipBtn("var(--ink-dim)")}><Lock size={11} /> LOCK</button>
           </div>
 
-          <Panel title="POSTS — live from the repo">
+          <Panel title="POSTS · live from the repo">
             <div style={{ ...MONO, fontSize: 11, color: "var(--ink-faint)", lineHeight: 1.6 }}>
               Posts live as <b style={{ color: "var(--amber)" }}>.mdx</b> files in <b style={{ color: "var(--sage)" }}>{POSTS_DIR}/</b>.
-              Saving commits to <b style={{ color: "var(--ink)" }}>main</b> — GitHub Actions rebuilds Pages automatically.
+              Saving commits to <b style={{ color: "var(--ink)" }}>main</b> · GitHub Actions rebuilds Pages automatically.
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1px solid var(--rule-soft)", borderRadius: 6, background: "var(--bg-elevated)", padding: "0 12px" }}>
               <Search size={14} color="var(--ink-faint)" style={{ flexShrink: 0 }} />

@@ -71,9 +71,8 @@ try {
 
   // ── 3. post page + TOC ──
   console.log("→ post page & TOC…");
-  // dispatch a programmatic click: an anonymous decorative overlay swallows
-  // raw coordinate clicks on the cards in the built app
-  await page.$eval(".blog-card", (el) => el.click());
+  // the index is a list of real links now (dev.to-style rows); click the first
+  await page.$eval(".blog-row-main", (el) => el.click());
   await page.waitForSelector("article.blog-article h1", { timeout: 15000 });
   const title = await page.$eval("article.blog-article h1", (el) => el.textContent);
   assert.ok(title.length > 0, "post title missing");

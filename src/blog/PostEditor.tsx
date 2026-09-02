@@ -67,15 +67,14 @@ export function PostEditorPage({ mode }: { mode: "new" | "edit" }) {
       <div className="wrap">
         <button className="btn blog-back" onClick={() => navigate(backTo)}>← all notes</button>
         <div className="blog-editor-head">
-          <span className="blog-editor-kicker">{mode === "edit" ? `EDITING · ${slug}` : "NEW POST"}</span>
-          <h1>{mode === "edit" ? "Edit note" : "Write a note"}</h1>
+          <span className="blog-editor-kicker">{mode === "edit" ? `EDITING · ${slug}` : "NEW POST · WRITE A NOTE"}</span>
         </div>
         {!mgr ? (
           <div className="blog-unlock">
             <div className="blog-unlock-inner">
-              <p className="blog-unlock-hint">Only the site owner can manage posts. Paste a GitHub PAT with repo contents access — it is verified against @{OWNER_LOGIN}.</p>
+              <p className="blog-unlock-hint">Only the site owner can manage posts. Paste a GitHub PAT with repo contents access; it is verified against @{OWNER_LOGIN}.</p>
               <div className="blog-unlock-row">
-                <input type="password" value={pat} placeholder="GitHub PAT" onChange={(e) => setPat(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") unlock(pat); }} style={{ ...FIELD, flex: 1 }} />
+                <input type="password" value={pat} placeholder="GitHub PAT" aria-label="GitHub personal access token" autoComplete="new-password" spellCheck={false} autoCapitalize="off" autoCorrect="off" onChange={(e) => setPat(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") unlock(pat); }} style={{ ...FIELD, flex: 1 }} />
                 <button onClick={() => unlock(pat)} disabled={authBusy} className="blog-manage-btn blog-manage-btn--add">{authBusy ? "CHECKING…" : "UNLOCK"}</button>
                 <button onClick={() => navigate("/blog")} className="blog-manage-btn">CANCEL</button>
               </div>
