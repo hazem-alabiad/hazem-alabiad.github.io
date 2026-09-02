@@ -1,0 +1,136 @@
+/* Full-space editor: quiet chrome, enhanced fields, maximum writing area. */
+
+/* ── maximize space: fluid wrap, no dead gutters ─────────────────────────── */
+.blog-editor-page { padding-bottom: 28px; }
+.blog-editor-page > .wrap {
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding-inline: clamp(16px, 3vw, 56px);
+}
+
+/* ── enhanced input fields ──────────────────────────────────────────────── */
+/* hero title + lede: document-scale, generous hit areas */
+.blog-editor-page .blog-editor-title {
+  font-size: clamp(38px, 5.5vw, 72px);
+  line-height: 1.1;
+  padding: 12px 16px;
+}
+.blog-editor-page .blog-editor-desc {
+  font-size: clamp(19px, 2vw, 24px);
+  line-height: 1.5;
+  padding: 10px 16px;
+}
+.blog-editor-page .blog-editor-title::placeholder,
+.blog-editor-page .blog-editor-desc::placeholder,
+.blog-editor-page .blog-editor-meta-input::placeholder {
+  color: var(--ink-dim);
+  opacity: .85;
+}
+.blog-editor-page .blog-editor-head { max-width: 1560px; margin-inline: auto; }
+
+/* caret: amber, stays visible when focus ring is gone */
+.blog-editor-page .blog-editor-title,
+.blog-editor-page .blog-editor-desc,
+.blog-editor-page .blog-editor-meta-input { caret-color: var(--amber); }
+
+/* metadata fields: roomier frames, clearer affordance */
+.blog-editor-page .blog-editor-meta {
+  width: min(100%, 1400px);
+  margin-inline: auto;
+  grid-template-columns: minmax(0, .7fr) minmax(0, 1.6fr);
+  gap: 20px;
+  padding: 20px 0;
+}
+.blog-editor-page .blog-editor-meta .blog-editor-field {
+  min-height: 56px;
+  padding: 12px 18px;
+  border-radius: 13px;
+  background: var(--bg-panel);
+}
+.blog-editor-page .blog-editor-cell-label { font-size: 11px; letter-spacing: .14em; }
+.blog-editor-page .blog-editor-meta-input { font-size: 16px; }
+.blog-editor-page .blog-editor-tag { min-height: 42px; padding: 9px 14px; font-size: 14.5px; }
+
+/* ── remove input focus border: no outline, no ring, no underline ───────── */
+/* theme.css has a global `*:focus-visible { outline: ... !important }` rule.
+   We must match its !important to beat it — and win on specificity, too. */
+.blog-editor-page input:focus-visible,
+.blog-editor-page textarea:focus-visible,
+.blog-editor-page .w-md-editor-text:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+/* hero fields: borderless at rest AND on focus */
+.blog-editor-page .blog-editor-title,
+.blog-editor-page .blog-editor-desc {
+  border: 0;
+  outline: none;
+  box-shadow: none;
+}
+.blog-editor-page .blog-editor-title:focus,
+.blog-editor-page .blog-editor-desc:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent;
+}
+/* metadata field frames: no ring/underline on focus, subtle bg lift only */
+.blog-editor-page .blog-editor-field:focus-within {
+  border-color: transparent;
+  box-shadow: none !important;
+  outline: none !important;
+  background: var(--bg-elevated);
+}
+.blog-editor-page .blog-editor-meta .blog-editor-field:hover {
+  background: var(--bg-elevated);
+}
+
+/* ── editor surface fills remaining viewport ─────────────────────────────── */
+.blog-editor-page .blog-editor-tabs {
+  width: min(100%, 1400px);
+  margin-inline: auto;
+  justify-content: flex-start;
+}
+.blog-editor-page .blog-editor-tab { min-height: 48px; padding: 11px 18px; font-size: 14px; }
+.blog-editor-page .w-md-editor {
+  width: 100%;
+  min-height: 520px;
+  height: calc(100vh - 360px) !important;
+  border-radius: 14px;
+}
+.blog-editor-page .w-md-editor-content { min-height: 0; }
+.blog-editor-page .w-md-editor-text-input,
+.blog-editor-page .w-md-editor-text-pre > code { line-height: 1.7; font-size: 16px; }
+.blog-editor-page .w-md-editor-toolbar { min-height: 50px; overflow-x: auto; }
+.blog-editor-page .blog-editor-foot {
+  width: min(100%, 1400px);
+  margin-inline: auto;
+  padding-top: 18px;
+}
+
+/* ── responsive ──────────────────────────────────────────────────────────── */
+@media (min-width: 1280px) {
+  .blog-editor-page .blog-editor { max-width: 1800px; }
+  .blog-editor-page .blog-editor-head { max-width: 1560px; }
+}
+@media (max-width: 700px) {
+  .blog-editor-page > .wrap { padding-inline: 12px; }
+  .blog-editor-page .blog-editor-title { font-size: clamp(30px, 10vw, 44px); }
+  .blog-editor-page .blog-editor-desc { font-size: 18px; }
+  .blog-editor-page .blog-editor-meta { grid-template-columns: 1fr; gap: 14px; padding: 16px 0; }
+  .blog-editor-page .blog-editor-meta .blog-editor-field { min-height: 52px; }
+  .blog-editor-page .blog-editor-tabs { overflow-x: auto; }
+  .blog-editor-page .blog-editor-tab { flex: 0 0 auto; }
+  .blog-editor-page .blog-editor-foot { gap: 10px; }
+  .blog-editor-page .w-md-editor { height: calc(100vh - 340px) !important; min-height: 440px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .blog-editor-page *, .blog-editor-page *::before, .blog-editor-page *::after {
+    transition-duration: .001ms !important;
+    animation-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

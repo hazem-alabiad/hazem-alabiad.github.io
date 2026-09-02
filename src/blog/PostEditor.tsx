@@ -4,6 +4,7 @@ import { useBlogManager } from "./manager";
 import { FIELD, EMPTY_DRAFT, type BlogDraft } from "./editor";
 import { slugify, POSTS_DIR } from "../github";
 import { EditorPanel, type SaveState } from "./editor-panel";
+import "../styles/editor-full-space.css";
 
 // local-draft autosave: composition is persisted to localStorage (debounced)
 // so an interrupted session resumes; the repo only changes on explicit publish.
@@ -96,7 +97,7 @@ export function PostEditorPage({ mode }: { mode: "new" | "edit" }) {
   }
 
   return (
-    <section className="blog" id="blog">
+    <section className="blog blog-editor-page" id="blog">
       <div className="wrap">
         <button className="btn blog-back" onClick={() => navigate(backTo)}>← all notes</button>
         <div className="blog-editor-head">
