@@ -201,6 +201,24 @@ describe("BlogIndex", () => {
     expect(screen.getByText("✗ boom")).toBeInTheDocument();
     expect(screen.getByText("✓ saved")).toBeInTheDocument();
   });
+
+  it("renders tag filter chips with usage counts", () => {
+    renderIndex();
+    const chip = screen.getByRole("button", { name: /#arabic/i });
+    expect(chip.textContent).toContain("1");
+    expect(screen.getAllByRole("button", { name: /^#/i }).length).toBe(3);
+  });
+
+  it("filters the list by a tag chip and toggles it off", () => {
+    renderIndex();
+    fireEvent.click(screen.getByRole("button", { name: /#arabic/i }));
+    expect(screen.getByText("Arabic LLMs")).toBeInTheDocument();
+    expect(screen.queryByText("Shipping Notes")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /#arabic/i })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: /#arabic/i }));
+    expect(screen.getByText("Shipping Notes")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /#arabic/i })).toHaveAttribute("aria-pressed", "false");
+  });
 });
 
 describe("BlogPost", () => {
@@ -243,7 +261,7 @@ describe("BlogPost", () => {
 
   it("builds the on-this-page index from rendered headings and jumps on click", async () => {
     renderPost();
-    await waitFor(() => expect(screen.getAllByText("ON THIS PAGE").length).toBeGreaterThanOrEqual(1));
+    await waitFor(() => expect(screen.getAllByText("IN THIS NOTE").length).toBeGreaterThanOrEqual(1));
     const toc = screen.getAllByRole("navigation", { name: /sections/i })[0];
     const items = within(toc).getAllByRole("button");
     expect(items.length).toBeGreaterThanOrEqual(4);
@@ -277,11 +295,10 @@ describe("BlogPost", () => {
     expect(minus).toBeDisabled();
   });
 
-  it("renders the end-of-note marker, author card and comments region", async () => {
+  it("renders the breadcrumb, author card and comments region", async () => {
     renderPost();
-    const end = document.querySelector(".blog-article-end");
-    expect(end).toHaveAttribute("aria-hidden", "true");
-    expect(end!.textContent).toContain("end of note");
+    expect(screen.getByRole("navigation", { name: /breadcrumb/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "notes" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "GitHub" })).toBeInTheDocument();
     expect(await screen.findByText("COMMENTS")).toBeInTheDocument();
   });
@@ -344,5 +361,19 @@ describe("BlogPost", () => {
     expect(screen.getByRole("button", { name: /copy link/i })).toBeInTheDocument();
     // No lock anywhere in the article toolbar
     expect(screen.queryByRole("button", { name: /lock/i })).not.toBeInTheDocument();
+  });
+
+  it("marks the date with ISO markup and shows a read-next panel", async () => {
+    renderPost();
+    const t = document.querySelector("time.blog-article-date");
+    expect(t).not.toBeNull();
+    expect(t!.getAttribute("datetime")).toBeTruthy();
+    expect(t!.getAttribute("title")).toBeTruthy();
+    // read-next: the bundled post shares tags with other bundled notes
+    const next = await screen.findByText(/read next/i);
+    expect(next).toBeInTheDocument();
+    const card = next.closest("a");
+    expect(card).not.toBeNull();
+    expect(card!.getAttribute("href")).toContain("#/blog/");
   });
 });

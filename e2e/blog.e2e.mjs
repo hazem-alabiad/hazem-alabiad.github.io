@@ -92,7 +92,7 @@ try {
 
   // ── 4. back to blog + CMS unlock panel ──
   console.log("→ CMS unlock panel…");
-  await page.$eval(".blog-back", (el) => el.click());
+  await page.$eval(".blog-crumb a", (el) => el.click());
   await page.waitForSelector(".blog-search-input", { timeout: 10000 });
   // the CMS launcher is a fixed button at the bottom of the page; use a DOM
   // click (the same decorative overlay swallows coordinate clicks here too)

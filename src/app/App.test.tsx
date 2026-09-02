@@ -31,7 +31,7 @@ describe('App routes', () => {
   it('renders a blog post at #/blog/:slug', async () => {
     renderAt('#/blog/arabic-vmwe-llms');
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(/Why LLMs Fumble/i);
-    expect((await screen.findAllByText(/ON THIS PAGE/i)).length).toBeGreaterThanOrEqual(1);
+    expect((await screen.findAllByText(/IN THIS NOTE/i)).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole('toolbar', { name: /reading tools/i })).toBeInTheDocument();
   });
 

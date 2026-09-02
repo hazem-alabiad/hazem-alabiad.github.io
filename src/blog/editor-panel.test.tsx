@@ -8,16 +8,16 @@ const base: BlogDraft = {
   description: "", tags: [], accent: "amber", author: "hazem-alabiad", body: "# Hello world",
 };
 
-function setup(draft: BlogDraft = base, busy = false) {
+function setup(draft: BlogDraft = base, busy = false, saveState: "idle" | "saving" | "saved" | "error" = "idle") {
   let current = draft;
   const onSave = vi.fn();
   const onCancel = vi.fn();
   const onDraft = vi.fn((d: BlogDraft) => {
     current = d;
-    rerender(<EditorPanel draft={current} onDraft={onDraft} busy={busy} onSave={onSave} onCancel={onCancel} />);
+    rerender(<EditorPanel draft={current} onDraft={onDraft} busy={busy} saveState={saveState} onSave={onSave} onCancel={onCancel} />);
   });
-  const { rerender } = render(<EditorPanel draft={draft} onDraft={onDraft} busy={busy} onSave={onSave} onCancel={onCancel} />);
-  return { onDraft, onSave, onCancel };
+  const { rerender } = render(<EditorPanel draft={draft} onDraft={onDraft} busy={busy} saveState={saveState} onSave={onSave} onCancel={onCancel} />);
+  return { onDraft, onSave, onCancel, rerender };
 }
 
 describe("EditorPanel", () => {
@@ -31,6 +31,25 @@ describe("EditorPanel", () => {
     const { onDraft } = setup();
     fireEvent.change(screen.getByLabelText("Post description"), { target: { value: "A short note" } });
     expect(onDraft).toHaveBeenCalledWith(expect.objectContaining({ description: "A short note" }));
+  });
+
+  it("reports the local-save state chip across states", () => {
+    const { rerender } = setup(base, false, "saving");
+    expect(screen.getByText("Saving draft…")).toBeInTheDocument();
+    rerender(<EditorPanel draft={base} onDraft={vi.fn()} busy={false} saveState="saved" onSave={vi.fn()} onCancel={vi.fn()} />);
+    expect(screen.getByText("Draft saved locally")).toBeInTheDocument();
+    rerender(<EditorPanel draft={base} onDraft={vi.fn()} busy={false} saveState="error" onSave={vi.fn()} onCancel={vi.fn()} />);
+    expect(screen.getByText("Draft save failed")).toBeInTheDocument();
+    rerender(<EditorPanel draft={base} onDraft={vi.fn()} busy={false} saveState="idle" onSave={vi.fn()} onCancel={vi.fn()} />);
+    expect(screen.getByText("Draft is local")).toBeInTheDocument();
+  });
+
+  it("offers a SPLIT source + preview mode", () => {
+    setup();
+    const split = screen.getByRole("button", { name: /split/i });
+    fireEvent.click(split);
+    expect(split).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByLabelText("Post body (markdown)")).toBeInTheDocument();
   });
 
   it("adds tags as chips and removes them", () => {

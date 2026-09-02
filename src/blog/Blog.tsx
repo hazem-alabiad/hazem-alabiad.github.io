@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Feather, Pencil, Plus, Share2, Trash2 } from "lucide-react";
+import { ArrowRight, Check, Feather, Pencil, Plus, Share2, Trash2 } from "lucide-react";
 import { Comments } from "./Comments";
 import { posts, type Post } from "./posts";
+import { relDate, absDate } from "./dates";
 import { readViews, trackView, type ViewsMap } from "./analytics";
 import { AdUnit } from "../Adsense";
 import { useBlogManager } from "./manager";
@@ -42,14 +43,6 @@ function scrollToSection(id: string, opts?: ScrollIntoViewOptions): void {
   tryWhenFree(0);
 }
 
-function fmtDate(iso: string): string {
-  if (!iso) return "";
-  try {
-    return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
-  } catch {
-    return iso;
-  }
-}
 
 interface TocItem { id: string; text: string; level: 2 | 3 }
 
@@ -96,6 +89,7 @@ function slugId(text: string, used: Set<string>): string {
 export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
+  const [tag, setTag] = useState<string | null>(null);
   const [active, setActive] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const query = q.trim().toLowerCase();
@@ -131,6 +125,14 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
     .sort((a, b) => b.s - a.s)
     .map((x) => x.p);
 
+  // tag filter: dev.to-style discovery, counts computed from the visible set
+  const tagCounts = new Map<string, number>();
+  for (const p of visiblePosts) for (const t of p.tags) tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
+  const orderedTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+  const toggleTag = (t: string) => setTag((cur) => (cur === t ? null : t));
+  const byTag = (list: Post[]) => (tag ? list.filter((p) => p.tags.includes(tag)) : list);
+
   const highlight = (text: string): ReactNode => {
     if (!query) return text;
     const i = text.toLowerCase().indexOf(query);
@@ -152,7 +154,7 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
     else if (e.key === "Enter" && active >= 0) { onOpen(hits[active].slug); }
   };
 
-  const shown = searching ? hits : visiblePosts;
+  const shown = searching ? hits : byTag(visiblePosts);
 
   return (
     <section className="blog" id="blog">
@@ -201,6 +203,29 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
             <button className="blog-manage-btn" onClick={() => { setQ(""); setActive(-1); inputRef.current?.focus(); }}>Clear search</button>
           </div>
         )}
+        {!searching && orderedTags.length > 0 && (
+          <div className="blog-filters" role="group" aria-label="Filter by tag">
+            {orderedTags.map(([t, n]) => (
+              <button
+                type="button"
+                key={t}
+                className="blog-filter"
+                aria-pressed={tag === t}
+                onClick={() => toggleTag(t)}
+              >
+                <span className="blog-filter-label">#{t}</span>
+                <span className="blog-filter-count">{n}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        {!searching && tag && shown.length === 0 && (
+          <div className="blog-empty">
+            <p className="blog-empty-title">No notes tagged #{tag}</p>
+            <p className="blog-empty-hint">Pick another tag, or clear the filter.</p>
+            <button className="blog-manage-btn" onClick={() => setTag(null)}>Clear filter</button>
+          </div>
+        )}
         {mgrErr && <p className="blog-mgr-err">✗ {mgrErr}</p>}
         {mgrOk && <p className="blog-mgr-ok">✓ {mgrOk}</p>}
         <AdUnit slot="0123456789" className="ad-slot--top" />
@@ -213,7 +238,7 @@ export function BlogIndex({ onOpen }: { onOpen: (slug: string) => void }) {
                 onClick={(e) => { e.preventDefault(); onOpen(p.slug); }}
               >
                 <div className="blog-row-meta">
-                  <span className="blog-row-date">{fmtDate(p.date)}</span>
+                  <time className="blog-row-date" dateTime={p.date} title={absDate(p.date)}>{relDate(p.date)}</time>
                   <span className="blog-row-mid" aria-hidden="true">/</span>
                   <span className="blog-row-readtime">{Math.max(1, Math.round(p.description.split(/\s+/).length / 40))} min read</span>
                 </div>
@@ -256,6 +281,28 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
   const [readingTime, setReadingTime] = useState<number | null>(null);
   const [toc, setToc] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
+
+  // reading progress: width on a passive rAF-throttled scroll handler, no re-renders
+  useEffect(() => {
+    let raf = 0;
+    const measure = () => {
+      const el = progressRef.current;
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - window.innerHeight;
+      if (el && max > 0) el.style.width = `${Math.min(100, (window.scrollY / max) * 100)}%`;
+      raf = 0;
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(measure); };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [slug]);
 
   useEffect(() => {
     if (post) setViews(trackView(`post:${post.slug}`));
@@ -406,22 +453,29 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
     } catch { /* ignore */ }
   };
   const ordered = posts.filter((p) => !hiddenSlugs.has(p.slug));
-  const pos = ordered.findIndex((p) => p.slug === slug);
-  const newer = pos > 0 ? ordered[pos - 1] : null;
-  const older = pos >= 0 && pos < ordered.length - 1 ? ordered[pos + 1] : null;
+  // read-next: the other note sharing the most tags (DO end-of-article step)
+  const related = (() => {
+    const others = ordered.filter((p) => p.slug !== slug);
+    if (!others.length) return null;
+    const scored = others.map((p) => ({ p, n: p.tags.filter((t) => post.tags.includes(t)).length }));
+    scored.sort((a, b) => b.n - a.n || (new Date(b.p.date).getTime() - new Date(a.p.date).getTime()));
+    return scored[0].n > 0 ? scored[0].p : null;
+  })();
   const tocNav = <TocNav items={toc} activeId={activeId} onGo={goSection} />;
   const showAside = toc.length >= 2;
   return (
     <section className={`blog blog-post blog-post--${accent || "amber"}`} id="blog">
+      <div className="blog-progress" aria-hidden="true" ref={progressRef} />
       <div className="blog-post-layout">
-        <button className="btn blog-back" onClick={onBack}>← all notes</button>
+        <nav className="blog-crumb" aria-label="Breadcrumb">
+          <a href="#/blog" onClick={(e) => { e.preventDefault(); onBack(); }}>notes</a>
+          <span className="blog-crumb-sep" aria-hidden="true">/</span>
+          <span className="blog-crumb-cur">{post.slug}</span>
+        </nav>
         <article className="blog-article">
-          {/* ── masthead: tag kicker + quiet reading tools ── */}
+          {/* ── masthead: quiet reading tools only ── */}
           <div className="blog-article-masthead">
-            <div className="blog-article-kicker" aria-label="Tags">
-              {post.tags.map((t) => <span key={t} className={`blog-article-kicker-tag blog-article-kicker-tag--${accent || "amber"}`}>#{t}</span>)}
-            </div>
-          <div className="blog-article-utils" role="toolbar" aria-label="Reading tools">
+            <div className="blog-article-utils" role="toolbar" aria-label="Reading tools">
             {mgr && (
               <>
                 <button className="blog-util" title="Edit this post" aria-label="Edit post" onClick={() => navigate(`/blog/admin/edit/${post.slug}`)} disabled={publishing}><Pencil size={14} /></button>
@@ -445,26 +499,25 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
           <div className="blog-article-byline">
             <a href={profileUrl(author)} target="_blank" rel="noopener noreferrer" className="blog-article-author">@{author}</a>
             <span className="blog-article-byline-sep" aria-hidden="true">·</span>
-            <span className="blog-article-date">{fmtDate(post.date)}</span>
+            <time className="blog-article-date" dateTime={post.date} title={absDate(post.date)}>{relDate(post.date)}</time>
             {readingTime && <span className="blog-article-readtime">{readingTime} min read</span>}
             <span className="blog-article-views">{views[`post:${post.slug}`] || 0} views</span>
           </div>
+          {post.tags.length > 0 && (
+            <div className="blog-article-tags" aria-label="Tags">
+              {post.tags.map((t) => <span key={t} className={`blog-article-kicker-tag blog-article-kicker-tag--${accent || "amber"}`}>#{t}</span>)}
+            </div>
+          )}
           {mgrErr && <p className="blog-mgr-err">✗ {mgrErr}</p>}
           {mgrOk && <p className="blog-mgr-ok">✓ {mgrOk}</p>}
           {showAside && (
             <details className="blog-toc-mobile">
-              <summary className="blog-toc-summary">ON THIS PAGE <span className="blog-toc-count">{toc.length}</span></summary>
+              <summary className="blog-toc-summary">IN THIS NOTE <span className="blog-toc-count">{toc.length}</span></summary>
               {tocNav}
             </details>
           )}
           <div className="blog-prose" style={{ fontSize: size, ["--prose-scale" as string]: (size / 17).toFixed(3) }}>
             <Component />
-          </div>
-
-          <div className="blog-article-end" aria-hidden="true">
-            <span className="blog-article-end-prompt">$</span>
-            <span className="blog-article-end-text">end of note</span>
-            <span className="blog-article-end-cursor" />
           </div>
 
           <div className="blog-article-authorcard">
@@ -487,21 +540,18 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
             </div>
           </div>
 
-          {(newer || older) && (
-            <nav className="blog-article-prevnext" aria-label="More notes">
-              {newer ? (
-                <button type="button" className="blog-article-nav" onClick={() => navigate(`/blog/${newer.slug}`)}>
-                  <span className="blog-article-nav-dir">← NEWER</span>
-                  <span className="blog-article-nav-title">{newer.title}</span>
-                </button>
-              ) : <span className="blog-article-nav blog-article-nav--empty" aria-hidden="true" />}
-              {older ? (
-                <button type="button" className="blog-article-nav blog-article-nav--next" onClick={() => navigate(`/blog/${older.slug}`)}>
-                  <span className="blog-article-nav-dir">OLDER →</span>
-                  <span className="blog-article-nav-title">{older.title}</span>
-                </button>
-              ) : <span className="blog-article-nav blog-article-nav--empty" aria-hidden="true" />}
-            </nav>
+          {related && (
+            <a className="blog-next" href={`#/blog/${related.slug}`} onClick={(e) => { e.preventDefault(); navigate(`/blog/${related.slug}`); }}>
+              <span className="blog-next-kicker">
+                <span>Read next</span>
+                <ArrowRight className="blog-next-arrow" size={15} aria-hidden="true" />
+              </span>
+              <h3>{related.title}</h3>
+              <p>{related.description}</p>
+              {related.tags.length > 0 && (
+                <div className="blog-next-tags">{related.tags.map((t) => <span key={t}>#{t}</span>)}</div>
+              )}
+            </a>
           )}
 
           <div className="blog-article-comments">
@@ -511,7 +561,7 @@ export function BlogPost({ slug, onBack }: { slug: string; onBack: () => void })
         </article>
         {showAside && (
           <aside className="blog-toc" aria-label="On this page">
-            <div className="blog-toc-label">ON THIS PAGE</div>
+            <div className="blog-toc-label">IN THIS NOTE</div>
             {tocNav}
           </aside>
         )}

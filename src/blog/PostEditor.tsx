@@ -1,9 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useBlogManager } from "./manager";
 import { FIELD, EMPTY_DRAFT, type BlogDraft } from "./editor";
 import { slugify, POSTS_DIR } from "../github";
-import { EditorPanel } from "./editor-panel";
+import { EditorPanel, type SaveState } from "./editor-panel";
+
+// local-draft autosave: composition is persisted to localStorage (debounced)
+// so an interrupted session resumes; the repo only changes on explicit publish.
+const draftKey = (slug: string) => `hazem_draft_${slug || "new"}`;
+const readLocalDraft = (slug: string): Partial<BlogDraft> | null => {
+  try {
+    const raw = localStorage.getItem(draftKey(slug));
+    return raw ? (JSON.parse(raw) as Partial<BlogDraft>) : null;
+  } catch { return null; }
+};
 import { OWNER_LOGIN } from "./authors";
 
 /**
@@ -27,6 +37,8 @@ export function PostEditorPage({ mode }: { mode: "new" | "edit" }) {
   const [draft, setDraft] = useState<BlogDraft | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadErr, setLoadErr] = useState("");
+  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const dirty = useRef(false);
 
   // If a session is saved (e.g. unlocked in the admin screen), resume it
   // silently so the editor never asks for a PAT that already exists.
@@ -38,7 +50,11 @@ export function PostEditorPage({ mode }: { mode: "new" | "edit" }) {
     let cancelled = false;
     if (mode === "new") {
       setLoadErr("");
-      setDraft({ ...EMPTY_DRAFT });
+      // resume an interrupted composition when one exists
+      const local = readLocalDraft("new");
+      setDraft(local && (local.title || local.body)
+        ? { ...EMPTY_DRAFT, title: local.title || "", description: local.description || "", date: local.date || EMPTY_DRAFT.date, tags: local.tags || [], body: local.body || "" }
+        : { ...EMPTY_DRAFT });
       return;
     }
     if (!token || !slug) return;
@@ -52,12 +68,29 @@ export function PostEditorPage({ mode }: { mode: "new" | "edit" }) {
 
   const backTo = mode === "edit" && slug ? `/blog/${slug}` : "/blog";
 
+  // debounced local autosave — “saving / saved locally / failed” chip
+  useEffect(() => {
+    if (!draft || !dirty.current) return;
+    setSaveState("saving");
+    const t = window.setTimeout(() => {
+      try {
+        localStorage.setItem(draftKey(draft.isNew ? "new" : draft.slug), JSON.stringify({ title: draft.title, description: draft.description, date: draft.date, tags: draft.tags, body: draft.body }));
+        setSaveState("saved");
+      } catch { setSaveState("error"); }
+    }, 800);
+    return () => window.clearTimeout(t);
+  }, [draft]);
+
   async function onSave() {
     if (!draft) return;
     try {
       const slug = mode === "new" ? slugify(draft.title) : draft.slug;
       const final: BlogDraft = slug ? { ...draft, slug, path: draft.isNew ? `${POSTS_DIR}/${slug}.mdx` : draft.path } : draft;
       await publishDraft(final);
+      try {
+        localStorage.removeItem(draftKey("new"));
+        if (slug) localStorage.removeItem(draftKey(slug));
+      } catch { /* ignore */ }
       navigate(slug ? `/blog/${slug}` : "/blog", { replace: true });
     } catch { /* mgrErr already set by publishDraft */ }
   }
@@ -92,8 +125,9 @@ export function PostEditorPage({ mode }: { mode: "new" | "edit" }) {
         ) : draft ? (
           <EditorPanel
             draft={draft}
-            onDraft={setDraft}
+            onDraft={(d) => { dirty.current = true; setDraft(d); }}
             busy={publishing}
+            saveState={saveState}
             onSave={onSave}
             onCancel={() => navigate(backTo)}
           />

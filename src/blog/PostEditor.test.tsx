@@ -81,6 +81,19 @@ describe("blog editor routing", () => {
     expect(screen.queryByText(/github pat/i)).not.toBeInTheDocument();
   });
 
+  it("autosaves the draft to localStorage after typing", async () => {
+    localStorage.clear();
+    render(<MemoryRouter initialEntries={["/blog/admin/new"]}><Routes><Route path="/blog/admin/new" element={<PostEditorPage mode="new" />} /></Routes></MemoryRouter>);
+    const title = screen.getByLabelText("Post title");
+    fireEvent.change(title, { target: { value: "Draft title" } });
+    expect(await screen.findByText("Saving draft…")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText("Draft saved locally")).toBeInTheDocument(), { timeout: 2500 });
+    const key = Object.keys(localStorage).find((k) => k.startsWith("hazem_draft_"));
+    expect(key).toBeTruthy();
+    expect(JSON.parse(localStorage.getItem(key!) || "{}").title).toBe("Draft title");
+    localStorage.clear();
+  });
+
   it("the edit page loads the post from the repo and prefills the editor", async () => {
     render(<MemoryRouter initialEntries={["/blog/admin/edit/arabic-vmwe-llms"]}><Routes><Route path="/blog/admin/edit/:slug" element={<PostEditorPage mode="edit" />} /></Routes></MemoryRouter>);
     expect(screen.getByText(/EDITING · arabic-vmwe-llms/i)).toBeInTheDocument();

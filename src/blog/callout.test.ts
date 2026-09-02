@@ -25,14 +25,14 @@ function parasOf(bq: any): any[] {
 }
 
 describe("remarkCallout", () => {
-  it("turns a [!NOTE] marker into a data-callout blockquote with a `$ note` eyebrow", () => {
+  it("turns a [!NOTE] marker into a data-callout blockquote with a `note` eyebrow", () => {
     const hast = renderCallouts("> [!NOTE]\n> Keep the conversion outside the model.");
     const [cq] = findCallouts(hast);
     expect(cq).toBeDefined();
     expect(cq.properties?.["data-callout"]).toBe("note");
     expect(cq.properties?.className).toContain("blog-callout");
     const paras = parasOf(cq);
-    expect(paras[0]?.children?.[0]?.type === "text" && paras[0].children[0].value).toBe("$ note");
+    expect(paras[0]?.children?.[0]?.type === "text" && paras[0].children[0].value).toBe("note");
     expect(paras[1]?.children?.[0]?.value).toContain("Keep the conversion");
   });
 
@@ -41,8 +41,8 @@ describe("remarkCallout", () => {
     const [tip, warn] = findCallouts(hast);
     expect(tip.properties["data-callout"]).toBe("tip");
     expect(warn.properties["data-callout"]).toBe("warning");
-    expect(parasOf(tip)[0].children[0].value).toBe("$ tip");
-    expect(parasOf(warn)[0].children[0].value).toBe("$ warning");
+    expect(parasOf(tip)[0].children[0].value).toBe("tip");
+    expect(parasOf(warn)[0].children[0].value).toBe("warning");
   });
 
   it("leaves ordinary blockquotes alone", () => {
